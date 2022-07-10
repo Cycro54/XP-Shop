@@ -1,0 +1,12 @@
+{
+  "ShopScreen.shop_text": "Welcome to the shop!",
+  "ShopScreen.shop_category_button": "Test cat button!",
+  "AddCatScreen.search_text" : "Search...",
+  "AddCatScreen.title_text" : "Type a name...",
+  "AddCatScreen.done_txt" : "Done",
+  "AddCatScreen.cancel_txt" : "Cancel",
+  "SearchItemScreen.item_size_text" : "Type item size...",
+  "SellItemScreen.ghost_text" : "Type sell price...",
+  "key.xp_shop.open_shop" : "Open/Close Shop",
+  "key.category.xp_shop" : "XP Shop"
+}
