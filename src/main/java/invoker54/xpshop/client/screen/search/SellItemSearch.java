@@ -145,8 +145,6 @@ public class SellItemSearch  extends SearchScreen{
     public void render(MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
         super.render(stack, xMouse, yMouse, partialTicks);
 
-        this.priceBox.render(stack, xMouse, yMouse, partialTicks);
-
         //Next bind the shop texture
         ClientUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
 
@@ -158,6 +156,8 @@ public class SellItemSearch  extends SearchScreen{
         String txtToRender = showSellOnly ? "Sell Entries" : "All Items";
 
         drawCenteredString(stack,font, txtToRender, halfWidthSpace + (189/2), halfHeightSpace + 4, TextFormatting.WHITE.getColor());
+
+        this.priceBox.render(stack, xMouse, yMouse, partialTicks);
     }
 
     @Override
@@ -218,7 +218,7 @@ public class SellItemSearch  extends SearchScreen{
                 return priceBox.charTyped(character,keyCode);
             }
             //Check if character is parsable
-            if (!NumberUtils.isParsable(String.valueOf(character))) return false;
+            if (!NumberUtils.isParsable(String.valueOf(character))) return super.charTyped(character, keyCode);
 
             return priceBox.charTyped(character, keyCode);
         }

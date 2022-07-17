@@ -18,6 +18,8 @@ import invoker54.xpshop.common.network.msg.BuyItemMsg;
 import invoker54.xpshop.common.network.msg.OpenSellContainerMsg;
 import invoker54.xpshop.common.network.msg.UnlockItemMsg;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.IGuiEventListener;
+import net.minecraft.client.gui.INestedGuiEventHandler;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.ResourceLocation;
@@ -27,6 +29,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -135,7 +138,7 @@ public class ShopScreen extends Screen {
         }
 
         //Make sure the selected cat button is disabled
-        if (catButtons.get(pageIndex) instanceof CustomItemButton) {
+        if (!catButtons.isEmpty() && catButtons.get(pageIndex) instanceof CustomItemButton) {
             if (!catButtons.get(pageIndex).isFocused()) catButtons.get(pageIndex).changeFocus(true);
             XPShop.LOGGER.debug("I AM DISABLING A BUTTON");
         }
@@ -273,6 +276,7 @@ public class ShopScreen extends Screen {
                 yPos, 7,106,7,249,7,256);
 
         searchBox.render(stack,xMouse,yMouse,partialTicks);
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         if (hoverButton != null){
             if (hoverButton instanceof ClientUtil.ItemButton){
@@ -325,20 +329,27 @@ public class ShopScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int key, int b, int c) {
+    public boolean keyPressed(int keyCode, int b, int c) {
         if (this.searchBox.isFocused()) {
             String s = this.searchBox.getValue();
-            if (this.searchBox.keyPressed(key, b, c)) {
+            if (this.searchBox.keyPressed(keyCode, b, c)) {
                 this.refreshItemList(searchBox.getValue());
                 return true;
             }
         }
-        if (minecraft.options.keyInventory.getKey().getValue() == key ||
-                KeybindsInit.shopKey.keyBind.getKey().getValue() == key) {
-            minecraft.setScreen(null);
-            return true;
+        else if (this.getFocused() == null) {
+            if (minecraft.options.keyInventory.getKey().getValue() == keyCode ||
+                    KeybindsInit.shopKey.keyBind.getKey().getValue() == keyCode) {
+                minecraft.setScreen(null);
+                return true;
+            } else if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                minecraft.setScreen(null);
+                return true;
+            }
         }
-        else return super.keyPressed(key, b, c);
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.getFocused() != null)   this.setFocused(null);
+
+        return super.keyPressed(keyCode, b, c);
     }
 
     public boolean keyReleased(int p_223281_1_, int p_223281_2_, int p_223281_3_) {
@@ -364,6 +375,19 @@ public class ShopScreen extends Screen {
 
 
         return true;
+    }
+
+    @Override
+    public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
+        if (this.getFocused() != null) this.getFocused().mouseClicked(xMouse, yMouse, mouseButton);
+
+        if (!super.mouseClicked(xMouse, yMouse, mouseButton)){
+            this.setFocused((IGuiEventListener) null);
+            return false;
+        }
+        else{
+            return true;
+        }
     }
 
     public void renderScrollBar(MatrixStack stack, int x, int y, boolean isItemBar){

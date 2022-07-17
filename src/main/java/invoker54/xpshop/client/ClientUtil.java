@@ -278,6 +278,8 @@ public class ClientUtil {
     }
 
     public static String formatValue(double value) {
+        if (value == 0) return "0";
+
         int power;
         String suffix = " KMBT";
         String formattedNumber = "";

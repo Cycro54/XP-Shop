@@ -7,6 +7,7 @@ import invoker54.xpshop.client.ClientUtil;
 import invoker54.xpshop.client.keybinds.KeybindsInit;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.ISearchTree;
 import net.minecraft.client.util.SearchTreeManager;
@@ -23,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
+import javax.xml.stream.FactoryConfigurationError;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
@@ -239,11 +241,18 @@ public class SearchScreen extends Screen {
     }
 
     public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
+        if (this.getFocused() != null) this.getFocused().mouseClicked(xMouse, yMouse, mouseButton);
+
         if (hoverItem != null && mouseButton == 0) {
             chosenItem = hoverItem;
+        }
+        if(!super.mouseClicked(xMouse, yMouse, mouseButton)){
+            setFocused((IGuiEventListener) null);
+            return false;
+        }
+        else {
             return true;
         }
-        return super.mouseClicked(xMouse, yMouse, mouseButton);
     }
 
     public boolean mouseScrolled(double xMouse, double yMouse, double scrollValue) {
@@ -305,15 +314,17 @@ public class SearchScreen extends Screen {
                 return true;
             }
         }
-        if (minecraft.options.keyInventory.getKey().getValue() == keyCode ||
-                KeybindsInit.shopKey.keyBind.getKey().getValue() == keyCode) {
-            minecraft.setScreen(null);
-            return true;
+        else if (this.getFocused() == null) {
+            if (minecraft.options.keyInventory.getKey().getValue() == keyCode ||
+                    KeybindsInit.shopKey.keyBind.getKey().getValue() == keyCode) {
+                minecraft.setScreen(null);
+                return true;
+            } else if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                minecraft.setScreen(prevScreen);
+                return true;
+            }
         }
-        else if (keyCode == GLFW.GLFW_KEY_ESCAPE){
-            minecraft.setScreen(prevScreen);
-            return true;
-        }
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.getFocused() != null)   this.setFocused(null);
         return false;
     }
 

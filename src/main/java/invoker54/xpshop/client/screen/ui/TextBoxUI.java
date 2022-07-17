@@ -5,6 +5,7 @@ import invoker54.xpshop.client.ClientUtil;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.util.text.ITextComponent;
+import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 
@@ -40,5 +41,13 @@ public class TextBoxUI extends TextFieldWidget {
                     this.x,this.y + ((this.height - 9)/2f),ghostTxtColor);
         }
         ClientUtil.endCrop();
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int x, int y) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE){
+            this.setFocus(false);
+        }
+        return super.keyPressed(keyCode, x, y);
     }
 }
