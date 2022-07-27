@@ -9,6 +9,7 @@ import invoker54.xpshop.common.data.SellEntry;
 import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.ClearSellContainerMsg;
+import invoker54.xpshop.common.network.msg.SyncServerCapMsg;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
@@ -65,6 +66,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
             ClientUtil.mC.player.giveExperiencePoints((int)totalExp);
             menu.tempInv.clearContent();
             NetworkHandler.INSTANCE.sendToServer(new ClearSellContainerMsg());
+            NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(cap.writeNBT()));
         }));
 
         //Change to Buy screen button
