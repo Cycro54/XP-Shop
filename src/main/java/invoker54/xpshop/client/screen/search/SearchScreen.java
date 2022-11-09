@@ -172,8 +172,6 @@ public class SearchScreen extends Screen {
             renderTooltip(stack, this.hoverItem, xMouse, yMouse);
         }
 
-        if (this.getFocused() != null && this.getFocused() instanceof TextBoxUI) LOGGER.error("Hash: " + this.getFocused().hashCode());
-
         //Start scissor test
 //        RenderSystem.enableScissor((int) ((halfWidth + 9) * scale), (int) ((halfHeight + 9) * scale),
 //                (int) ((187) * scale), (int) (140 * scale));

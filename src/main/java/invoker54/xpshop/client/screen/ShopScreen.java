@@ -48,7 +48,7 @@ public class ShopScreen extends Screen {
     private int maxCatOffset;
     private int ItemOffset;
     private int maxItemOffset;
-    private int pageIndex = 0;
+    private int pageIndex = 1;
     private ExtraUtil.Bounds catBounds;
     private ExtraUtil.Bounds itemBounds;
 
@@ -69,7 +69,6 @@ public class ShopScreen extends Screen {
         //XPShop.LOGGER.debug("Start Shop screen");
         //XPShop.LOGGER.debug("I am the main screen right?" + (ClientUtil.mC.screen == this));
         catButtons.clear();
-
 
         halfWidthSpace = (width - imageWidth) /2;
         halfHeightSpace = (height - imageHeight) /2;
@@ -117,6 +116,7 @@ public class ShopScreen extends Screen {
             catEntry = ShopData.catEntries.get(i);
             //XPShop.LOGGER.debug( "SHOPDATA has this category right? " + (ShopData.catEntries.contains(catEntry)));
             int index = catButtons.size();
+            LOGGER.debug("WHATS THE CURRENT INDEX? " + index);
             catButtons.add(addButton(new CategoryButton(halfWidthSpace + 9, origButtonY + maxCatOffset, 26, 26,
                     catEntry, catBounds, (button) -> {
                 //turn back on the prev category
@@ -137,7 +137,7 @@ public class ShopScreen extends Screen {
         }
 
         //Make sure the selected cat button is disabled
-        if (!catButtons.isEmpty() && catButtons.get(pageIndex) instanceof CategoryButton) {
+        if (catButtons.size() != 1 && catButtons.get(pageIndex) instanceof CategoryButton) {
 //            if (!catButtons.get(pageIndex).isFocused()) catButtons.get(pageIndex).changeFocus(true);
             catButtons.get(pageIndex).active = false;
             XPShop.LOGGER.debug("I AM DISABLING A BUTTON");
@@ -171,19 +171,22 @@ public class ShopScreen extends Screen {
             if (catButtons.size() <= pageIndex) {
                 pageIndex = ShopData.catEntries.size() - 1;
             }
+            //Use this since the very first item in the category list is an "add category" button.
+            int adjustedPageIndex = pageIndex - 1;
+            
             //Add item button
             if (ExtraUtil.mC.player.isCreative()) {
                 itemButtons.add(addButton(new ExtraUtil.AddButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                         "Add an item+", itemBounds, (button) -> {
-                    ExtraUtil.mC.setScreen(new AddItemScreen(this, ShopData.catEntries.get(pageIndex), null));
+                    ExtraUtil.mC.setScreen(new AddItemScreen(this, ShopData.catEntries.get(adjustedPageIndex), null));
                     //LOGGER.debug("I want you to add items in a bit.");
                 })));
                 maxItemOffset += 22 + 1;
             }
 
-            if (ShopData.catEntries.size() > pageIndex) {
+            if (ShopData.catEntries.size() > adjustedPageIndex) {
 
-                CategoryEntry catEntry = ShopData.catEntries.get(pageIndex);
+                CategoryEntry catEntry = ShopData.catEntries.get(adjustedPageIndex);
                 for (int i = 0; i < catEntry.entries.size(); ++i) {
                     itemButtons.add(addButton(new PriceButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                             itemBounds, catEntry.entries.get(i))));
@@ -584,7 +587,7 @@ public class ShopScreen extends Screen {
                 this.playDownSound(ExtraUtil.mC.getSoundManager());
 
                 if (ExtraUtil.mC.player.isCreative()) {
-                    ExtraUtil.mC.setScreen(new AddItemScreen(ExtraUtil.mC.screen, ShopData.catEntries.get(pageIndex), entry));
+                    ExtraUtil.mC.setScreen(new AddItemScreen(ExtraUtil.mC.screen, ShopData.catEntries.get(pageIndex - 1), entry));
                     return true;
                 }
             }

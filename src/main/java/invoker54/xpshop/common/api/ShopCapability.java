@@ -62,21 +62,19 @@ public class ShopCapability {
     }
 
     public Stock grabStock(BuyEntry entry){
+        //If limitStock is 0 for the BuyEntry, it's always in stock.
+        if (entry.limitStock == 0) return null;
+
         for (Stock stockItem : stockItems){
             if (stockItem.item.sameItem(entry.item))
                 return stockItem;
         }
 
-        if (entry.limitStock != 0){
-            Stock newStock = new Stock();
-            newStock.stockLeft = entry.limitStock;
-            newStock.item = entry.item;
-            stockItems.add(newStock);
-            return newStock;
-        }
-
-        //If the item doesn't exist in the stock list, it's always in stock.
-        return null;
+        Stock newStock = new Stock();
+        newStock.stockLeft = entry.limitStock;
+        newStock.item = entry.item;
+        stockItems.add(newStock);
+        return newStock;
     }
 
     public static ShopCapability getShopCap(LivingEntity player){
