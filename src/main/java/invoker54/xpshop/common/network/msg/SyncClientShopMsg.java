@@ -1,7 +1,7 @@
 package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.screen.ShopScreen;
 import invoker54.xpshop.common.data.ShopData;
 import net.minecraft.nbt.CompoundNBT;
@@ -38,13 +38,13 @@ public class SyncClientShopMsg {
 
             ShopData.deserialize(mainNBT);
 
-            if (ClientUtil.mC.screen != null)
-            XPShop.LOGGER.debug("What's the current screen?: " + (ClientUtil.mC.screen.getClass()));
+            if (ExtraUtil.mC.screen != null)
+            XPShop.LOGGER.debug("What's the current screen?: " + (ExtraUtil.mC.screen.getClass()));
 
             //If shop screen, refresh it!
-            if (ClientUtil.mC.screen instanceof ShopScreen){
+            if (ExtraUtil.mC.screen instanceof ShopScreen){
                 XPShop.LOGGER.debug("Refreshing shop screen");
-                ClientUtil.mC.setScreen(ClientUtil.mC.screen);
+                ExtraUtil.mC.setScreen(ExtraUtil.mC.screen);
             }
         });
         context.setPacketHandled(true);

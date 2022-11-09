@@ -2,7 +2,7 @@ package invoker54.xpshop.client.screen.search;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import invoker54.xpshop.common.data.BuyEntry;
 import invoker54.xpshop.common.data.CategoryEntry;
@@ -37,7 +37,7 @@ public class CatSearchScreen extends SearchScreen {
             if(!ShopData.catEntries.contains(targEntry))
             ShopData.catEntries.add(targEntry);
 
-            ClientUtil.mC.setScreen(prevScreen);
+            ExtraUtil.mC.setScreen(prevScreen);
             NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
         };
     }
@@ -57,7 +57,7 @@ public class CatSearchScreen extends SearchScreen {
             titleBox.setValue(targEntry.categoryName);
             chosenItem = targEntry.categoryItem;
             //Delete button
-            addButton(new ClientUtil.SimpleButton(halfWidthSpace + 9, halfHeightSpace + 4, 40, 16, ITextComponent.nullToEmpty("Delete"),
+            addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 9, halfHeightSpace + 4, 40, 16, ITextComponent.nullToEmpty("Delete"),
                     (button) -> {
                         //Remove all of this categories buy entries
                         for (BuyEntry buyEntry : targEntry.entries) {
@@ -69,7 +69,7 @@ public class CatSearchScreen extends SearchScreen {
                         XPShop.LOGGER.debug("Does it have it now? " + ShopData.catEntries.contains(targEntry));
 
                         //Now go back to the previous screen
-                        ClientUtil.mC.setScreen(prevScreen);
+                        ExtraUtil.mC.setScreen(prevScreen);
 
                         NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
                         for (CategoryEntry catEntry : ShopData.catEntries) {

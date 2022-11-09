@@ -3,9 +3,9 @@ package invoker54.xpshop.client.screen;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
+import invoker54.xpshop.client.KeyInit;
 import invoker54.xpshop.client.event.RenderXPEvent;
-import invoker54.xpshop.client.keybinds.KeybindsInit;
 import invoker54.xpshop.client.screen.search.CatSearchScreen;
 import invoker54.xpshop.client.screen.search.SellItemSearch;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
@@ -18,8 +18,6 @@ import invoker54.xpshop.common.network.msg.BuyItemMsg;
 import invoker54.xpshop.common.network.msg.OpenSellContainerMsg;
 import invoker54.xpshop.common.network.msg.UnlockItemMsg;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.INestedGuiEventHandler;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.ResourceLocation;
@@ -51,8 +49,8 @@ public class ShopScreen extends Screen {
     private int ItemOffset;
     private int maxItemOffset;
     private int pageIndex = 0;
-    private ClientUtil.Bounds catBounds;
-    private ClientUtil.Bounds itemBounds;
+    private ExtraUtil.Bounds catBounds;
+    private ExtraUtil.Bounds itemBounds;
 
     private TextBoxUI searchBox;
 
@@ -63,11 +61,6 @@ public class ShopScreen extends Screen {
 
     public ShopScreen() {
         super(new TranslationTextComponent("shopScreen.shop_text"));
-    }
-
-    @Override
-    public void resize(Minecraft p_231152_1_, int p_231152_2_, int p_231152_3_) {
-        super.resize(p_231152_1_, p_231152_2_, p_231152_3_);
     }
 
     @Override
@@ -85,12 +78,13 @@ public class ShopScreen extends Screen {
         searchBox = new TextBoxUI(font, halfWidthSpace + 49,halfHeightSpace + 28 - 16, 109,10,ITextComponent.nullToEmpty("Search..."),
                 TextBoxUI.defOutColor,TextBoxUI.defInColor);
         this.children.add(this.searchBox);
+        this.buttons.add(searchBox);
 
-        ClientUtil.SimpleButton sellButton = new ClientUtil.SimpleButton(halfWidthSpace + 3 + 14,halfHeightSpace + imageHeight,14,21, null,(button) ->{
-            XPShop.LOGGER.debug("WILL THIS OPEN CREATIVE MENU?: " + (ClientUtil.mC.player.isCreative()));
+        ExtraUtil.SimpleButton sellButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3 + 14,halfHeightSpace + imageHeight,14,21, null,(button) ->{
+            XPShop.LOGGER.debug("WILL THIS OPEN CREATIVE MENU?: " + (ExtraUtil.mC.player.isCreative()));
             //If the player is in creative, set the screen to add sell item screen
-            if (ClientUtil.mC.player.isCreative()){
-                ClientUtil.mC.setScreen(new SellItemSearch(this,(Iitem -> {})));
+            if (ExtraUtil.mC.player.isCreative()){
+                ExtraUtil.mC.setScreen(new SellItemSearch(this,(Iitem -> {})));
             }
 
             //Else, open up a temporary container to put the shtuff in
@@ -101,16 +95,16 @@ public class ShopScreen extends Screen {
         });
         addButton(sellButton);
 
-        catBounds = new ClientUtil.Bounds(halfWidthSpace + 9, 33, halfHeightSpace + 29,139);
-        itemBounds = new ClientUtil.Bounds(halfWidthSpace + 51, 115, halfHeightSpace + 29,139);
+        catBounds = new ExtraUtil.Bounds(halfWidthSpace + 9, 33, halfHeightSpace + 29,139);
+        itemBounds = new ExtraUtil.Bounds(halfWidthSpace + 51, 115, halfHeightSpace + 29,139);
 
         //region category buttons
         maxCatOffset = 0;
 
-        if (ClientUtil.mC.player.isCreative()) {
-            catButtons.add(addButton(new ClientUtil.AddButton(halfWidthSpace + 9, origButtonY + maxCatOffset, 26, 26,
+        if (ExtraUtil.mC.player.isCreative()) {
+            catButtons.add(addButton(new ExtraUtil.AddButton(halfWidthSpace + 9, origButtonY + maxCatOffset, 26, 26,
                     "Add+", catBounds, (button) -> {
-                ClientUtil.mC.setScreen(new CatSearchScreen(this, null));
+                ExtraUtil.mC.setScreen(new CatSearchScreen(this, null));
                 //LOGGER.debug("I want you to change the current category later.");
             })));
             maxCatOffset += 26 + 1;
@@ -123,13 +117,18 @@ public class ShopScreen extends Screen {
             catEntry = ShopData.catEntries.get(i);
             //XPShop.LOGGER.debug( "SHOPDATA has this category right? " + (ShopData.catEntries.contains(catEntry)));
             int index = catButtons.size();
-            catButtons.add(addButton(new CustomItemButton(halfWidthSpace + 9, origButtonY + maxCatOffset, 26, 26,
+            catButtons.add(addButton(new CategoryButton(halfWidthSpace + 9, origButtonY + maxCatOffset, 26, 26,
                     catEntry, catBounds, (button) -> {
                 //turn back on the prev category
-                if (catButtons.get(pageIndex).isFocused()) catButtons.get(pageIndex).changeFocus(true);
+                catButtons.get(pageIndex).active = true;
+
+                //Change the current page
                 pageIndex = index;
+
                 //turn off the new category
-                if (!catButtons.get(pageIndex).isFocused()) catButtons.get(pageIndex).changeFocus(true);
+                button.active = false;
+
+                //Finally refresh the shop items
                 refreshItemList("");
             })));
 
@@ -138,8 +137,9 @@ public class ShopScreen extends Screen {
         }
 
         //Make sure the selected cat button is disabled
-        if (!catButtons.isEmpty() && catButtons.get(pageIndex) instanceof CustomItemButton) {
-            if (!catButtons.get(pageIndex).isFocused()) catButtons.get(pageIndex).changeFocus(true);
+        if (!catButtons.isEmpty() && catButtons.get(pageIndex) instanceof CategoryButton) {
+//            if (!catButtons.get(pageIndex).isFocused()) catButtons.get(pageIndex).changeFocus(true);
+            catButtons.get(pageIndex).active = false;
             XPShop.LOGGER.debug("I AM DISABLING A BUTTON");
         }
 
@@ -172,10 +172,10 @@ public class ShopScreen extends Screen {
                 pageIndex = ShopData.catEntries.size() - 1;
             }
             //Add item button
-            if (ClientUtil.mC.player.isCreative()) {
-                itemButtons.add(addButton(new ClientUtil.AddButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
+            if (ExtraUtil.mC.player.isCreative()) {
+                itemButtons.add(addButton(new ExtraUtil.AddButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                         "Add an item+", itemBounds, (button) -> {
-                    ClientUtil.mC.setScreen(new AddItemScreen(this, ShopData.catEntries.get(pageIndex), null));
+                    ExtraUtil.mC.setScreen(new AddItemScreen(this, ShopData.catEntries.get(pageIndex), null));
                     //LOGGER.debug("I want you to add items in a bit.");
                 })));
                 maxItemOffset += 22 + 1;
@@ -215,15 +215,16 @@ public class ShopScreen extends Screen {
         //First render background
         super.renderBackground(stack);
         //Next bind the shop texture
-        ClientUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+        ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+        Minecraft.getInstance().getTextureManager().bind(SHOP_LOCATION);
         //Now Render shop
-        ClientUtil.blitImage(stack, halfWidthSpace, imageWidth,
+        ExtraUtil.blitImage(stack, halfWidthSpace, imageWidth,
                 halfHeightSpace,  178, 0, imageWidth, 0, imageHeight, 256);
 
         //Render buy flag
-        ClientUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + imageHeight,28,190, 28, imageHeight, 56,256);
+        ExtraUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + imageHeight,28,190, 28, imageHeight, 56,256);
         //Render Sell flag
-        ClientUtil.blitImage(stack,halfWidthSpace + 3 + 14, 14,halfHeightSpace + imageHeight,21,106, 28, imageHeight, 42,256);
+        ExtraUtil.blitImage(stack,halfWidthSpace + 3 + 14, 14,halfHeightSpace + imageHeight,21,106, 28, imageHeight, 42,256);
 
         //Render ScrollBars
         //Note: as soon as there are more than 5 buttons, the scrollbar will be needed
@@ -235,7 +236,7 @@ public class ShopScreen extends Screen {
         int offset = 0;
 
         //Start scissor test
-        ClientUtil.beginCrop(halfWidthSpace + 9, 26, halfHeightSpace + 29,139, true);
+        ExtraUtil.beginCrop(halfWidthSpace + 9, 26, halfHeightSpace + 29,139, true);
         for (int a = 0; a < catButtons.size(); a++){
             Button button = catButtons.get(a);
 
@@ -243,14 +244,14 @@ public class ShopScreen extends Screen {
 
             button.render(stack, xMouse, yMouse, partialTicks);
 
-            if(button.isHovered() && !(button instanceof ClientUtil.AddButton)) hoverButton = button;
+            if(button.isHovered() && !(button instanceof ExtraUtil.AddButton)) hoverButton = button;
 
             offset += button.getHeight();
         }
         offset = 0;
-        ClientUtil.endCrop();
+        ExtraUtil.endCrop();
 
-        ClientUtil.beginCrop(halfWidthSpace + 51, 108, halfHeightSpace + 29,139, true);
+        ExtraUtil.beginCrop(halfWidthSpace + 51, 108, halfHeightSpace + 29,139, true);
         for (int a = 0; a < itemButtons.size(); a++){
             Button button = itemButtons.get(a);
 
@@ -258,11 +259,11 @@ public class ShopScreen extends Screen {
 
             button.render(stack, xMouse, yMouse, partialTicks);
 
-            if(button.isHovered() && !(button instanceof ClientUtil.AddButton)) hoverButton = button;
+            if(button.isHovered() && !(button instanceof ExtraUtil.AddButton)) hoverButton = button;
 
             offset += button.getHeight();
         }
-        ClientUtil.endCrop();
+        ExtraUtil.endCrop();
 
         //Draw Experience amount
         String totalXP = Integer.toString(minecraft.player.totalExperience);
@@ -271,17 +272,17 @@ public class ShopScreen extends Screen {
         RenderXPEvent.renderXPAmount(stack, font, totalXP, xPos, yPos);
 
         //Render XP Orb
-        ClientUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
-        ClientUtil.blitImage(stack,xPos - 8,7,
+        ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+        ExtraUtil.blitImage(stack,xPos - 8,7,
                 yPos, 7,106,7,249,7,256);
 
         searchBox.render(stack,xMouse,yMouse,partialTicks);
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         if (hoverButton != null){
-            if (hoverButton instanceof ClientUtil.ItemButton){
+            if (hoverButton instanceof ExtraUtil.ItemButton){
                 List<ITextComponent> textList = new ArrayList<>();
-                if(ClientUtil.mC.player.isCreative())
+                if(ExtraUtil.mC.player.isCreative())
                 textList.add(ITextComponent.nullToEmpty("\247cRight Click to edit!"));
                 textList.add(hoverButton.getMessage());
                 renderComponentTooltip(stack, textList, xMouse, yMouse);
@@ -290,7 +291,7 @@ public class ShopScreen extends Screen {
             else if (hoverButton instanceof PriceButton){
                 PriceButton pButton = (PriceButton) hoverButton;
                 List<ITextComponent> textList = getTooltipFromItem(pButton.entry.item);
-                if (ClientUtil.mC.player.isCreative())
+                if (ExtraUtil.mC.player.isCreative())
                 textList.add(0, ITextComponent.nullToEmpty("\247cRight Click to edit!"));
 
                 if (pButton.myStock != null && pButton.myStock.stockLeft < pButton.entry.limitStock) {
@@ -339,7 +340,7 @@ public class ShopScreen extends Screen {
         }
         else if (this.getFocused() == null) {
             if (minecraft.options.keyInventory.getKey().getValue() == keyCode ||
-                    KeybindsInit.shopKey.keyBind.getKey().getValue() == keyCode) {
+                    KeyInit.shopKey.keyBind.getKey().getValue() == keyCode) {
                 minecraft.setScreen(null);
                 return true;
             } else if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
@@ -359,13 +360,13 @@ public class ShopScreen extends Screen {
     public boolean mouseScrolled(double xMouse, double yMouse, double scrollValue) {
         scrollValue = -MathHelper.sign(scrollValue);
 
-        if (ClientUtil.inBounds((float) xMouse, (float) yMouse, catBounds)){
+        if (ExtraUtil.inBounds((float) xMouse, (float) yMouse, catBounds)){
             if (canscroll(false) == false) return false;
 
             CatOffset = MathHelper.clamp(CatOffset + 13 * (int) scrollValue, 0,maxCatOffset);
         }
 
-        else if(ClientUtil.inBounds((float) xMouse, (float) yMouse, itemBounds)){
+        else if(ExtraUtil.inBounds((float) xMouse, (float) yMouse, itemBounds)){
             if (canscroll(true) == false) return false;
 
             ItemOffset = MathHelper.clamp(ItemOffset + 13 * (int) scrollValue, 0, maxItemOffset);
@@ -377,18 +378,18 @@ public class ShopScreen extends Screen {
         return true;
     }
 
-    @Override
-    public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
-        if (this.getFocused() != null) this.getFocused().mouseClicked(xMouse, yMouse, mouseButton);
-
-        if (!super.mouseClicked(xMouse, yMouse, mouseButton)){
-            this.setFocused((IGuiEventListener) null);
-            return false;
-        }
-        else{
-            return true;
-        }
-    }
+//    @Override
+//    public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
+//        if (this.getFocused() != null) this.getFocused().mouseClicked(xMouse, yMouse, mouseButton);
+//
+//        if (!super.mouseClicked(xMouse, yMouse, mouseButton)){
+//            this.setFocused((IGuiEventListener) null);
+//            return false;
+//        }
+//        else{
+//            return true;
+//        }
+//    }
 
     public void renderScrollBar(MatrixStack stack, int x, int y, boolean isItemBar){
         //This is how far the scroll bar can move before stopping
@@ -409,7 +410,7 @@ public class ShopScreen extends Screen {
             u = 6;
         }
 
-        ClientUtil.blitImage(stack, x, (int) imageWidth, y, (int) imageHeight, u, imageWidth, v, imageHeight, 256);
+        ExtraUtil.blitImage(stack, x, (int) imageWidth, y, (int) imageHeight, u, imageWidth, v, imageHeight, 256);
     }
 
     private boolean canscroll(boolean isItemBar){
@@ -427,20 +428,20 @@ public class ShopScreen extends Screen {
 
         public BuyEntry entry;
         String txtToRender;
-        ClientUtil.Bounds bounds;
+        ExtraUtil.Bounds bounds;
         protected ShopCapability playerCap;
         protected ShopCapability.Stock myStock;
         protected int shadeColor = new Color(0, 0, 0, 194).getRGB();
 
 
-        public PriceButton(int x, int y, int width, int height, ClientUtil.Bounds bounds, BuyEntry entry) {
+        public PriceButton(int x, int y, int width, int height, ExtraUtil.Bounds bounds, BuyEntry entry) {
             super(x, y, width, height, ITextComponent.nullToEmpty(entry.item.getDisplayName().getString()), (button) -> {
-                ShopCapability cap = ShopCapability.getShopCap(ClientUtil.mC.player);
+                ShopCapability cap = ShopCapability.getShopCap(ExtraUtil.mC.player);
                 ShopCapability.Stock stock = cap.grabStock(entry);
                 //First check if item has a lock item and if it's locked
                 if(!cap.isUnlocked(entry)) {
                     //if it does, check if player has enough of that item
-                    if (ClientUtil.mC.player.inventory.countItem(entry.lockItem.getItem()) >= entry.lockItem.getCount()) {
+                    if (ExtraUtil.mC.player.inventory.countItem(entry.lockItem.getItem()) >= entry.lockItem.getCount()) {
                         //Now make sure the item is now unlocked for this player
                         cap.unlockItem(entry.item);
 
@@ -451,7 +452,7 @@ public class ShopScreen extends Screen {
                         cap.unlockItem(entry.item);
 
                         //Reset the screen
-                        ((ShopScreen) ClientUtil.mC.screen).init();
+                        ((ShopScreen) ExtraUtil.mC.screen).init();
                     }
                     return;
                 }
@@ -459,7 +460,7 @@ public class ShopScreen extends Screen {
                 if (stock != null && stock.stockLeft == 0) return;
 
                 //If not enough xp, deny buy
-                if (ClientUtil.mC.player.totalExperience < entry.buyPrice) return;
+                if (ExtraUtil.mC.player.totalExperience < entry.buyPrice) return;
 
                 //Reduce stock
                 if(stock != null) stock.reduceStock();
@@ -467,7 +468,7 @@ public class ShopScreen extends Screen {
                 //Now start to buy the item
                 NetworkHandler.INSTANCE.sendToServer(new BuyItemMsg(entry.serialize()));
             });
-            this.playerCap = ShopCapability.getShopCap(ClientUtil.mC.player);
+            this.playerCap = ShopCapability.getShopCap(ExtraUtil.mC.player);
             this.myStock = playerCap.grabStock(entry);
             this.visible = true;
             this.entry = entry;
@@ -483,15 +484,15 @@ public class ShopScreen extends Screen {
 
         @Override
         public void renderButton(MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
-            ClientUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+            ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
             if (this.isHovered){
-                this.isHovered = ClientUtil.inBounds(xMouse, yMouse, bounds);
+                this.isHovered = ExtraUtil.inBounds(xMouse, yMouse, bounds);
             }
 
             int i = this.isHovered ? 22 : 0;
 
             //Render button
-            ClientUtil.blitImage(stack, this.x,  this.width, this.y, this.height,
+            ExtraUtil.blitImage(stack, this.x,  this.width, this.y, this.height,
                     0, this.width, 212 + i, this.height, 256);
 
             int j = getFGColor();
@@ -511,7 +512,7 @@ public class ShopScreen extends Screen {
             //Render count
             //font.drawShadow(stack,String.valueOf(entry.buyPrice), this.x + 3 + 15, this.y + 3 + 15, j | MathHelper.ceil(this.alpha * 255.0F) << 24);
 
-            int color = ClientUtil.mC.player.totalExperience >= entry.buyPrice ?
+            int color = ExtraUtil.mC.player.totalExperience >= entry.buyPrice ?
                     TextFormatting.GREEN.getColor() : TextFormatting.RED.getColor();
 
             int priceSpotX = this.x + this.width - 3 - font.width(String.valueOf(entry.buyPrice));
@@ -525,16 +526,16 @@ public class ShopScreen extends Screen {
                         this.x + 6 + 16, priceSpotY, color);
             }
 
-            ClientUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+            ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
             //Render XP Orb
-            ClientUtil.blitImage(stack,priceSpotX - 8,7,
+            ExtraUtil.blitImage(stack,priceSpotX - 8,7,
                     priceSpotY, 7,106,7,249,7,256);
 
             //stock shtuff
             if (myStock != null && myStock.stockLeft == 0){
                 //Render bg shade
                 RenderSystem.disableDepthTest();
-                ClientUtil.blitColor(stack,this.x,this.width,this.y,this.height, shadeColor);
+                ExtraUtil.blitColor(stack,this.x,this.width,this.y,this.height, shadeColor);
                 RenderSystem.enableDepthTest();
 
                 //Out of stock txt
@@ -548,7 +549,7 @@ public class ShopScreen extends Screen {
             else if (!playerCap.isUnlocked(entry)){
                 //Render lock bg
                 RenderSystem.disableDepthTest();
-                ClientUtil.blitColor(stack,this.x,this.width,this.y,this.height, shadeColor);
+                ExtraUtil.blitColor(stack,this.x,this.width,this.y,this.height, shadeColor);
                 RenderSystem.enableDepthTest();
                 //Now render item
                 //Render item
@@ -558,7 +559,7 @@ public class ShopScreen extends Screen {
                     itemRenderer.renderGuiItemDecorations(font, entry.lockItem, this.x + ((this.width - 16)/2), this.y + 3);
                 }
 
-                color = ClientUtil.mC.player.inventory.countItem(entry.lockItem.getItem()) >= entry.lockItem.getCount() ?
+                color = ExtraUtil.mC.player.inventory.countItem(entry.lockItem.getItem()) >= entry.lockItem.getCount() ?
                         TextFormatting.GREEN.getColor() : TextFormatting.RED.getColor();
 
                 //Unlock Text
@@ -580,10 +581,10 @@ public class ShopScreen extends Screen {
         public boolean mouseClicked(double xMouse, double yMouse, int buttonPressed) {
             //If right click, I want you to edit this entry
             if(buttonPressed == 1 && this.clicked(xMouse,yMouse)){
-                this.playDownSound(ClientUtil.mC.getSoundManager());
+                this.playDownSound(ExtraUtil.mC.getSoundManager());
 
-                if (ClientUtil.mC.player.isCreative()) {
-                    ClientUtil.mC.setScreen(new AddItemScreen(ClientUtil.mC.screen, ShopData.catEntries.get(pageIndex), entry));
+                if (ExtraUtil.mC.player.isCreative()) {
+                    ExtraUtil.mC.setScreen(new AddItemScreen(ExtraUtil.mC.screen, ShopData.catEntries.get(pageIndex), entry));
                     return true;
                 }
             }
@@ -592,10 +593,10 @@ public class ShopScreen extends Screen {
         }
     }
 
-    private class CustomItemButton extends ClientUtil.ItemButton {
+    private class CategoryButton extends ExtraUtil.ItemButton {
         private CategoryEntry entry;
 
-        public CustomItemButton(int x, int y, int width, int height, CategoryEntry entry, ClientUtil.Bounds bounds, IPressable onPress) {
+        public CategoryButton(int x, int y, int width, int height, CategoryEntry entry, ExtraUtil.Bounds bounds, IPressable onPress) {
             super(x, y, width, height, entry.categoryName, entry.categoryItem, bounds, onPress);
 
             this.entry = entry;
@@ -603,25 +604,25 @@ public class ShopScreen extends Screen {
 
         @Override
         protected boolean isValidClickButton(int buttonPressed) {
-            return buttonPressed < 2;
+            return buttonPressed < GLFW.GLFW_MOUSE_BUTTON_MIDDLE;
         }
 
-        @Override
-        public void onClick(double xMouse, double yMouse) {
-            super.onClick(xMouse, yMouse);
-        }
-
-        @Override
-        public boolean isHovered() {
-            return this.isHovered;
-        }
+//        @Override
+//        public void onClick(double xMouse, double yMouse) {
+//            super.onClick(xMouse, yMouse);
+//        }
+//
+//        @Override
+//        public boolean isHovered() {
+//            return this.isHovered;
+//        }
 
         @Override
         public boolean mouseClicked(double xMouse, double yMouse, int buttonPressed) {
             //If right click, I want you to edit this entry
-            if(ClientUtil.mC.player.isCreative() && buttonPressed == 1 && this.clicked(xMouse,yMouse)){
-                this.playDownSound(ClientUtil.mC.getSoundManager());
-                ClientUtil.mC.setScreen(new CatSearchScreen(ClientUtil.mC.screen, entry));
+            if(ExtraUtil.mC.player.isCreative() && buttonPressed == 1 && this.clicked(xMouse,yMouse)){
+                this.playDownSound(ExtraUtil.mC.getSoundManager());
+                ExtraUtil.mC.setScreen(new CatSearchScreen(ExtraUtil.mC.screen, entry));
                 return true;
             }
 

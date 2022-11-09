@@ -1,7 +1,7 @@
 package invoker54.xpshop.common.api;
 
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.common.data.BuyEntry;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
@@ -196,7 +196,7 @@ public class ShopCapability {
             //XPShop.LOGGER.debug("TIME LEFT: " + ClientUtil.ticksToTime(timeLeft));
 
             //Add 20 ticks to offset time
-            return ClientUtil.ticksToTime(timeLeft + 20);
+            return ExtraUtil.ticksToTime(timeLeft + 20);
         }
 
     }

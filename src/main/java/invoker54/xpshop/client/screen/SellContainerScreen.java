@@ -2,7 +2,7 @@ package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.event.RenderXPEvent;
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.data.SellEntry;
@@ -58,37 +58,37 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
         inventoryLabelY = 129;
 
         //This is the sell button
-        addButton(new ClientUtil.SimpleButton(halfWidthSpace + 115, halfHeightSpace + 122,54,13, ITextComponent.nullToEmpty("Sell"), (button) -> {
-            ShopCapability cap = ShopCapability.getShopCap(ClientUtil.mC.player);
+        addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 115, halfHeightSpace + 122,54,13, ITextComponent.nullToEmpty("Sell"), (button) -> {
+            ShopCapability cap = ShopCapability.getShopCap(ExtraUtil.mC.player);
 
             float totalExp = menu.totalExtraXP + cap.getLeftOverXP();
             cap.setLeftOverXP(totalExp - ((int)totalExp));
-            ClientUtil.mC.player.giveExperiencePoints((int)totalExp);
+            ExtraUtil.mC.player.giveExperiencePoints((int)totalExp);
             menu.tempInv.clearContent();
             NetworkHandler.INSTANCE.sendToServer(new ClearSellContainerMsg());
             NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(cap.writeNBT()));
         }));
 
         //Change to Buy screen button
-        ClientUtil.SimpleButton buyButton = new ClientUtil.SimpleButton(halfWidthSpace + 3,halfHeightSpace + imageHeight - offsetY,14,21, null,(button) ->{
+        ExtraUtil.SimpleButton buyButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3,halfHeightSpace + imageHeight - offsetY,14,21, null,(button) ->{
             //If the player is in creative, set the screen to add sell item screen
-            ClientUtil.mC.setScreen(new ShopScreen());
+            ExtraUtil.mC.setScreen(new ShopScreen());
         });
         buyButton.hidden = true;
         addButton(buyButton);
 
         //Now to set the initial values for the xp
-        tempLvl = ClientUtil.mC.player.experienceLevel;
-        tempProgress = ClientUtil.mC.player.experienceProgress;
-        tempTotal = ClientUtil.mC.player.totalExperience + ShopCapability.getShopCap(ClientUtil.mC.player).getLeftOverXP();
+        tempLvl = ExtraUtil.mC.player.experienceLevel;
+        tempProgress = ExtraUtil.mC.player.experienceProgress;
+        tempTotal = ExtraUtil.mC.player.totalExperience + ShopCapability.getShopCap(ExtraUtil.mC.player).getLeftOverXP();
 
         this.menu.tempInv.addListener((container) -> recalculateXP());
     }
 
     public void recalculateXP(){
-        ShopCapability cap = ShopCapability.getShopCap(ClientUtil.mC.player);
+        ShopCapability cap = ShopCapability.getShopCap(ExtraUtil.mC.player);
         tempLvl = 0;
-        tempTotal = ClientUtil.mC.player.totalExperience + cap.getLeftOverXP() + menu.totalExtraXP;
+        tempTotal = ExtraUtil.mC.player.totalExperience + cap.getLeftOverXP() + menu.totalExtraXP;
         tempProgress = (int)tempTotal / (float)RenderXPEvent.getXpNeededForNextLevel(tempLvl);
 
         while(this.tempProgress >= 1.0F) {
@@ -102,21 +102,21 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     protected void renderBg(MatrixStack stack, float partialTicks, int xMouse, int yMouse) {
         renderBackground(stack);
 
-        ClientUtil.TEXTURE_MANAGER.bind(SELL_LOCATION);
+        ExtraUtil.TEXTURE_MANAGER.bind(SELL_LOCATION);
         //Render the bg
-        ClientUtil.blitImage(stack,halfWidthSpace,imageWidth,halfHeightSpace,imageHeight,0,imageWidth,0,imageHeight,256);
+        ExtraUtil.blitImage(stack,halfWidthSpace,imageWidth,halfHeightSpace,imageHeight,0,imageWidth,0,imageHeight,256);
 
         drawCenteredString(stack,font,"Total",halfWidthSpace + (imageWidth/2),halfHeightSpace + 91,TextFormatting.WHITE.getColor());
 
         renderExperienceBar(stack);
 
         //region Render the flags next
-        ClientUtil.TEXTURE_MANAGER.bind(ShopScreen.SHOP_LOCATION);
+        ExtraUtil.TEXTURE_MANAGER.bind(ShopScreen.SHOP_LOCATION);
 
         //Render buy flag
-        ClientUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + imageHeight - offsetY,21,162, 28, 177, 42,256);
+        ExtraUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + imageHeight - offsetY,21,162, 28, 177, 42,256);
         //Render Sell flag
-        ClientUtil.blitImage(stack,halfWidthSpace + 3 + 14, 14,halfHeightSpace + imageHeight - offsetY,28,134, 28, 177, 56,256);
+        ExtraUtil.blitImage(stack,halfWidthSpace + 3 + 14, 14,halfHeightSpace + imageHeight - offsetY,28,134, 28, 177, 56,256);
         //endregion
 
         //Now render green slots for sellable items
@@ -126,10 +126,10 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
             if (!slot.hasItem()) continue;
 
             if (ShopData.sellEntries.containsKey(slot.getItem().getItem())){
-                ClientUtil.blitColor(stack,slot.x + halfWidthSpace, 16, slot.y + halfHeightSpace, 16, sellableColor);
+                ExtraUtil.blitColor(stack,slot.x + halfWidthSpace, 16, slot.y + halfHeightSpace, 16, sellableColor);
             }
             else {
-                ClientUtil.blitColor(stack,slot.x + halfWidthSpace, 16, slot.y + halfHeightSpace, 16, unSellableColor);
+                ExtraUtil.blitColor(stack,slot.x + halfWidthSpace, 16, slot.y + halfHeightSpace, 16, unSellableColor);
             }
         }
     }
@@ -141,19 +141,19 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     }
 
     protected void renderExperienceBar(MatrixStack stack) {
-        ShopCapability shopCap = ShopCapability.getShopCap(ClientUtil.mC.player);
-        ClientUtil.mC.getProfiler().push("expBar");
-        ClientUtil.TEXTURE_MANAGER.bind(AbstractGui.GUI_ICONS_LOCATION);
+        ShopCapability shopCap = ShopCapability.getShopCap(ExtraUtil.mC.player);
+        ExtraUtil.mC.getProfiler().push("expBar");
+        ExtraUtil.TEXTURE_MANAGER.bind(AbstractGui.GUI_ICONS_LOCATION);
         int i = RenderXPEvent.getXpNeededForNextLevel(tempLvl);
         int x = halfWidthSpace + (imageWidth /2);
         int y = halfHeightSpace + 110;
 
         if (i > 0) {
             //Render bg of XP bar
-            ClientUtil.blitImage(stack,x - (160/2),160,y,5,0,182,64, 5, 256);
+            ExtraUtil.blitImage(stack,x - (160/2),160,y,5,0,182,64, 5, 256);
             float p = tempProgress;
             if (p > 0) {
-                ClientUtil.blitImage(stack,x - (160/2), (int) (160 * p),y,5,0,182 * p,69, 5, 256);
+                ExtraUtil.blitImage(stack,x - (160/2), (int) (160 * p),y,5,0,182 * p,69, 5, 256);
             }
         }
 

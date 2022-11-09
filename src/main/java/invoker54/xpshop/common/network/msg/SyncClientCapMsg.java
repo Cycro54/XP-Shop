@@ -1,6 +1,6 @@
 package invoker54.xpshop.common.network.msg;
 
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.common.api.ShopCapability;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
@@ -31,7 +31,7 @@ public class SyncClientCapMsg {
 
         context.enqueueWork(() -> {
             //Give shop cap to player
-            ShopCapability.getShopCap(ClientUtil.mC.player).readNBT((CompoundNBT) msg.nbtData);
+            ShopCapability.getShopCap(ExtraUtil.mC.player).readNBT((CompoundNBT) msg.nbtData);
         });
         context.setPacketHandled(true);
     }

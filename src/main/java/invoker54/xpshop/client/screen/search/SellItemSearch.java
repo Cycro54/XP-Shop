@@ -1,7 +1,8 @@
 package invoker54.xpshop.client.screen.search;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.invocore.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import invoker54.xpshop.common.data.SellEntry;
 import invoker54.xpshop.common.data.ShopData;
@@ -12,10 +13,14 @@ import net.minecraft.client.util.ISearchTree;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.client.util.SearchTreeManager;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -27,9 +32,11 @@ import static invoker54.xpshop.client.screen.ShopScreen.SHOP_LOCATION;
 public class SellItemSearch  extends SearchScreen{
 
     private final ITextComponent ghostPriceText = new TranslationTextComponent("SellItemScreen.ghost_text");
+    private static final Logger LOGGER = LogManager.getLogger();
     private boolean showSellOnly = false;
     private boolean fullStack = false;
     private TextBoxUI priceBox;
+    protected boolean shiftHeld = false;
 
     private final int priceSetColor = new Color(155, 97, 255,255).getRGB();
 
@@ -49,23 +56,23 @@ public class SellItemSearch  extends SearchScreen{
         searchBox.y = halfHeightSpace + 35 - searchBox.getHeight() - 2;
 
         //Switch button
-        addButton(new ClientUtil.SimpleButton(halfWidthSpace + 9, halfHeightSpace + 4,40,16, ITextComponent.nullToEmpty("Switch"),
+        addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 9, halfHeightSpace + 4,40,16, ITextComponent.nullToEmpty("Switch"),
                 (button) -> {
                     showSellOnly = !showSellOnly;
                     refreshSearchResults();
                 }));
 
         //Full Stack bool button
-        addButton(new ClientUtil.SimpleButton(halfWidthSpace + 11 + 72 + 10, halfHeightSpace + 154,90,16, ITextComponent.nullToEmpty("Full Stack: " + (fullStack)),
+        addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 11 + 72 + 10, halfHeightSpace + 154,90,16, ITextComponent.nullToEmpty("Full Stack: " + (fullStack)),
                 (button) -> {
                     fullStack = !fullStack;
                     button.setMessage(ITextComponent.nullToEmpty("Full Stack: " + (fullStack)));
                 }));
 
         //Change to Buy screen button
-        ClientUtil.SimpleButton buyButton = new ClientUtil.SimpleButton(halfWidthSpace + 3,halfHeightSpace + 177,14,21, null,(button) ->{
+        ExtraUtil.SimpleButton buyButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3,halfHeightSpace + 177,14,21, null,(button) ->{
             //If the player is in creative, set the screen to add sell item screen
-            ClientUtil.mC.setScreen(prevScreen);
+            ExtraUtil.mC.setScreen(prevScreen);
         });
         buyButton.hidden = true;
         addButton(buyButton);
@@ -75,6 +82,7 @@ public class SellItemSearch  extends SearchScreen{
         //Make price field
         this.priceBox = new TextBoxUI(this.font, halfWidthSpace + 11, halfHeightSpace + 154,
                 72, 11, ghostPriceText, TextBoxUI.defOutColor, TextBoxUI.defInColor);
+        this.priceBox.setValue("0");
         this.children.add(this.priceBox);
     }
 
@@ -85,17 +93,16 @@ public class SellItemSearch  extends SearchScreen{
         if (ShopData.sellEntries.containsKey(item.getItem()))
             targEntry = ShopData.sellEntries.get(item.getItem());
 
+        List<ITextComponent> textList = getTooltipFromItem(item);
 
-        if (targEntry == null) {
-            super.renderTooltip(stack, item, xMouse, yMouse);
-        }
-        else {
-            List<ITextComponent> textList = getTooltipFromItem(item);
-
+        if (targEntry != null) {
             String sellTxt = "\247a\247lSELL PRICE: " + "\247r" + (targEntry.getSellPrice());
             textList.add(ITextComponent.nullToEmpty(sellTxt));
-            renderComponentTooltip(stack, textList, xMouse, yMouse);
         }
+        if (!ItemTags.getAllTags().getMatchingTags(item.getItem()).isEmpty()){
+            textList.add(ITextComponent.nullToEmpty("SHIFT + CLICK to add by tag"));
+        }
+        renderComponentTooltip(stack, textList, xMouse, yMouse);
     }
 
     @Override
@@ -146,12 +153,12 @@ public class SellItemSearch  extends SearchScreen{
         super.render(stack, xMouse, yMouse, partialTicks);
 
         //Next bind the shop texture
-        ClientUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+        ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
 
         //Render buy flag
-        ClientUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + 176,21,162, 28, 177, 42,256);
+        ExtraUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + 176,21,162, 28, 177, 42,256);
         //Render Sell flag
-        ClientUtil.blitImage(stack,halfWidthSpace + 3 + 14, 14,halfHeightSpace + 176,28,134, 28, 177, 56,256);
+        ExtraUtil.blitImage(stack,halfWidthSpace + 3 + 14, 14,halfHeightSpace + 176,28,134, 28, 177, 56,256);
 
         String txtToRender = showSellOnly ? "Sell Entries" : "All Items";
 
@@ -163,7 +170,7 @@ public class SellItemSearch  extends SearchScreen{
     @Override
     public void renderItemSlot(MatrixStack stack, ItemStack item, int x, int y, boolean inBounds) {
         if (ShopData.sellEntries.containsKey(item.getItem()))
-        ClientUtil.blitColor(stack,x, 16, y, 16, priceSetColor);
+        ExtraUtil.blitColor(stack,x, 16, y, 16, priceSetColor);
 
         super.renderItemSlot(stack, item, x, y, inBounds);
     }
@@ -173,6 +180,19 @@ public class SellItemSearch  extends SearchScreen{
         if (hoverItem != null) {
             if (mouseButton == 0) {
                 chosenItem = null;
+
+                //This is for tags
+                if (shiftHeld){
+                    //If the price box is empty, set it to 0
+                    if (priceBox.getValue().isEmpty()) priceBox.setValue("0");
+
+                    if (!NumberUtils.isParsable(priceBox.getValue())) return super.mouseClicked(xMouse,yMouse,mouseButton);
+                    float sellPrice = Float.parseFloat(priceBox.getValue())/(fullStack ? hoverItem.getMaxStackSize() : 1);
+                    ClientUtil.mC.setScreen(new TagSearchScreen(hoverItem.getItem(), sellPrice, this));
+                    shiftHeld = false;
+                    return true;
+                }
+
                 if (ShopData.sellEntries.containsKey(hoverItem.getItem())){
                     SellEntry entry = ShopData.sellEntries.get(hoverItem.getItem());
                     if (NumberUtils.isParsable(priceBox.getValue()))
@@ -194,6 +214,13 @@ public class SellItemSearch  extends SearchScreen{
                 NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
             }
             else if (mouseButton == 1){
+                //This is for tags
+                if (shiftHeld){
+                    ClientUtil.mC.setScreen(new TagSearchScreen(hoverItem.getItem(), 0, this));
+                    shiftHeld = false;
+                    return true;
+                }
+
                 if (ShopData.sellEntries.containsKey(hoverItem.getItem())){
                     ShopData.sellEntries.remove(hoverItem.getItem());
                     NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
@@ -229,6 +256,10 @@ public class SellItemSearch  extends SearchScreen{
 
     @Override
     public boolean keyPressed(int keyCode, int p_231046_2_, int p_231046_3_) {
+        if (keyCode == GLFW.GLFW_KEY_LEFT_SHIFT){
+            shiftHeld = true;
+        }
+
         if (this.priceBox.isFocused()){
             //String s = this.titleBox.getValue();
             if (this.priceBox.keyPressed(keyCode, p_231046_2_, p_231046_3_)) {
@@ -237,5 +268,14 @@ public class SellItemSearch  extends SearchScreen{
         }
 
         return super.keyPressed(keyCode, p_231046_2_, p_231046_3_);
+    }
+
+    @Override
+    public boolean keyReleased(int keyCode, int p_223281_2_, int p_223281_3_) {
+        if (keyCode == GLFW.GLFW_KEY_LEFT_SHIFT){
+            shiftHeld = false;
+        }
+
+        return super.keyReleased(keyCode, p_223281_2_, p_223281_3_);
     }
 }

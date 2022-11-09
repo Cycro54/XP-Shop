@@ -1,6 +1,6 @@
 package invoker54.xpshop;
 
-import invoker54.xpshop.client.keybinds.KeybindsInit;
+import invoker54.xpshop.client.KeyInit;
 import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
 import net.minecraft.block.Block;
@@ -66,7 +66,7 @@ public class XPShop
     private void doClientStuff(final FMLClientSetupEvent event) {
         // do something that can only be done on the client
         LOGGER.info("Got game settings {}", event.getMinecraftSupplier().get().options);
-        KeybindsInit.registerKeys(event);
+        KeyInit.registerKeys(event);
     }
 
     private void enqueueIMC(final InterModEnqueueEvent event)

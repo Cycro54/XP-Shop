@@ -1,7 +1,7 @@
 package invoker54.xpshop.client.screen.search;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -19,7 +19,7 @@ public class InvSearchScreen extends SearchScreen {
     public InvSearchScreen(Screen prevScreen, IChooseItem onDone) {
         super(prevScreen, onDone);
 
-        inventory = ClientUtil.mC.player.inventory;
+        inventory = ExtraUtil.mC.player.inventory;
     }
 
     @Override
@@ -28,7 +28,7 @@ public class InvSearchScreen extends SearchScreen {
 
         searchBox.y = halfHeightSpace + 35 - searchBox.getHeight() - 2;
 
-        addButton(new ClientUtil.SimpleButton(halfWidthSpace + 9, halfHeightSpace + 4,40,16, ITextComponent.nullToEmpty("Switch"),
+        addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 9, halfHeightSpace + 4,40,16, ITextComponent.nullToEmpty("Switch"),
                 (button) -> {
                     inventoryMode = !inventoryMode;
                     refreshSearchResults();

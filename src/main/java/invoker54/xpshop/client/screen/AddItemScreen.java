@@ -3,8 +3,8 @@ package invoker54.xpshop.client.screen;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ClientUtil;
-import invoker54.xpshop.client.keybinds.KeybindsInit;
+import invoker54.xpshop.client.ExtraUtil;
+import invoker54.xpshop.client.KeyInit;
 import invoker54.xpshop.client.screen.search.ItemSearchScreen;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import invoker54.xpshop.common.data.BuyEntry;
@@ -13,6 +13,7 @@ import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.SyncServerShopMsg;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.gui.widget.list.AbstractList;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -39,15 +40,15 @@ public class AddItemScreen extends Screen {
     int heightSpace;
     int halfWidthSpace;
     int halfHeightSpace;
-    ClientUtil.Bounds bounds;
+    ExtraUtil.Bounds bounds;
     BuyEntry targetEntry;
-    private ClientUtil.SimpleButton doneButton;
+    private ExtraUtil.SimpleButton doneButton;
 
     public AddItemScreen(Screen prevScreen, CategoryEntry categoryEntry, BuyEntry entry){
         super(ITextComponent.nullToEmpty(null));
         this.prevScreen = prevScreen;
         this.categoryEntry = categoryEntry;
-        bounds = new ClientUtil.Bounds();
+        bounds = new ExtraUtil.Bounds();
         targetEntry = entry;
         if(targetEntry == null) entry = new BuyEntry();
 
@@ -75,45 +76,47 @@ public class AddItemScreen extends Screen {
         bounds.adjustBounds(halfWidthSpace + 9, list.getWidth(), halfHeightSpace + 29, 139);
 
         //Done button
-        doneButton = addButton(new ClientUtil.SimpleButton(halfWidthSpace + 5, halfHeightSpace + 4, 40, 16, ITextComponent.nullToEmpty("Done"),
-                (button) -> createNewEntry()));
+        doneButton = addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 5, halfHeightSpace + 4, 40, 16, ITextComponent.nullToEmpty("Done"),
+                (button) -> createNewEntry(false)));
 
         //Cancel Button
         if(targetEntry == null)
-        addButton(new ClientUtil.SimpleButton(halfWidthSpace + (9 + 11 + list.getWidth()) - 40 - 5,
+            addButton(new ExtraUtil.SimpleButton(halfWidthSpace + (9 + 11 + list.getWidth()) - 40 - 5,
                 halfHeightSpace + 4, 40, 16, ITextComponent.nullToEmpty("Cancel"),
-                (button) -> ClientUtil.mC.setScreen(prevScreen)));
+                (button) -> ExtraUtil.mC.setScreen(prevScreen)));
 
         XPShop.LOGGER.debug("Is the target entry null? " + (targetEntry == null));
 
         if (targetEntry != null) {
             //Delete button
-            addButton(new ClientUtil.SimpleButton(halfWidthSpace + (9 + 11 + list.getWidth()) - 40 - 5,
+            addButton(new ExtraUtil.SimpleButton(halfWidthSpace + (9 + 11 + list.getWidth()) - 40 - 5,
                     halfHeightSpace + 4, 40, 16, ITextComponent.nullToEmpty("Delete"),
                     (button) -> {
                         ShopData.buyEntries.remove(targetEntry);
                         categoryEntry.entries.remove(targetEntry);
-                        ClientUtil.mC.setScreen(prevScreen);
+                        ExtraUtil.mC.setScreen(prevScreen);
 
                         NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
                     }));
 
             //Duplicate button
-            addButton(new ClientUtil.SimpleButton(halfWidthSpace + (9 + 11 + list.getWidth()) - 52 - font.width("Duplicate"),
+            addButton(new ExtraUtil.SimpleButton(halfWidthSpace + (9 + 11 + list.getWidth()) - 52 - font.width("Duplicate"),
                     halfHeightSpace + 4, font.width("Duplicate") + 4, 16, ITextComponent.nullToEmpty("Duplicate"),
-                    (button) -> createNewEntry()));
+                    (button) -> createNewEntry(true)));
         }
     }
 
-    protected void createNewEntry(){
+    protected void createNewEntry(boolean duplicate){
         BuyEntry newEntry = new BuyEntry(list.saveData());
 
         //If it's empty, then DONT go through with this
         if (newEntry.item.isEmpty()) return;
 
-        //If we have a target entry, delete it.
-        ShopData.buyEntries.remove(targetEntry);
-        categoryEntry.entries.remove(targetEntry);
+        //If we have a target entry, delete it if it matches the current item OR we are not duplicating.
+        if (targetEntry != null && targetEntry.item.sameItem(newEntry.item) || !duplicate) {
+            ShopData.buyEntries.remove(targetEntry);
+            categoryEntry.entries.remove(targetEntry);
+        }
 
         //First let's go through every entry and make sure the item being sold doesn't already exist
         BuyEntry duplicateEntry = null;
@@ -131,7 +134,7 @@ public class AddItemScreen extends Screen {
 
         categoryEntry.entries.add(newEntry);
         ShopData.buyEntries.add(newEntry);
-        ClientUtil.mC.setScreen(prevScreen);
+        ExtraUtil.mC.setScreen(prevScreen);
         //If the category no longer exists, add it back, then sync
         if (!ShopData.catEntries.contains(categoryEntry)) {
             ShopData.catEntries.add(categoryEntry);
@@ -153,18 +156,18 @@ public class AddItemScreen extends Screen {
 
     @Override
     public void render(@Nonnull MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
-        ClientUtil.beginCrop(halfWidthSpace + 9, list.getWidth() + 6, halfHeightSpace + 29,139, true);
+        ExtraUtil.beginCrop(halfWidthSpace + 9, list.getWidth() + 6, halfHeightSpace + 29,139, true);
         this.list.render(stack, xMouse, yMouse, partialTicks);
-        ClientUtil.endCrop();
+        ExtraUtil.endCrop();
 
 
-        ClientUtil.TEXTURE_MANAGER.bind(ShopScreen.SHOP_LOCATION);
+        ExtraUtil.TEXTURE_MANAGER.bind(ShopScreen.SHOP_LOCATION);
         //Render left part of GUI
-        ClientUtil.blitImage(stack, halfWidthSpace, 9, halfHeightSpace, 177, 171, 9, 0, 177, 256);
+        ExtraUtil.blitImage(stack, halfWidthSpace, 9, halfHeightSpace, 177, 171, 9, 0, 177, 256);
         //Render middle
-        ClientUtil.blitImage(stack, halfWidthSpace + 9, list.getWidth(), halfHeightSpace, 177, 181, 10, 0, 177, 256);
+        ExtraUtil.blitImage(stack, halfWidthSpace + 9, list.getWidth(), halfHeightSpace, 177, 181, 10, 0, 177, 256);
         //Render right part of GUI
-        ClientUtil.blitImage(stack, halfWidthSpace + 9 + list.getWidth(), 9, halfHeightSpace, 177, 192, 11, 0, 177, 256);
+        ExtraUtil.blitImage(stack, halfWidthSpace + 9 + list.getWidth(), 9, halfHeightSpace, 177, 192, 11, 0, 177, 256);
 
         doneButton.active = isDone();
 
@@ -197,7 +200,7 @@ public class AddItemScreen extends Screen {
     @Override
     public boolean keyPressed(int keyCode, int b, int c) {
         if (minecraft.options.keyInventory.getKey().getValue() == keyCode ||
-                KeybindsInit.shopKey.keyBind.getKey().getValue() == keyCode) {
+                KeyInit.shopKey.keyBind.getKey().getValue() == keyCode) {
             minecraft.setScreen(null);
             return true;
         }
@@ -213,7 +216,7 @@ public class AddItemScreen extends Screen {
         //Height is used for how long you want the top and bottom panels to be if you had
         //renderTopAndBottom set to true.
         public NewItemList(int width, int y0, int y1) {
-            super(ClientUtil.mC, width, 0, y0, y1, ListEntry.height);
+            super(ExtraUtil.mC, width, 0, y0, y1, ListEntry.height);
         }
 
         public void recalcWidth(){
@@ -237,7 +240,7 @@ public class AddItemScreen extends Screen {
 
         @Override
         public void render(MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
-            ClientUtil.blitColor(stack,x0,getWidth(),y0, y1 - y0, lightBlueColor);
+            ExtraUtil.blitColor(stack,x0,getWidth(),y0, y1 - y0, lightBlueColor);
 
             super.render(stack, xMouse, yMouse, partialTicks);
         }
@@ -293,7 +296,7 @@ public class AddItemScreen extends Screen {
         public ListEntry(String txtToRender, String nbtString) {
             this.txtToRender = txtToRender;
             this.nbtString = nbtString;
-            this.width = padding + ClientUtil.mC.font.width(txtToRender) + middleSpace + padding;
+            this.width = padding + ExtraUtil.mC.font.width(txtToRender) + middleSpace + padding;
             origWidth = this.width;
         }
 
@@ -309,7 +312,7 @@ public class AddItemScreen extends Screen {
         public void render(MatrixStack stack, int index, int rowTop, int rowLeft, int rowWidth, int rowHeight, int xMouse, int yMouse, boolean isMouseOver, float partialTicks
         ) {
             //Entry background
-            ClientUtil.blitColor(stack,rowLeft, rowWidth, rowTop, rowHeight, greyColor);
+            ExtraUtil.blitColor(stack,rowLeft, rowWidth, rowTop, rowHeight, greyColor);
 
             //LOGGER.debug("MY HEIGHT IS EXACTLY: " + rowHeight);
 
@@ -342,7 +345,7 @@ public class AddItemScreen extends Screen {
         public IntEntry(String txtToRender, String nbtString, int defaultNumber) {
             super(txtToRender, nbtString);
 
-            textBox = new TextBoxUI(ClientUtil.mC.font, 0,0,60,11, ITextComponent.nullToEmpty("0"), TextBoxUI.defOutColor, TextBoxUI.defInColor);
+            textBox = new TextBoxUI(ExtraUtil.mC.font, 0,0,60,11, ITextComponent.nullToEmpty("0"), TextBoxUI.defOutColor, TextBoxUI.defInColor);
             if(defaultNumber != 0) textBox.setValue("" + defaultNumber);
             width += textBox.getWidth();
         }
@@ -391,7 +394,7 @@ public class AddItemScreen extends Screen {
     public class ItemEntry extends ListEntry {
         protected final int buttonWidth = 26;
         protected final int buttonHeight = 26;
-        protected ClientUtil.ItemButton itemButton;
+        protected ExtraUtil.ItemButton itemButton;
 
         public ItemEntry(String txtToRender, Screen prevScreen, String nbtString, ItemStack defaultItem) {
             super(txtToRender, nbtString);
@@ -400,13 +403,17 @@ public class AddItemScreen extends Screen {
 
             this.width += buttonWidth;
 
-            itemButton = new ClientUtil.ItemButton(bounds,
-                    (button) -> ClientUtil.mC.setScreen(new ItemSearchScreen(prevScreen,
-                            ((item) -> {
-                                ((ClientUtil.ItemButton) button).displayItem = item;
+            ItemStack finalDefaultItem = defaultItem;
+            itemButton = new ExtraUtil.ItemButton(bounds,
+                    (button) -> {
+                        ItemSearchScreen screen = new ItemSearchScreen(prevScreen, ((item) -> {
+                                    ((ExtraUtil.ItemButton) button).displayItem = item;
 
-                                ClientUtil.mC.setScreen(prevScreen);
-                            }))));
+                                    ExtraUtil.mC.setScreen(prevScreen);
+                                }));
+                        ExtraUtil.mC.setScreen(screen);
+                        if (!finalDefaultItem.isEmpty()) screen.countBox.setValue("" + finalDefaultItem.getCount());
+                    });
 
             itemButton.displayItem = defaultItem;
             itemButton.setWidth(buttonWidth);

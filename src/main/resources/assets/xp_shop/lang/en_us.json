@@ -8,5 +8,11 @@
   "SearchItemScreen.item_size_text" : "Type item size...",
   "SellItemScreen.ghost_text" : "Type sell price...",
   "key.xp_shop.open_shop" : "Open/Close Shop",
-  "key.category.xp_shop" : "XP Shop"
+  "key.category.xp_shop" : "XP Shop",
+  "itemGroup.xp_shop": "XP Shop",
+
+
+  "__comment": "This is for item names",
+  "item.xp_shop.xp_trader_limited": "XP Trader (Limited)",
+  "item.xp_shop.xp_trader_full": "XP Trader (Full)"
 }

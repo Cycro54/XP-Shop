@@ -1,7 +1,7 @@
 package invoker54.xpshop.client.screen.ui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.util.text.ITextComponent;
@@ -23,6 +23,7 @@ public class TextBoxUI extends TextFieldWidget {
         this.borderColor = borderColor;
         this.innerColor = innerColor;
         this.setBordered(false);
+        this.setCanLoseFocus(true);
         this.setMaxLength(50);
         this.setVisible(true);
         this.setTextColor(16777215);
@@ -30,22 +31,23 @@ public class TextBoxUI extends TextFieldWidget {
 
     @Override
     public void renderButton(MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
-        ClientUtil.blitColor(stack,this.x - 1,this.width + 2, this.y - 1, this.height + 2,borderColor);
-        ClientUtil.blitColor(stack,this.x,this.width, this.y, this.height, innerColor);
+        ExtraUtil.blitColor(stack,this.x - 1,this.width + 2, this.y - 1, this.height + 2,borderColor);
+        ExtraUtil.blitColor(stack,this.x,this.width, this.y, this.height, innerColor);
 
         super.renderButton(stack, xMouse, yMouse, partialTicks);
 
-        ClientUtil.beginCrop(this.x,this.width, this.y, this.height, true);
+        ExtraUtil.beginCrop(this.x,this.width, this.y, this.height, true);
+        //This will draw the ghost txt
         if (this.getValue().isEmpty()){
-            ClientUtil.mC.font.draw(stack, this.getMessage(),
+            ExtraUtil.mC.font.draw(stack, this.getMessage(),
                     this.x,this.y + ((this.height - 9)/2f),ghostTxtColor);
         }
-        ClientUtil.endCrop();
+        ExtraUtil.endCrop();
     }
 
     @Override
     public boolean keyPressed(int keyCode, int x, int y) {
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE){
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.isFocused()){
             this.setFocus(false);
         }
         return super.keyPressed(keyCode, x, y);

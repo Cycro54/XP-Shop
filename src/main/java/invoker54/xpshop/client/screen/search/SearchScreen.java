@@ -3,12 +3,13 @@ package invoker54.xpshop.client.screen.search;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ClientUtil;
-import invoker54.xpshop.client.keybinds.KeybindsInit;
+import invoker54.xpshop.client.ExtraUtil;
+import invoker54.xpshop.client.KeyInit;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.util.ISearchTree;
 import net.minecraft.client.util.SearchTreeManager;
 import net.minecraft.item.Item;
@@ -20,11 +21,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
-import javax.xml.stream.FactoryConfigurationError;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
@@ -46,7 +47,7 @@ public class SearchScreen extends Screen {
     protected final List<ItemStack> searchList = new ArrayList<>();
     private final List<ItemStack> itemsToRender = new ArrayList<>();
     protected ItemStack hoverItem = null;
-    protected ItemStack chosenItem = null;
+    public ItemStack chosenItem = null;
     private final int itemHoverColor = new Color(160, 160, 160,100).getRGB();
     private final int itemBGColor = new Color(194, 225, 237,255).getRGB();
     private final int chosenItemBGColor = new Color(50, 255, 35,255).getRGB();
@@ -56,8 +57,8 @@ public class SearchScreen extends Screen {
     private final ITextComponent doneTxt = new TranslationTextComponent("AddCatScreen.done_txt");
     private final ITextComponent cancelTxt = new TranslationTextComponent("AddCatScreen.cancel_txt");
 
-    protected ClientUtil.SimpleButton doneButton;
-    protected ClientUtil.SimpleButton cancelButton;
+    protected ExtraUtil.SimpleButton doneButton;
+    protected ExtraUtil.SimpleButton cancelButton;
     protected IChooseItem onDone;
 
     int widthSpace;
@@ -90,20 +91,20 @@ public class SearchScreen extends Screen {
         halfHeightSpace = heightSpace /2;
 
         //Make search field
-        ClientUtil.mC.keyboardHandler.setSendRepeatsToGui(true);
+        ExtraUtil.mC.keyboardHandler.setSendRepeatsToGui(true);
         this.searchBox = new TextBoxUI(this.font, halfWidthSpace + 12, halfHeightSpace + 17,
                 160, 11, ghostSearchText, TextBoxUI.defOutColor, TextBoxUI.defInColor);
-        this.children.add(this.searchBox);
+        addWidget(this.searchBox);
 
         //Done button
-        doneButton = addButton(new ClientUtil.SimpleButton(halfWidthSpace + 96, halfHeightSpace + 151, 40, 16, doneTxt, (IPressable) -> {
+        doneButton = addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 96, halfHeightSpace + 151, 40, 16, doneTxt, (IPressable) -> {
             onDone();
         }));
 
         //Cancel button
-        cancelButton = addButton(new ClientUtil.SimpleButton(halfWidthSpace + 139, halfHeightSpace + 151, 40, 16, cancelTxt, (button) ->
+        cancelButton = addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 139, halfHeightSpace + 151, 40, 16, cancelTxt, (button) ->
         {
-            ClientUtil.mC.setScreen(prevScreen);
+            ExtraUtil.mC.setScreen(prevScreen);
         }));
 
         refreshSearchResults();
@@ -148,15 +149,15 @@ public class SearchScreen extends Screen {
         super.renderBackground(stack);
 
         //Render item bg
-        ClientUtil.blitColor(stack, halfWidthSpace + 9,171, halfHeightSpace + 35, 110, itemBGColor);
+        ExtraUtil.blitColor(stack, halfWidthSpace + 9,171, halfHeightSpace + 35, 110, itemBGColor);
 
         //Render items next
         renderItemList(stack, xMouse, yMouse, partialTicks);
 
         //then render select screen
-        ClientUtil.TEXTURE_MANAGER.bind(SELECT_ITEM);
+        ExtraUtil.TEXTURE_MANAGER.bind(SELECT_ITEM);
 
-        ClientUtil.blitImage(stack, halfWidthSpace,189, halfHeightSpace, 176, 0,
+        ExtraUtil.blitImage(stack, halfWidthSpace,189, halfHeightSpace, 176, 0,
                 189, 0, 176, 256);
 
         super.render(stack, xMouse, yMouse, partialTicks);
@@ -171,10 +172,17 @@ public class SearchScreen extends Screen {
             renderTooltip(stack, this.hoverItem, xMouse, yMouse);
         }
 
+        if (this.getFocused() != null && this.getFocused() instanceof TextBoxUI) LOGGER.error("Hash: " + this.getFocused().hashCode());
+
         //Start scissor test
 //        RenderSystem.enableScissor((int) ((halfWidth + 9) * scale), (int) ((halfHeight + 9) * scale),
 //                (int) ((187) * scale), (int) (140 * scale));
 //        RenderSystem.disableScissor();
+    }
+
+    @Override
+    public void tick() {
+        this.searchBox.tick();
     }
 
     @Override
@@ -188,7 +196,7 @@ public class SearchScreen extends Screen {
     }
 
     public void renderItemList(MatrixStack stack, int xMouse, int yMouse, float partialTicks){
-        ClientUtil.Bounds bounds = new ClientUtil.Bounds();
+        ExtraUtil.Bounds bounds = new ExtraUtil.Bounds();
         this.hoverItem = null;
 
         int origX = halfWidthSpace + 10;
@@ -215,7 +223,7 @@ public class SearchScreen extends Screen {
 
                 if (row == 6) continue;
 
-                boolean inBounds = ClientUtil.inBounds(xMouse, yMouse, bounds);
+                boolean inBounds = ExtraUtil.inBounds(xMouse, yMouse, bounds);
 
                 renderItemSlot(stack,itemsToRender.get(itemSlot + column), x, y, inBounds);
             }
@@ -227,7 +235,7 @@ public class SearchScreen extends Screen {
     public void renderItemSlot(MatrixStack stack, ItemStack item, int x, int y, boolean inBounds){
         //If chosen item, make slot green and end
         if (item.equals(chosenItem)){
-            ClientUtil.blitColor(stack,x, 16, y, 16, chosenItemBGColor);
+            ExtraUtil.blitColor(stack,x, 16, y, 16, chosenItemBGColor);
             return;
         }
 
@@ -237,22 +245,24 @@ public class SearchScreen extends Screen {
         this.hoverItem = item;
 
         //Make the slot greyish to show that it is being hovered over
-        ClientUtil.blitColor(stack,x, 16, y, 16, itemHoverColor);
+        ExtraUtil.blitColor(stack,x, 16, y, 16, itemHoverColor);
     }
 
     public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
-        if (this.getFocused() != null) this.getFocused().mouseClicked(xMouse, yMouse, mouseButton);
+        //
+        if (this.getFocused() != null && this.getFocused().mouseClicked(xMouse, yMouse, mouseButton)) return true;
 
         if (hoverItem != null && mouseButton == 0) {
             chosenItem = hoverItem;
         }
-        if(!super.mouseClicked(xMouse, yMouse, mouseButton)){
-            setFocused((IGuiEventListener) null);
-            return false;
-        }
-        else {
-            return true;
-        }
+        return super.mouseClicked(xMouse, yMouse, mouseButton);
+//        if(!super.mouseClicked(xMouse, yMouse, mouseButton)){
+//            setFocused((IGuiEventListener) null);
+//            return false;
+//        }
+//        else {
+//            return true;
+//        }
     }
 
     public boolean mouseScrolled(double xMouse, double yMouse, double scrollValue) {
@@ -316,7 +326,7 @@ public class SearchScreen extends Screen {
         }
         else if (this.getFocused() == null) {
             if (minecraft.options.keyInventory.getKey().getValue() == keyCode ||
-                    KeybindsInit.shopKey.keyBind.getKey().getValue() == keyCode) {
+                    KeyInit.shopKey.keyBind.getKey().getValue() == keyCode) {
                 minecraft.setScreen(null);
                 return true;
             } else if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
@@ -325,7 +335,7 @@ public class SearchScreen extends Screen {
             }
         }
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.getFocused() != null)   this.setFocused(null);
-        return false;
+        return super.keyPressed(keyCode, b, c);
     }
 
     public boolean keyReleased(int p_223281_1_, int p_223281_2_, int p_223281_3_) {

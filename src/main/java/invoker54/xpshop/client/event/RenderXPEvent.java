@@ -2,7 +2,7 @@ package invoker54.xpshop.client.event;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ClientUtil;
+import invoker54.xpshop.client.ExtraUtil;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,15 +18,15 @@ public class RenderXPEvent {
 
         if (event.getType() != RenderGameOverlayEvent.ElementType.EXPERIENCE) return;
 
-        FontRenderer font = ClientUtil.mC.font;
+        FontRenderer font = ExtraUtil.mC.font;
 
         MainWindow window = event.getWindow();
 
 
         
         //String to render
-        String xpAmount = ClientUtil.formatValue(ClientUtil.mC.player.totalExperience);
-        if(ClientUtil.mC.options.keyShift.isDown()) xpAmount = Integer.toString(ClientUtil.mC.player.totalExperience);
+        String xpAmount = ExtraUtil.formatValue(ExtraUtil.mC.player.totalExperience);
+        if(ExtraUtil.mC.options.keyShift.isDown()) xpAmount = Integer.toString(ExtraUtil.mC.player.totalExperience);
 
         //X position
         int xPos = (window.getGuiScaledWidth() - font.width(xpAmount)) / 2;
@@ -35,7 +35,7 @@ public class RenderXPEvent {
 
         int yPos = window.getGuiScaledHeight() - 31 - 4 - 12;
         //If creative, change yPos to be same as vanilla xp number spot
-        if (ClientUtil.mC.player.isCreative()) yPos += 12;
+        if (ExtraUtil.mC.player.isCreative()) yPos += 12;
 
         //Matrix stack
         MatrixStack stack = event.getMatrixStack();

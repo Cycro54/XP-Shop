@@ -18,8 +18,7 @@ public class ItemSearchScreen extends InvSearchScreen {
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
     private final ITextComponent ghostCountText = new TranslationTextComponent("SearchItemScreen.item_size_text");
-    private TextBoxUI countBox;
-
+    public TextBoxUI countBox;
     @Override
     public void init() {
         super.init();
@@ -27,7 +26,13 @@ public class ItemSearchScreen extends InvSearchScreen {
         //Make title field
         this.countBox = new TextBoxUI(this.font, halfWidthSpace + 11, halfHeightSpace + 154,
                 72, 11, ghostCountText, TextBoxUI.defOutColor, TextBoxUI.defInColor);
-        this.children.add(this.countBox);
+        addWidget(this.countBox);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.countBox.tick();
     }
 
     @Override
@@ -56,30 +61,25 @@ public class ItemSearchScreen extends InvSearchScreen {
         return false;
     }
 
-    @Override
-    public boolean keyPressed(int keyCode, int p_231046_2_, int p_231046_3_) {
-        if (this.countBox.isFocused()){
-            //String s = this.titleBox.getValue();
-            if (this.countBox.keyPressed(keyCode, p_231046_2_, p_231046_3_)) {
-                return true;
-            }
-        }
-
-        return super.keyPressed(keyCode, p_231046_2_, p_231046_3_);
-    }
+//    @Override
+//    public boolean keyPressed(int keyCode, int p_231046_2_, int p_231046_3_) {
+//        if (this.countBox.isFocused()){
+//            //String s = this.titleBox.getValue();
+//            if (this.countBox.keyPressed(keyCode, p_231046_2_, p_231046_3_)) {
+//                return true;
+//            }
+//        }
+//
+//        return super.keyPressed(keyCode, p_231046_2_, p_231046_3_);
+//    }
 
     @Override
     public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
-
-       if (!super.mouseClicked(xMouse, yMouse, mouseButton)) return false;
-
-       if (chosenItem == null) return false;
-
-       if (!countBox.getValue().isEmpty() && chosenItem.getMaxStackSize() < Integer.parseInt(countBox.getValue())){
+       if (chosenItem != null && !countBox.getValue().isEmpty() && chosenItem.getMaxStackSize() < Integer.parseInt(countBox.getValue())){
         countBox.setValue(String.valueOf(chosenItem.getMaxStackSize()));
        }
 
-       return true;
+       return super.mouseClicked(xMouse, yMouse, mouseButton);
     }
 
     @Override
