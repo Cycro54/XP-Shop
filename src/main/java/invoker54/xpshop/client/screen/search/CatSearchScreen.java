@@ -29,13 +29,16 @@ public class CatSearchScreen extends SearchScreen {
 
         this.onDone = (button) ->
         {
-            if (targEntry == null)
+            if (targEntry == null) {
                 targEntry = new CategoryEntry();
+            }
 
             targEntry.categoryName = this.titleBox.getValue();
             targEntry.categoryItem = this.chosenItem;
-            if(!ShopData.catEntries.contains(targEntry))
-            ShopData.catEntries.add(targEntry);
+
+            if(!ShopData.catEntries.contains(targEntry)){
+                ShopData.catEntries.add(targEntry);
+            }
 
             ExtraUtil.mC.setScreen(prevScreen);
             NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));

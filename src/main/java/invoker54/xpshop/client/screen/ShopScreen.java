@@ -65,8 +65,8 @@ public class ShopScreen extends Screen {
     }
     public ShopScreen(@Nullable ArrayList<BuyEntry> buyEntries) {
         super(new TranslationTextComponent("shopScreen.shop_text"));
-        localBuyEntries = buyEntries == null ? ShopData.buyEntries : buyEntries;
-        localCatEntries = new ArrayList<>();
+        localBuyEntries = buyEntries == null ? new ArrayList<>(ShopData.buyEntries) : buyEntries;
+        localCatEntries = new ArrayList<>(ShopData.catEntries);
     }
 
     @Override
@@ -104,9 +104,6 @@ public class ShopScreen extends Screen {
         itemBounds = new ExtraUtil.Bounds(halfWidthSpace + 51, 115, halfHeightSpace + 29,139);
 
         //region category buttons
-        localCatEntries.clear();
-        if (ExtraUtil.mC.player.isCreative()) localCatEntries = ShopData.catEntries;
-
         maxCatOffset = 0;
 
         if (ExtraUtil.mC.player.isCreative()) {
@@ -118,17 +115,22 @@ public class ShopScreen extends Screen {
             maxCatOffset += 26 + 1;
         }
 
-
-        //I need to grab a list of category from the buy entries then sort them.
-        for (BuyEntry entry : localBuyEntries){
-            if (!localCatEntries.contains(entry.parentCategory)){
-             localCatEntries.add(entry.parentCategory);
+        //region Grab a list of categories from the buy entries then sort them.
+        localCatEntries.clear();
+        if (!ExtraUtil.mC.player.isCreative()) {
+            for (BuyEntry entry : localBuyEntries) {
+                if (!localCatEntries.contains(entry.parentCategory)) {
+                    localCatEntries.add(entry.parentCategory);
+                }
             }
+            //Sort that list by name
+            localCatEntries.sort(Comparator.comparing(item -> item.categoryName));
         }
-        //Sort that list by name
-        localCatEntries.sort(Comparator.comparing(item -> item.categoryName));
+        else {
+            localCatEntries = new ArrayList<>(ShopData.catEntries);
+        }
+        //endregion
 
-        //This is old stuff
         CategoryEntry catEntry;
         for (int i = 0; i < localCatEntries.size(); ++i)
         //Lets get cat buttons
@@ -157,8 +159,7 @@ public class ShopScreen extends Screen {
         }
 
         //Make sure the selected cat button is disabled
-        if (catButtons.size() != 1 && catButtons.get(pageIndex) instanceof CategoryButton) {
-//            if (!catButtons.get(pageIndex).isFocused()) catButtons.get(pageIndex).changeFocus(true);
+        if (!catButtons.isEmpty() && catButtons.size() > pageIndex && catButtons.get(pageIndex) instanceof CategoryButton){
             catButtons.get(pageIndex).active = false;
             XPShop.LOGGER.debug("I AM DISABLING A BUTTON");
         }
@@ -189,11 +190,12 @@ public class ShopScreen extends Screen {
 
         if (customSearch.isEmpty()) {
             if (catButtons.size() <= pageIndex) {
-                pageIndex = localCatEntries.size() - 1;
+                pageIndex = localCatEntries.size();
             }
+
             //Use this since the very first item in the category list is an "add category" button.
             int adjustedPageIndex = pageIndex - 1;
-            
+
             //Add item button
             if (ExtraUtil.mC.player.isCreative()) {
                 itemButtons.add(addButton(new ExtraUtil.AddButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
@@ -208,7 +210,7 @@ public class ShopScreen extends Screen {
 
                 CategoryEntry catEntry = localCatEntries.get(adjustedPageIndex);
                 for (int i = 0; i < catEntry.entries.size(); ++i) {
-                    if (!localBuyEntries.contains(catEntry.entries.get(i))) continue;
+                    if (!localBuyEntries.contains(catEntry.entries.get(i)) && !ExtraUtil.mC.player.isCreative()) continue;
                     itemButtons.add(addButton(new PriceButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                             itemBounds, catEntry.entries.get(i))));
 

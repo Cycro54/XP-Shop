@@ -36,7 +36,6 @@ public class ShopData {
         CompoundNBT shopNBT = new CompoundNBT();
         for (int a = 0; a < catEntries.size(); a++){
             CompoundNBT catEntryNBT = new CompoundNBT();
-
             //Name of the category
             catEntryNBT.putString("name", catEntries.get(a).categoryName);
 
