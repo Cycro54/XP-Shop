@@ -3,12 +3,14 @@ package invoker54.xpshop.common.event;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.api.ShopProvider;
+import invoker54.xpshop.common.api.WanderShopProvider;
 import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.SyncClientCapMsg;
 import invoker54.xpshop.common.network.msg.SyncClientShopMsg;
 import invoker54.xpshop.common.network.msg.SyncServerShopMsg;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.merchant.villager.WanderingTraderEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -33,6 +35,23 @@ public class SyncData {
             event.addCapability(XPShop.XPSHOP_LOC,new ShopProvider(event.getObject().level));
         }
 
+    }
+
+    @SubscribeEvent
+    public static void attachWanderVillagerCaps(AttachCapabilitiesEvent<Entity> event){
+        if (event.getObject() instanceof WanderingTraderEntity){
+            event.addCapability(XPShop.XPSHOP_LOC,new WanderShopProvider(event.getObject().level));
+        }
+    }
+
+    @SubscribeEvent
+    public static void onRespawn(PlayerEvent.Clone event){
+        if (!event.isWasDeath()) return;
+
+        ShopCapability oldCap = ShopCapability.getShopCap(event.getOriginal());
+        ShopCapability newCap = ShopCapability.getShopCap(event.getPlayer());
+
+        newCap.readNBT(oldCap.writeNBT());
     }
 
     @SubscribeEvent

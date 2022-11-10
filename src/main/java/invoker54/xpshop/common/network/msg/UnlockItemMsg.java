@@ -32,7 +32,7 @@ public class UnlockItemMsg {
 
         context.enqueueWork(() -> {
             //Grab the buy entry
-            BuyEntry entry = new BuyEntry(msg.buyEntry);
+            BuyEntry entry = new BuyEntry(msg.buyEntry, null);
 
             //Grab the player
             ServerPlayerEntity player = context.getSender();

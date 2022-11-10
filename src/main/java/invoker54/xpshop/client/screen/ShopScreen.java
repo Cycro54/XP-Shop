@@ -1,5 +1,6 @@
 package invoker54.xpshop.client.screen;
 
+import com.ibm.icu.text.ArabicShaping;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import invoker54.xpshop.XPShop;
@@ -29,18 +30,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
+import javax.annotation.Nullable;
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class ShopScreen extends Screen {
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
-
     public static final ResourceLocation SHOP_LOCATION = new ResourceLocation(XPShop.MOD_ID,"textures/gui/screen/base_shop_layout.png");
+    public static ArrayList<BuyEntry> localBuyEntries;
+    public static ArrayList<CategoryEntry> localCatEntries;
     private ArrayList<Button> catButtons = new ArrayList<>();
     private ArrayList<Button> itemButtons = new ArrayList<>();
     private int origButtonY;
@@ -59,8 +60,13 @@ public class ShopScreen extends Screen {
     int halfWidthSpace;
     int halfHeightSpace;
 
-    public ShopScreen() {
+    public ShopScreen(){
+        this(null);
+    }
+    public ShopScreen(@Nullable ArrayList<BuyEntry> buyEntries) {
         super(new TranslationTextComponent("shopScreen.shop_text"));
+        localBuyEntries = buyEntries == null ? ShopData.buyEntries : buyEntries;
+        localCatEntries = new ArrayList<>();
     }
 
     @Override
@@ -109,11 +115,22 @@ public class ShopScreen extends Screen {
             maxCatOffset += 26 + 1;
         }
 
+
+        //I need to grab a list of category from the buy entries then sort them.
+        for (BuyEntry entry : localBuyEntries){
+            if (!localCatEntries.contains(entry.parentCategory)){
+             localCatEntries.add(entry.parentCategory);
+            }
+        }
+        //Sort that list by name
+        localCatEntries.sort(Comparator.comparing(item -> item.categoryName));
+
+        //This is old stuff
         CategoryEntry catEntry;
-        for (int i = 0; i < ShopData.catEntries.size(); ++i)
+        for (int i = 0; i < localCatEntries.size(); ++i)
         //Lets get cat buttons
         {
-            catEntry = ShopData.catEntries.get(i);
+            catEntry = localCatEntries.get(i);
             //XPShop.LOGGER.debug( "SHOPDATA has this category right? " + (ShopData.catEntries.contains(catEntry)));
             int index = catButtons.size();
             LOGGER.debug("WHATS THE CURRENT INDEX? " + index);
@@ -165,11 +182,11 @@ public class ShopScreen extends Screen {
         maxItemOffset = 0;
         ItemOffset = 0;
 
-        if (ShopData.catEntries.isEmpty()) return;
+        if (localCatEntries.isEmpty()) return;
 
         if (customSearch.isEmpty()) {
             if (catButtons.size() <= pageIndex) {
-                pageIndex = ShopData.catEntries.size() - 1;
+                pageIndex = localCatEntries.size() - 1;
             }
             //Use this since the very first item in the category list is an "add category" button.
             int adjustedPageIndex = pageIndex - 1;
@@ -178,16 +195,17 @@ public class ShopScreen extends Screen {
             if (ExtraUtil.mC.player.isCreative()) {
                 itemButtons.add(addButton(new ExtraUtil.AddButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                         "Add an item+", itemBounds, (button) -> {
-                    ExtraUtil.mC.setScreen(new AddItemScreen(this, ShopData.catEntries.get(adjustedPageIndex), null));
+                    ExtraUtil.mC.setScreen(new AddItemScreen(this, localCatEntries.get(adjustedPageIndex), null));
                     //LOGGER.debug("I want you to add items in a bit.");
                 })));
                 maxItemOffset += 22 + 1;
             }
 
-            if (ShopData.catEntries.size() > adjustedPageIndex) {
+            if (localCatEntries.size() > adjustedPageIndex) {
 
-                CategoryEntry catEntry = ShopData.catEntries.get(adjustedPageIndex);
+                CategoryEntry catEntry = localCatEntries.get(adjustedPageIndex);
                 for (int i = 0; i < catEntry.entries.size(); ++i) {
+                    if (!localBuyEntries.contains(catEntry.entries.get(i))) continue;
                     itemButtons.add(addButton(new PriceButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                             itemBounds, catEntry.entries.get(i))));
 
@@ -199,7 +217,7 @@ public class ShopScreen extends Screen {
         else {
             customSearch = customSearch.toLowerCase(Locale.ROOT);
             Pattern pattern = Pattern.compile(customSearch);
-            for (BuyEntry entry : ShopData.buyEntries){
+            for (BuyEntry entry : localBuyEntries){
                 if (pattern.matcher(entry.item.getHoverName().getString().toLowerCase(Locale.ROOT)).find()){
                         itemButtons.add(addButton(new PriceButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                                 itemBounds, entry)));
@@ -587,7 +605,7 @@ public class ShopScreen extends Screen {
                 this.playDownSound(ExtraUtil.mC.getSoundManager());
 
                 if (ExtraUtil.mC.player.isCreative()) {
-                    ExtraUtil.mC.setScreen(new AddItemScreen(ExtraUtil.mC.screen, ShopData.catEntries.get(pageIndex - 1), entry));
+                    ExtraUtil.mC.setScreen(new AddItemScreen(ExtraUtil.mC.screen, localCatEntries.get(pageIndex - 1), entry));
                     return true;
                 }
             }

@@ -13,10 +13,11 @@ public class BuyEntry {
     public int limitStock;
     public int replenTime;
     public ItemStack lockItem = ItemStack.EMPTY;
+    public CategoryEntry parentCategory;
 
     public BuyEntry(){}
-    
-    public BuyEntry(CompoundNBT buyEntryNBT){
+
+    public BuyEntry(CompoundNBT buyEntryNBT, CategoryEntry parentCategory){
         //Assign all the values
         this.item = ItemStack.of((CompoundNBT) buyEntryNBT.get("item"));
 
@@ -26,9 +27,8 @@ public class BuyEntry {
         this.limitStock = buyEntryNBT.getInt("limitStock");
         this.replenTime = buyEntryNBT.getInt("replenTime");
         this.lockItem = ItemStack.of((CompoundNBT) buyEntryNBT.get("lockItem"));
+        this.parentCategory = parentCategory;
     }
-
-
     
     public CompoundNBT serialize(){
         CompoundNBT buyEntryNBT = new CompoundNBT();

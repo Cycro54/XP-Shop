@@ -109,7 +109,7 @@ public class ShopData {
                 CompoundNBT buyEntryNBT = (CompoundNBT) catEntryNBT.get(String.valueOf(b));
 
                 //Assign all the values
-                BuyEntry buyEntry = new BuyEntry(buyEntryNBT);
+                BuyEntry buyEntry = new BuyEntry(buyEntryNBT, catEntry);
 
                 //Finally, add to the category buy entry list
                 catEntry.entries.add(buyEntry);

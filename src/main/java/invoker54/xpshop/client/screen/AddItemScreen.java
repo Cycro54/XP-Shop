@@ -107,7 +107,7 @@ public class AddItemScreen extends Screen {
     }
 
     protected void createNewEntry(boolean duplicate){
-        BuyEntry newEntry = new BuyEntry(list.saveData());
+        BuyEntry newEntry = new BuyEntry(list.saveData(), categoryEntry);
 
         //If it's empty, then DONT go through with this
         if (newEntry.item.isEmpty()) return;
