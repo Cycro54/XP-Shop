@@ -104,6 +104,9 @@ public class ShopScreen extends Screen {
         itemBounds = new ExtraUtil.Bounds(halfWidthSpace + 51, 115, halfHeightSpace + 29,139);
 
         //region category buttons
+        localCatEntries.clear();
+        if (ExtraUtil.mC.player.isCreative()) localCatEntries = ShopData.catEntries;
+
         maxCatOffset = 0;
 
         if (ExtraUtil.mC.player.isCreative()) {
