@@ -627,7 +627,6 @@ public class ShopScreen extends Screen {
         protected boolean isValidClickButton(int buttonPressed) {
             return buttonPressed < GLFW.GLFW_MOUSE_BUTTON_MIDDLE;
         }
-
 //        @Override
 //        public void onClick(double xMouse, double yMouse) {
 //            super.onClick(xMouse, yMouse);
@@ -637,6 +636,11 @@ public class ShopScreen extends Screen {
 //        public boolean isHovered() {
 //            return this.isHovered;
 //        }
+
+        @Override
+        protected boolean clicked(double p_230992_1_, double p_230992_3_) {
+            return this.visible && p_230992_1_ >= (double)this.x && p_230992_3_ >= (double)this.y && p_230992_1_ < (double)(this.x + this.width) && p_230992_3_ < (double)(this.y + this.height);
+        }
 
         @Override
         public boolean mouseClicked(double xMouse, double yMouse, int buttonPressed) {
