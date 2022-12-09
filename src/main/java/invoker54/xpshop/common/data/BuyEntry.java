@@ -11,8 +11,8 @@ public class BuyEntry {
     public ItemStack item = ItemStack.EMPTY;
     public int buyPrice;
     public int limitStock;
-    public int replenTime;
     public ItemStack lockItem = ItemStack.EMPTY;
+    public boolean alwaysShow = false;
     public CategoryEntry parentCategory;
 
     public BuyEntry(){}
@@ -25,8 +25,8 @@ public class BuyEntry {
 
         this.buyPrice = buyEntryNBT.getInt("buyPrice");
         this.limitStock = buyEntryNBT.getInt("limitStock");
-        this.replenTime = buyEntryNBT.getInt("replenTime");
         this.lockItem = ItemStack.of((CompoundNBT) buyEntryNBT.get("lockItem"));
+        this.alwaysShow = buyEntryNBT.getBoolean("alwaysShow");
         this.parentCategory = parentCategory;
     }
     
@@ -37,8 +37,8 @@ public class BuyEntry {
         buyEntryNBT.put("item", this.item.save(new CompoundNBT()));
         buyEntryNBT.putInt("buyPrice", this.buyPrice);
         buyEntryNBT.putInt("limitStock", this.limitStock);
-        buyEntryNBT.putInt("replenTime", this.replenTime);
         buyEntryNBT.put("lockItem", this.lockItem.save(new CompoundNBT()));
+        buyEntryNBT.putBoolean("alwaysShow", this.alwaysShow);
 
         return buyEntryNBT;
     }

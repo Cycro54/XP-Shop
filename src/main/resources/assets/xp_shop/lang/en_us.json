@@ -1,5 +1,5 @@
 {
-  "ShopScreen.shop_text": "Welcome to the shop!",
+  "ShopScreen.shop_text": "XP Shop",
   "ShopScreen.shop_category_button": "Test cat button!",
   "AddCatScreen.search_text" : "Search...",
   "AddCatScreen.title_text" : "Type a name...",
@@ -13,6 +13,27 @@
 
 
   "__comment": "This is for item names",
-  "item.xp_shop.xp_trader_limited": "XP Trader (Limited)",
-  "item.xp_shop.xp_trader_full": "XP Trader (Full)"
+  "item.xp_shop.xp_trader": "XP Trader",
+  "item.xp_shop.wallet_1": "Wallet Upgrade (LVL 1)",
+  "item.xp_shop.wallet_2": "Wallet Upgrade (LVL 2)",
+  "item.xp_shop.wallet_3": "Wallet Upgrade (LVL 3)",
+  "item.xp_shop.wallet_4": "Wallet Upgrade (LVL 4)",
+  "item.xp_shop.upgrade_options": "Upgrade: More Options",
+  "item.xp_shop.upgrade_universal_buy": "Upgrade: Universal Buy",
+  "item.xp_shop.upgrade_universal_sell": "Upgrade: Universal Sell",
+  "item.xp_shop.upgrade_transfer": "Upgrade: XP Transfer",
+  "item.xp_shop.upgrade_wealthy": "Upgrade: Wealthy Traders",
+
+  "__comment": "This will be for item descriptions",
+  "xp_shop.desc.wallet": "This will increase your wallet size to:",
+  "xp_shop.desc.upgrade_options": "UPGRADE: See the rest of the shop",
+  "xp_shop.desc.upgrade_universal_buy": "UPGRADE: Buy items anywhere",
+  "xp_shop.desc.upgrade_universal_sell": "UPGRADE: Sell items anywhere",
+  "xp_shop.desc.upgrade_transfer": "UPGRADE: Transfer XP to other players",
+  "xp_shop.desc.upgrade_wealthy": "UPGRADE: Traders will have more xp than usual",
+  
+  "__comment": "This is for chat messages",
+  "xp_shop.chat.tier_low": "Your tier is too low",
+  "xp_shop.chat.have_upgrade": "You already have this upgrade"
+
 }

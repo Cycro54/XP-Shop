@@ -2,7 +2,9 @@ package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
+import invoker54.xpshop.client.screen.AddItemScreen;
 import invoker54.xpshop.client.screen.ShopScreen;
+import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.data.ShopData;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
@@ -36,15 +38,23 @@ public class SyncClientShopMsg {
 
             CompoundNBT mainNBT = (CompoundNBT) msg.nbtData;
 
-            ShopData.deserialize(mainNBT);
+            //This is for syncing the shop data
+            if(mainNBT.contains("shopNBT")) {
+                ShopData.deserialize(mainNBT);
 
-            if (ExtraUtil.mC.screen != null)
-            XPShop.LOGGER.debug("What's the current screen?: " + (ExtraUtil.mC.screen.getClass()));
+                if (ExtraUtil.mC.screen != null)
+                    XPShop.LOGGER.debug("What's the current screen?: " + (ExtraUtil.mC.screen.getClass()));
 
-            //If shop screen, refresh it!
-            if (ExtraUtil.mC.screen instanceof ShopScreen){
-                XPShop.LOGGER.debug("Refreshing shop screen");
-                ExtraUtil.mC.setScreen(ExtraUtil.mC.screen);
+                //If shop screen, refresh it!
+                if (ExtraUtil.mC.screen instanceof ShopScreen || ExtraUtil.mC.screen instanceof AddItemScreen) {
+                    XPShop.LOGGER.debug("Refreshing shop screen");
+                    ExtraUtil.mC.setScreen(ExtraUtil.mC.screen);
+                }
+            }
+
+            //This is for syncing the config
+            else {
+                ShopConfig.deserialize(mainNBT);
             }
         });
         context.setPacketHandled(true);

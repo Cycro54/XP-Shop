@@ -13,7 +13,7 @@ public class NetworkHandler {
     //Increment the first number if you add new stuff to NetworkHandler class
     //Increment the middle number each time you make a new Message
     //Increment the last number each time you fix a bug
-    private static final String PROTOCOL_VERSION = "1.7.0";
+    private static final String PROTOCOL_VERSION = "1.11.0";
 
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
 
@@ -38,8 +38,12 @@ public class NetworkHandler {
         INSTANCE.registerMessage(3, UnlockItemMsg.class, UnlockItemMsg::encode, UnlockItemMsg::decode, UnlockItemMsg::handle);
         INSTANCE.registerMessage(4, SyncClientCapMsg.class, SyncClientCapMsg::encode, SyncClientCapMsg::decode, SyncClientCapMsg::handle);
         INSTANCE.registerMessage(5, SyncServerCapMsg.class, SyncServerCapMsg::encode, SyncServerCapMsg::decode, SyncServerCapMsg::handle);
-        INSTANCE.registerMessage(6, OpenSellContainerMsg.class, (message, buf) -> {}, it -> new OpenSellContainerMsg(), OpenSellContainerMsg::handle);
+        INSTANCE.registerMessage(6, OpenSellContainerMsg.class, OpenSellContainerMsg::encode, OpenSellContainerMsg::decode, OpenSellContainerMsg::handle);
         INSTANCE.registerMessage(7, ClearSellContainerMsg.class, (message, buf) -> {}, it -> new ClearSellContainerMsg(), ClearSellContainerMsg::handle);
+        INSTANCE.registerMessage(8, SyncWorldShopMsg.class, SyncWorldShopMsg::encode, SyncWorldShopMsg::decode, SyncWorldShopMsg::handle);
+        INSTANCE.registerMessage(9, SyncWorldShopRequestMsg.class, SyncWorldShopRequestMsg::encode, SyncWorldShopRequestMsg::decode, SyncWorldShopRequestMsg::handle);
+        INSTANCE.registerMessage(10, TradeXPMsg.class, TradeXPMsg::encode, TradeXPMsg::decode, TradeXPMsg::handle);
+        INSTANCE.registerMessage(11, ForceRefreshMsg.class, (message, buf) -> {}, it -> new ForceRefreshMsg(), ForceRefreshMsg::handle);
     }
 
     //Custom method used to send data to players

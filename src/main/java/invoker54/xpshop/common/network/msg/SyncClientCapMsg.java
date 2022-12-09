@@ -31,7 +31,7 @@ public class SyncClientCapMsg {
 
         context.enqueueWork(() -> {
             //Give shop cap to player
-            ShopCapability.getShopCap(ExtraUtil.mC.player).readNBT((CompoundNBT) msg.nbtData);
+            ShopCapability.getShopCap(ExtraUtil.getPlayer()).readNBT((CompoundNBT) msg.nbtData);
         });
         context.setPacketHandled(true);
     }

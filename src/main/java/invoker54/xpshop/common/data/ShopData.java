@@ -1,15 +1,22 @@
 package invoker54.xpshop.common.data;
 
+import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.XPShop;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
+import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,7 +30,6 @@ public class ShopData {
     private static final Logger LOGGER = LogManager.getLogger();
 
     protected static final File filePath = new File(getPath().toUri());
-
     public static final ArrayList<CategoryEntry> catEntries = new ArrayList<>();
     public static final HashMap<Item, SellEntry> sellEntries = new HashMap<>();
     public static final ArrayList<BuyEntry> buyEntries = new ArrayList<>();
@@ -146,6 +152,23 @@ public class ShopData {
     protected static Path getPath(){
         return FMLPaths.CONFIGDIR.get().resolve("xp_shop_data.nbt");
     }
+    public static void grabDefault() throws IOException {
+        ResourceLocation DEFAULT_LOC = new ResourceLocation(XPShop.MOD_ID, "xp_shop_data.nbt");
+
+
+        LOGGER.debug("START");
+
+        CompoundNBT nbt = CompressedStreamTools.readCompressed(
+                Minecraft.getInstance().getResourceManager().getResource(DEFAULT_LOC).getInputStream());
+
+        deserialize(nbt);
+        LOGGER.debug("END");
+
+
+//        deserialize(CompressedStreamTools.readCompressed(new File(
+//                XPShop.class.getResource("xp_shop_data.nbt").toURI()
+//        )));
+    }
 
     public static void writeFile(){
         try {
@@ -165,12 +188,12 @@ public class ShopData {
         try {
             if (Files.notExists(getPath().getParent())) {
                 Files.createDirectories(getPath().getParent());
+                ShopData.grabDefault();
             }
-
-            CompoundNBT mainNBT = CompressedStreamTools.readCompressed(filePath);
-
-            deserialize(mainNBT);
-
+            else {
+                CompoundNBT mainNBT = CompressedStreamTools.readCompressed(filePath);
+                deserialize(mainNBT);
+            }
         } catch (Exception ex) {
             LOGGER.error(ex);
         }

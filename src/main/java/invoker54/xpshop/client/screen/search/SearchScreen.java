@@ -12,6 +12,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.util.ISearchTree;
 import net.minecraft.client.util.SearchTreeManager;
+import net.minecraft.item.EnchantedBookItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tags.ITag;
@@ -92,8 +93,10 @@ public class SearchScreen extends Screen {
 
         //Make search field
         ExtraUtil.mC.keyboardHandler.setSendRepeatsToGui(true);
-        this.searchBox = new TextBoxUI(this.font, halfWidthSpace + 12, halfHeightSpace + 17,
-                160, 11, ghostSearchText, TextBoxUI.defOutColor, TextBoxUI.defInColor);
+        if (searchBox == null){
+            this.searchBox = new TextBoxUI(this.font, halfWidthSpace + 12, halfHeightSpace + 17,
+                    160, 11, ghostSearchText, TextBoxUI.defOutColor, TextBoxUI.defInColor);
+        }
         addWidget(this.searchBox);
 
         //Done button
@@ -107,7 +110,7 @@ public class SearchScreen extends Screen {
             ExtraUtil.mC.setScreen(prevScreen);
         }));
 
-        refreshSearchResults();
+        if (searchList.isEmpty()) refreshSearchResults();
     }
 
 //    private void fillItemList(){
@@ -231,7 +234,7 @@ public class SearchScreen extends Screen {
     }
 
     public void renderItemSlot(MatrixStack stack, ItemStack item, int x, int y, boolean inBounds){
-        //If chosen item, make slot green and end
+        //If chosen item, make slot grey and end
         if (item.equals(chosenItem)){
             ExtraUtil.blitColor(stack,x, 16, y, 16, chosenItemBGColor);
             return;
@@ -252,6 +255,9 @@ public class SearchScreen extends Screen {
 
         if (hoverItem != null && mouseButton == 0) {
             chosenItem = hoverItem;
+        }
+        else if (mouseButton == 1){
+            chosenItem = ItemStack.EMPTY;
         }
         return super.mouseClicked(xMouse, yMouse, mouseButton);
 //        if(!super.mouseClicked(xMouse, yMouse, mouseButton)){

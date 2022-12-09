@@ -1,6 +1,8 @@
 package invoker54.xpshop.client.screen;
 
+import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.ContainerInit;
+import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.data.ShopData;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -11,6 +13,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
@@ -18,6 +22,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 
 public class SellContainer extends Container {
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public Inventory tempInv;
 
@@ -37,12 +42,13 @@ public class SellContainer extends Container {
     //endregion
 
     public float totalExtraXP;
+    public boolean clickedWanderer;
 
     public static SellContainer createContainer(int containerID, PlayerInventory playerInventory, net.minecraft.network.PacketBuffer extraData) {
         // on the client side there is no parent TileEntity to communicate with, so we:
         // 1) use a dummy inventory
         // 2) use "do nothing" lambda functions for canPlayerAccessInventory and markDirty
-        return new SellContainer(containerID, playerInventory);
+        return new SellContainer(containerID, playerInventory, extraData.readBoolean());
     }
 
     @Override
@@ -55,8 +61,10 @@ public class SellContainer extends Container {
      * @param containerID ID of the container
      * @param playerInventory the inventory of the player
      */
-    public SellContainer(int containerID, PlayerInventory playerInventory) {
+    public SellContainer(int containerID, PlayerInventory playerInventory, boolean clickedWanderer) {
         super(ContainerInit.sellContainerType, containerID);
+        this.clickedWanderer = clickedWanderer;
+        LOGGER.error("WHAT IS CLICKED WANDERER? : " + (clickedWanderer));
         tempInv = new Inventory(SELL_INVENTORY_TOTAL_COUNT);
         tempInv.addListener((container) -> totalExtraXP = CalculateXP());
         if (ContainerInit.sellContainerType == null)
@@ -164,6 +172,8 @@ public class SellContainer extends Container {
 
         }
         totalXP = BigDecimal.valueOf(totalXP).setScale(2, RoundingMode.HALF_UP).floatValue();
+        /* TODO: Place this in the mod */
+//        totalXP = Math.min(ShopCapability.getShopCap(ClientUtil.mC.player).traderXP, totalXP);
         return totalXP;
     }
 

@@ -20,7 +20,7 @@ public class KeyInit {
                     if (action != GLFW.GLFW_PRESS) return;
 
                     if (ExtraUtil.mC.screen == null){
-                        ExtraUtil.mC.setScreen(new ShopScreen());
+                        ExtraUtil.mC.setScreen(new ShopScreen(false));
                     }
                     else if (ExtraUtil.mC.screen instanceof ShopScreen){
                         ExtraUtil.mC.setScreen(null);

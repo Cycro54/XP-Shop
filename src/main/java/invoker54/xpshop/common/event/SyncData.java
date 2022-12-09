@@ -3,23 +3,24 @@ package invoker54.xpshop.common.event;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.api.ShopProvider;
-import invoker54.xpshop.common.api.WanderShopProvider;
+import invoker54.xpshop.common.api.WorldShopProvider;
+import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
-import invoker54.xpshop.common.network.msg.SyncClientCapMsg;
-import invoker54.xpshop.common.network.msg.SyncClientShopMsg;
-import invoker54.xpshop.common.network.msg.SyncServerShopMsg;
+import invoker54.xpshop.common.network.msg.*;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.merchant.villager.WanderingTraderEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +31,6 @@ public class SyncData {
 
     @SubscribeEvent
     public static void attachPlayerCaps(AttachCapabilitiesEvent<Entity> event){
-
         if (event.getObject() instanceof PlayerEntity){
             event.addCapability(XPShop.XPSHOP_LOC,new ShopProvider(event.getObject().level));
         }
@@ -38,10 +38,30 @@ public class SyncData {
     }
 
     @SubscribeEvent
-    public static void attachWanderVillagerCaps(AttachCapabilitiesEvent<Entity> event){
-        if (event.getObject() instanceof WanderingTraderEntity){
-            event.addCapability(XPShop.XPSHOP_LOC,new WanderShopProvider(event.getObject().level));
+    public static void attachWorldCaps(AttachCapabilitiesEvent<World> event){
+//        if (event.getObject().dimension().equals(World.OVERWORLD)){
+//            event.addCapability(XPShop.XPSHOP_LOC,new WanderShopProvider(event.getObject()));
+//        }
+        event.addCapability(XPShop.XPSHOP_LOC,new WorldShopProvider(event.getObject()));
+    }
+
+    @SubscribeEvent
+    public static void trackPlayer(EntityJoinWorldEvent event){
+        if (event.isCanceled()) return;
+        Entity joinEntity = event.getEntity();
+        if (!(joinEntity instanceof PlayerEntity)) return;
+
+        LOGGER.error("FOUND A PLAYER ");
+        //This is for asking for the world shop
+        if (event.getWorld().isClientSide){
+            NetworkHandler.INSTANCE.sendToServer(new SyncWorldShopRequestMsg(joinEntity.level.dimension().getRegistryName()));
         }
+        //This is for asking for the players shop data (like leftover xp or wallet upgrade
+        else {
+            NetworkHandler.sendToPlayer((PlayerEntity) joinEntity,
+                    new SyncClientCapMsg(ShopCapability.getShopCap((LivingEntity) joinEntity).writeNBT()));
+        }
+        if (!event.getWorld().isClientSide) return;
     }
 
     @SubscribeEvent
@@ -58,18 +78,35 @@ public class SyncData {
     public static void onLogin(PlayerEvent.PlayerLoggedInEvent event){
         //Sync shop
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientShopMsg(ShopData.serialize()));
+
+        //Also sync config
+        ShopConfig.bakeCommonConfig();
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientShopMsg(ShopConfig.serialize()));
+
         //Now give player cap data
         NetworkHandler.sendToPlayer(event.getPlayer(),
                 new SyncClientCapMsg(ShopCapability.getShopCap(event.getPlayer()).writeNBT()));
     }
 
     @SubscribeEvent
-    public static void onLogOut(ClientPlayerNetworkEvent.LoggedOutEvent event){
-        if (event.getNetworkManager() == null) return;
+    public static void onUpdateConfig(TickEvent.ServerTickEvent event){
+        if (event.type == TickEvent.Type.CLIENT) return;
+        if (event.phase == TickEvent.Phase.START) return;
+        if (ShopConfig.isDirty()){
+            //Then finally send the config data to all players
+            NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncClientShopMsg(ShopConfig.serialize()));
 
-        NetworkHandler.INSTANCE.sendToServer(
-                new SyncServerShopMsg(ShopCapability.getShopCap(event.getPlayer()).writeNBT()));
+            ShopConfig.markDirty(false);
+        }
     }
+
+//    @SubscribeEvent
+//    public static void onLogOut(ClientPlayerNetworkEvent.LoggedOutEvent event){
+//        if (event.getNetworkManager() == null) return;
+//
+//        NetworkHandler.INSTANCE.sendToServer(
+//                new SyncServerShopMsg(ShopCapability.getShopCap(event.getPlayer()).writeNBT()));
+//    }
 
     @SubscribeEvent
     public static void onWorldSave(WorldEvent.Save event){

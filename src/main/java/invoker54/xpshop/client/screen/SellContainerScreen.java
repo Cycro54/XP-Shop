@@ -1,10 +1,12 @@
 package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.event.RenderXPEvent;
 import invoker54.xpshop.common.api.ShopCapability;
+import invoker54.xpshop.common.api.WorldShopCapability;
 import invoker54.xpshop.common.data.SellEntry;
 import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
@@ -44,6 +46,13 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
         this.imageHeight = 222 + offsetY;
     }
 
+//    public SellContainerScreen(SellContainer inst, PlayerInventory inv, ITextComponent title, boolean clickedWanderer) {
+//        this(inst, inv, title);
+//        this.imageWidth = 176;
+//        this.imageHeight = 222 + offsetY;
+//        this.clickedWanderer = clickedWanderer;
+//    }
+
     @Override
     protected void init() {
         super.init();
@@ -63,6 +72,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
 
             float totalExp = menu.totalExtraXP + cap.getLeftOverXP();
             cap.setLeftOverXP(totalExp - ((int)totalExp));
+            cap.traderXP -= menu.totalExtraXP;
             ExtraUtil.mC.player.giveExperiencePoints((int)totalExp);
             menu.tempInv.clearContent();
             NetworkHandler.INSTANCE.sendToServer(new ClearSellContainerMsg());
@@ -70,12 +80,15 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
         }));
 
         //Change to Buy screen button
-        ExtraUtil.SimpleButton buyButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3,halfHeightSpace + imageHeight - offsetY,14,21, null,(button) ->{
-            //If the player is in creative, set the screen to add sell item screen
-            ExtraUtil.mC.setScreen(new ShopScreen());
-        });
-        buyButton.hidden = true;
-        addButton(buyButton);
+        if (this.menu.clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).buyUpgrade || ClientUtil.mC.player.isCreative()) {
+            ExtraUtil.SimpleButton buyButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3, halfHeightSpace + imageHeight - offsetY, 14, 21, null, (button) -> {
+
+                ExtraUtil.mC.setScreen(new ShopScreen(
+                        WorldShopCapability.getShopCap(ClientUtil.getWorld()).getBuyEntries(ClientUtil.getPlayer()),this.menu.clickedWanderer));
+            });
+            buyButton.hidden = true;
+            addButton(buyButton);
+        }
 
         //Now to set the initial values for the xp
         tempLvl = ExtraUtil.mC.player.experienceLevel;
@@ -110,16 +123,43 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
 
         renderExperienceBar(stack);
 
+        //TODO: Place this in the mod
+
+        //region TRADER XP AMOUNT
+//        //Render the amount of xp the traders have left
+//        //Draw the time box
+//        timeBG.x0 = halfWidthSpace + imageWidth;
+//        timeBG.y0 = halfHeightSpace + 90;
+//        timeBG.RenderImage(stack);
+//
+//        //Draw the XP text
+//        String traderXPString = "XP Left";
+//        int txtSize = this.font.width(traderXPString);
+//        ClientUtil.drawStretchText(stack, traderXPString, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
+//                timeBG.centerOnImageX(txtSize), timeBG.y0 + 4, TextFormatting.WHITE.getColor(), false);
+//
+//        //Draw the XP amount next
+//        String xpLeft = ShopCapability.getShopCap(ClientUtil.mC.player).traderXP + "";
+//        txtSize = this.font.width(xpLeft);
+//        ClientUtil.drawStretchText(stack, xpLeft, txtSize,  Math.min(timeBG.getWidth() - 4 - 8, txtSize),
+//                timeBG.x0 + 1 + 8, timeBG.getDown() - 9 - 3, TextFormatting.GOLD.getColor(), false);
+//        //Finally the xpOrb
+//        ShopScreen.xpOrb.moveTo(timeBG.x0 + 1, timeBG.getDown() - 9 - 3);
+//        ShopScreen.xpOrb.RenderImage(stack);
+        //endregion
+
         //region Render the flags next
         ExtraUtil.TEXTURE_MANAGER.bind(ShopScreen.SHOP_LOCATION);
 
         //Render buy flag
-        ExtraUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + imageHeight - offsetY,21,162, 28, 177, 42,256);
+        if (this.menu.clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).buyUpgrade || ClientUtil.mC.player.isCreative()) {
+            ExtraUtil.blitImage(stack, halfWidthSpace + 3, 14, halfHeightSpace + imageHeight - offsetY, 21, 162, 28, 177, 42, 256);
+        }
         //Render Sell flag
         ExtraUtil.blitImage(stack,halfWidthSpace + 3 + 14, 14,halfHeightSpace + imageHeight - offsetY,28,134, 28, 177, 56,256);
         //endregion
 
-        //Now render green slots for sellable items
+        //Now render grey slots for sellable items
         for (int a = 0; a < menu.slots.size(); a++){
             Slot slot = menu.getSlot(a);
 

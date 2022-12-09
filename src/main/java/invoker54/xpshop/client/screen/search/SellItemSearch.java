@@ -80,9 +80,13 @@ public class SellItemSearch  extends SearchScreen{
 
 
         //Make price field
-        this.priceBox = new TextBoxUI(this.font, halfWidthSpace + 11, halfHeightSpace + 154,
-                72, 11, ghostPriceText, TextBoxUI.defOutColor, TextBoxUI.defInColor);
-        this.priceBox.setValue("0");
+        if (this.priceBox == null) {
+            this.priceBox = new TextBoxUI(this.font, halfWidthSpace + 11, halfHeightSpace + 154,
+                    72, 11, ghostPriceText, TextBoxUI.defOutColor, TextBoxUI.defInColor);
+        }
+        this.priceBox.x = halfWidthSpace + 11;
+        this.priceBox.y = halfHeightSpace + 154;
+        if (this.priceBox.getValue().isEmpty()) this.priceBox.setValue("0");
         this.children.add(this.priceBox);
     }
 
@@ -210,7 +214,7 @@ public class SellItemSearch  extends SearchScreen{
 
                     ShopData.sellEntries.put(itemStack.getItem(), new SellEntry(itemStack, sellPrice));
                 }
-                refreshSearchResults();
+//                refreshSearchResults();
                 NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
             }
             else if (mouseButton == 1){

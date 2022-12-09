@@ -2,12 +2,17 @@ package invoker54.xpshop.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import invoker54.invocore.client.ClientUtil;
+import invoker54.xpshop.client.screen.ShopScreen;
+import invoker54.xpshop.client.screen.XPTransferScreen;
+import invoker54.xpshop.common.data.BuyEntry;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.text.ITextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
 
 import static invoker54.xpshop.client.screen.ShopScreen.SHOP_LOCATION;
 
@@ -74,5 +79,16 @@ public class ExtraUtil extends ClientUtil {
 
             return super.mouseClicked(xMouse, yMouse, mouseButton);
         }
+    }
+
+    //Checks if items match without paying attention to count
+    public static boolean itemsMatch(ItemStack one, ItemStack two){
+        return one.sameItem(two) && ItemStack.tagMatches(one, two);
+    }
+    public static void openShop(ArrayList<BuyEntry> buyEntries, boolean clickedWanderer){
+        ClientUtil.mC.setScreen(new ShopScreen(buyEntries, clickedWanderer));
+    }
+    public static void openXPTransfer(int playerID){
+        ClientUtil.mC.setScreen(new XPTransferScreen(playerID));
     }
 }

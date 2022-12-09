@@ -15,7 +15,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '0.3.3'
+version = '0.9.0'
 group = 'invoker54' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'xp_shop-1.16.5'
 
@@ -173,7 +173,7 @@ dependencies {
     // These dependencies get remapped to your current MCP mappings
     // deobf 'com.mod-buildcraft:buildcraft:6.0.8:dev'
 //    implementation fg.deobf("curse.maven:invocore-utility-mod-693881:4050976") // Invocore (my code library)
-    implementation fg.deobf("invoker54:invocore-1.16.5:1.2.4")
+    implementation fg.deobf("invoker54:invocore-1.16.5:1.5.0")
 //    implementation "invoker54:invocore-1.16.5:1.1.1"
 //    implementation "invoker54:invocore-1.16.5:1.1.1"
 //    compileOnly(fg.deobf("curse.maven:exp-238222:3530253"))

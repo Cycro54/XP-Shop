@@ -12,17 +12,17 @@ import net.minecraftforge.common.util.LazyOptional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class WanderShopProvider implements ICapabilitySerializable<INBT> {
+public class WorldShopProvider implements ICapabilitySerializable<INBT> {
     public static final byte COMPOUND_NBT_ID = new CompoundNBT().getId();
 
-    public WanderShopProvider(World level){
-        WanderShopCapability = new WanderShopCapability(level);
+    public WorldShopProvider(World level){
+        WorldShopCapability = new WorldShopCapability(level);
     }
 
     //region Capability setup
     //This is where all of the fallen capability data is
-    @CapabilityInject(WanderShopCapability.class)
-    public static Capability<WanderShopCapability> XPSHOPDATA = null;
+    @CapabilityInject(WorldShopCapability.class)
+    public static Capability<WorldShopCapability> XPSHOPDATA = null;
 
     private final static String XPSHOP_NBT = "xpWanderShopData";
 
@@ -32,7 +32,7 @@ public class WanderShopProvider implements ICapabilitySerializable<INBT> {
 
 
         if (XPSHOPDATA == capability) {
-            return LazyOptional.of(() -> WanderShopCapability).cast();
+            return LazyOptional.of(() -> WorldShopCapability).cast();
             // why are we using a lambda?  Because LazyOptional.of() expects a NonNullSupplier interface.  The lambda automatically
             //   conforms itself to that interface.  This save me having to define an inner class implementing NonNullSupplier.
             // The explicit cast to LazyOptional<T> is required because our CAPABILITY_ELEMENTAL_FIRE can't be typed.  Our code has
@@ -54,7 +54,7 @@ public class WanderShopProvider implements ICapabilitySerializable<INBT> {
     @Override
     public INBT serializeNBT() {
         CompoundNBT nbtData = new CompoundNBT();
-        INBT shopNBT = XPSHOPDATA.writeNBT(WanderShopCapability, null);
+        INBT shopNBT = XPSHOPDATA.writeNBT(WorldShopCapability, null);
         nbtData.put(XPSHOP_NBT, shopNBT);
         return  nbtData;
     }
@@ -67,9 +67,9 @@ public class WanderShopProvider implements ICapabilitySerializable<INBT> {
         }
         //System.out.println("I ran for deserializing");
         CompoundNBT nbtData = (CompoundNBT) nbt;
-        XPSHOPDATA.readNBT(WanderShopCapability, null, nbtData.getCompound(XPSHOP_NBT));
+        XPSHOPDATA.readNBT(WorldShopCapability, null, nbtData.getCompound(XPSHOP_NBT));
     }
 
     //This is where the current capability is stored to read and write
-    private WanderShopCapability WanderShopCapability;
+    private WorldShopCapability WorldShopCapability;
 }

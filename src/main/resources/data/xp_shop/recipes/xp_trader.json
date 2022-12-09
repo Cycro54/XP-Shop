@@ -2,24 +2,24 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     " E ",
-    "GXG",
-    "DDD"
+    "GRG",
+    "III"
   ],
   "key": {
     "E": {
       "tag": "forge:gems/emerald"
     },
-    "X": {
-      "item": "xp_shop:xp_trader_limited"
+    "R": {
+      "tag": "forge:storage_blocks/redstone"
     },
     "G": {
       "tag": "forge:ingots/gold"
     },
-    "D": {
-      "tag": "forge:gems/diamond"
+    "I": {
+      "tag": "forge:ingots/iron"
     }
   },
   "result": {
-    "item": "xp_shop:xp_trader_full"
+    "item": "xp_shop:xp_trader"
   }
 }

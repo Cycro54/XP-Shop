@@ -2,6 +2,7 @@ package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.KeyInit;
@@ -24,7 +25,9 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
+import javax.management.remote.rmi._RMIConnection_Stub;
 import java.awt.*;
+import java.util.Objects;
 
 public class AddItemScreen extends Screen {
     // Directly reference a log4j logger.
@@ -35,6 +38,7 @@ public class AddItemScreen extends Screen {
     private int greyColor = new Color(78, 79, 80,255).getRGB();
     private int whiteColor = new Color(255, 255, 255,255).getRGB();
     private int lightBlueColor = new Color(152, 199, 213,255).getRGB();
+    private int transparentRedColor = new Color(255, 45, 45, 105).getRGB();
 
     int widthSpace;
     int heightSpace;
@@ -43,6 +47,7 @@ public class AddItemScreen extends Screen {
     ExtraUtil.Bounds bounds;
     BuyEntry targetEntry;
     private ExtraUtil.SimpleButton doneButton;
+    private ClientUtil.SimpleButton duplicateButton;
 
     public AddItemScreen(Screen prevScreen, CategoryEntry categoryEntry, BuyEntry entry){
         super(ITextComponent.nullToEmpty(null));
@@ -56,15 +61,17 @@ public class AddItemScreen extends Screen {
         list.addEntry(new ItemEntry("Item: ", this, "item", entry.item));
         list.addEntry(new IntEntry("Buy Price: ", "buyPrice", entry.buyPrice));
         list.addEntry(new IntEntry("Stock: ", "limitStock", entry.limitStock));
-        list.addEntry(new IntEntry("Replenish Time: ", "replenTime", entry.replenTime));
         list.addEntry(new ItemEntry("Lock Item: ", this, "lockItem", entry.lockItem));
+        list.addEntry(new BoolEntry("Always Show: ", "alwaysShow", entry.alwaysShow));
         list.setRenderTopAndBottom(false);
         list.setRenderBackground(false);
+
     }
 
     protected void init() {
         super.init();
 
+        this.addWidget(this.list);
         heightSpace = this.height - 177;
         halfHeightSpace = heightSpace / 2;
 
@@ -99,46 +106,66 @@ public class AddItemScreen extends Screen {
                         NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
                     }));
 
-            //Duplicate button
-            addButton(new ExtraUtil.SimpleButton(halfWidthSpace + (9 + 11 + list.getWidth()) - 52 - font.width("Duplicate"),
+            //Duplicate button (This will create a new entry but will stay on the add item screen)
+            duplicateButton = addButton(new ExtraUtil.SimpleButton(halfWidthSpace + (9 + 11 + list.getWidth()) - 52 - font.width("Duplicate"),
                     halfHeightSpace + 4, font.width("Duplicate") + 4, 16, ITextComponent.nullToEmpty("Duplicate"),
                     (button) -> createNewEntry(true)));
         }
-    }
 
+        //Check if there are duplicates
+        checkForDuplicate();
+    }
     protected void createNewEntry(boolean duplicate){
+        //We have to find the category first and foremost
+        for (CategoryEntry entry : ShopData.catEntries){
+            if (!Objects.equals(entry.categoryName, categoryEntry.categoryName)) continue;
+            if (!ExtraUtil.itemsMatch(entry.categoryItem, categoryEntry.categoryItem)) continue;
+
+            categoryEntry = entry;
+        }
+
         BuyEntry newEntry = new BuyEntry(list.saveData(), categoryEntry);
 
         //If it's empty, then DONT go through with this
         if (newEntry.item.isEmpty()) return;
 
         //If we have a target entry, delete it if it matches the current item OR we are not duplicating.
-        if (targetEntry != null && targetEntry.item.sameItem(newEntry.item) || !duplicate) {
+        if (targetEntry != null && ExtraUtil.itemsMatch(targetEntry.item, newEntry.item) || !duplicate) {
             ShopData.buyEntries.remove(targetEntry);
             categoryEntry.entries.remove(targetEntry);
         }
 
         //First let's go through every entry and make sure the item being sold doesn't already exist
-        BuyEntry duplicateEntry = null;
         for (BuyEntry entry : ShopData.buyEntries) {
-            if (entry.item.sameItem(newEntry.item) && entry != targetEntry) {
-                duplicateEntry = entry;
+            if (ExtraUtil.itemsMatch(entry.item, newEntry.item) && entry != targetEntry) {
+                ShopData.buyEntries.remove(entry);
+                categoryEntry.entries.remove(entry);
                 break;
             }
-        }
-        //If it does, delete it.
-        if (duplicateEntry != null) {
-            ShopData.buyEntries.remove(duplicateEntry);
-            categoryEntry.entries.remove(duplicateEntry);
         }
 
         categoryEntry.entries.add(newEntry);
         ShopData.buyEntries.add(newEntry);
-        ExtraUtil.mC.setScreen(prevScreen);
-        //If the category no longer exists, add it back, then sync
-        if (!ShopData.catEntries.contains(categoryEntry)) {
-            ShopData.catEntries.add(categoryEntry);
+        if (!duplicate) ExtraUtil.mC.setScreen(prevScreen);
+        else{
+            checkForDuplicate();
+            targetEntry = newEntry;
         }
+
+        //If the category no longer exists, add it back, then sync
+        boolean foundCategory = false;
+        for (CategoryEntry catEntry : ShopData.catEntries){
+            //If the item doesn't match, continue
+            if (!catEntry.categoryItem.sameItem(categoryEntry.categoryItem)) continue;
+            //If the name doesn't match, continue
+            if (!Objects.equals(catEntry.categoryName, categoryEntry.categoryName)) continue;
+
+            foundCategory = true;
+            break;
+        }
+        if (!foundCategory) ShopData.catEntries.add(categoryEntry);
+
+
         NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
     }
 
@@ -172,26 +199,37 @@ public class AddItemScreen extends Screen {
         doneButton.active = isDone();
 
         super.render(stack, xMouse, yMouse, partialTicks);
-    }
+        if (duplicateButton == null) return;
 
-    @Override
-    public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
-        if (!list.mouseClicked(xMouse,yMouse,mouseButton)) {
-            return super.mouseClicked(xMouse, yMouse, mouseButton);
+        //Put a red box over duplicate if the item already exists
+        if (!duplicateButton.active){
+            ClientUtil.blitColor(stack, duplicateButton.x, duplicateButton.getWidth(),
+                    duplicateButton.y, duplicateButton.getHeight(), this.transparentRedColor);
         }
-
-        return true;
     }
 
-    @Override
-    public boolean mouseReleased(double xMouse, double yMouse, int mouseButton) {
-        return list.mouseReleased(xMouse, yMouse, mouseButton);
+    public void checkForDuplicate(){
+        if (duplicateButton == null) return;
+
+        ItemStack targetItem = ((ItemEntry)this.list.children().get(0)).itemButton.displayItem;
+        for (BuyEntry entry : ShopData.buyEntries) {
+            if (ExtraUtil.itemsMatch(entry.item, targetItem)) {
+                duplicateButton.active = false;
+                return;
+            }
+        }
+        duplicateButton.active = true;
     }
 
-    @Override
-    public boolean mouseDragged(double xOrigin, double yOrigin, int mouseButton, double xDistance, double yDistance) {
-        return list.mouseDragged(xOrigin, yOrigin, mouseButton, xDistance, yDistance);
-    }
+//    @Override
+//    public boolean mouseReleased(double xMouse, double yMouse, int mouseButton) {
+//        return list.mouseReleased(xMouse, yMouse, mouseButton);
+//    }
+//
+//    @Override
+//    public boolean mouseDragged(double xOrigin, double yOrigin, int mouseButton, double xDistance, double yDistance) {
+//        return list.mouseDragged(xOrigin, yOrigin, mouseButton, xDistance, yDistance);
+//    }
 
     public boolean charTyped(char character, int keyCode) {
         return list.charTyped(character, keyCode);
@@ -208,7 +246,8 @@ public class AddItemScreen extends Screen {
             minecraft.setScreen(prevScreen);
             return true;
         }
-        return list.keyPressed(keyCode, b, c);
+//        return list.keyPressed(keyCode, b, c);
+    return super.keyPressed(keyCode, b, c);
     }
 
     public class NewItemList extends AbstractList<ListEntry>  {
@@ -243,14 +282,6 @@ public class AddItemScreen extends Screen {
             ExtraUtil.blitColor(stack,x0,getWidth(),y0, y1 - y0, lightBlueColor);
 
             super.render(stack, xMouse, yMouse, partialTicks);
-        }
-
-        @Override
-        public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
-            for (ListEntry entry : this.children()){
-                entry.mouseClicked(xMouse, yMouse, mouseButton);
-            }
-            return super.mouseClicked(xMouse, yMouse, mouseButton);
         }
 
         @Override
@@ -324,18 +355,44 @@ public class AddItemScreen extends Screen {
     public class BoolEntry extends ListEntry {
         protected final int buttonWidth = 50;
         protected final int buttonHeight = 18;
-        protected boolean aBool = false;
+        protected boolean enabled;
+        protected ClientUtil.SimpleButton boolButton;
 
-        public BoolEntry(String txtToRender, String nbtString) {
+        public BoolEntry(String txtToRender, String nbtString, boolean enabled) {
             super(txtToRender, nbtString);
 
             this.width += buttonWidth;
+            this.enabled = enabled;
+            this.boolButton = new ClientUtil.SimpleButton(0, 0, buttonWidth, buttonHeight,
+                    ITextComponent.nullToEmpty("" + enabled), (button) -> changeButton());
+            addButton(this.boolButton);
+        }
+
+        public void changeButton(){
+            this.enabled = !this.enabled;
+            this.boolButton.setMessage(ITextComponent.nullToEmpty("" + this.enabled));
+            LOGGER.warn("BOOL IS CHANGING TO: " + this.enabled);
         }
 
         @Override
         public CompoundNBT save(CompoundNBT nbt) {
-             nbt.putBoolean(nbtString,aBool);
+             nbt.putBoolean(nbtString,this.enabled);
              return nbt;
+        }
+
+        @Override
+        public boolean mouseClicked(double xMouse, double yMouse, int button) {
+            return boolButton.mouseClicked(xMouse, yMouse, button);
+        }
+
+        @Override
+        public void render(MatrixStack stack, int index, int rowTop, int rowLeft, int rowWidth, int rowHeight, int xMouse, int yMouse, boolean isMouseOver, float partialTicks) {
+            super.render(stack, index, rowTop, rowLeft, rowWidth, rowHeight, xMouse, yMouse, isMouseOver, partialTicks);
+
+            this.boolButton.x = rowLeft + rowWidth - padding - this.boolButton.getWidth();
+            this.boolButton.y = rowTop + (rowHeight - this.boolButton.getHeight())/2;
+
+            this.boolButton.render(stack, xMouse, yMouse, partialTicks);
         }
     }
     public class IntEntry extends ListEntry {
@@ -348,6 +405,7 @@ public class AddItemScreen extends Screen {
             textBox = new TextBoxUI(ExtraUtil.mC.font, 0,0,60,11, ITextComponent.nullToEmpty("0"), TextBoxUI.defOutColor, TextBoxUI.defInColor);
             if(defaultNumber != 0) textBox.setValue("" + defaultNumber);
             width += textBox.getWidth();
+            addWidget(textBox);
         }
 
         @Override
@@ -375,8 +433,8 @@ public class AddItemScreen extends Screen {
         }
 
         @Override
-        public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
-            return textBox.mouseClicked(xMouse,yMouse,mouseButton);
+        public boolean mouseClicked(double xMouse, double yMouse, int button) {
+            return textBox.mouseClicked(xMouse, yMouse, button);
         }
 
         @Override
@@ -418,6 +476,12 @@ public class AddItemScreen extends Screen {
             itemButton.displayItem = defaultItem;
             itemButton.setWidth(buttonWidth);
             itemButton.setHeight(buttonHeight);
+            addButton(itemButton);
+        }
+
+        @Override
+        public boolean mouseClicked(double xMouse, double yMouse, int button) {
+            return itemButton.mouseClicked(xMouse, yMouse, button);
         }
 
         @Override
@@ -442,11 +506,6 @@ public class AddItemScreen extends Screen {
                 itemRenderer.renderGuiItemDecorations(font, itemButton.displayItem, itemButton.x + 5, itemButton.y + 5);
             }
             //itemRenderer.renderAndDecorateItem(itemButton.displayItem, itemButton.x, itemButton.y);
-        }
-
-        @Override
-        public boolean mouseClicked(double xMouse, double yMouse, int mouseButton) {
-            return itemButton.mouseClicked(xMouse,yMouse,mouseButton);
         }
     }
 }

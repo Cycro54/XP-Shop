@@ -84,6 +84,8 @@ public class TagSearchScreen extends Screen {
                     LOGGER.error(entry.getClass());
                     continue;
                 }
+                if (!((ToggleEntry) entry).toggleButton.pushed) continue;
+
                 ITag<Item> currTag = ItemTags.getAllTags().getTag(((ToggleEntry) entry).toggleButton.tag);
                 if (currTag == null) {
                     LOGGER.error("THIS TAG HAS NO ITEMS?!");
@@ -93,15 +95,12 @@ public class TagSearchScreen extends Screen {
 
                 //Begin going through all the items under this tag
                 for (Item item : currTag.getValues()) {
+                    LOGGER.warn("CURRENT TAG: " + ((ToggleEntry) entry).toggleButton.tag);
                     //Make sure we don't already have the item in the list
                     if (!addedItems.contains(item)) {
                         //For adding sell entries
                         if (this.sellPrice != 0) {
-                            if (!ShopData.sellEntries.containsKey(item)) {
-                                ShopData.sellEntries.put(item, new SellEntry(new ItemStack(item), this.sellPrice));
-                            } else if (ShopData.sellEntries.get(item).getSellPrice() < this.sellPrice) {
-                                ShopData.sellEntries.get(item).setPrice(this.sellPrice);
-                            }
+                            ShopData.sellEntries.put(item, new SellEntry(new ItemStack(item), this.sellPrice));
                         }
                         //For removing sell entries
                         else {

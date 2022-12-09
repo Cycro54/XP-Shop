@@ -1,6 +1,7 @@
 package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.common.api.ShopCapability;
+import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.data.BuyEntry;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -9,6 +10,7 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.network.NetworkEvent;
 
+import java.time.OffsetDateTime;
 import java.util.function.Supplier;
 
 public class UnlockItemMsg {
@@ -37,16 +39,18 @@ public class UnlockItemMsg {
             //Grab the player
             ServerPlayerEntity player = context.getSender();
 
-            //Take their items.
-            while (entry.lockItem.getCount() > 0){
-                //Get matching item
-                ItemStack itemStack = player.inventory.getItem(player.inventory.findSlotMatchingItem(entry.lockItem));
-                //Get how much I can reduce (Can't be any higher than the items count, nor lower than 0)
-                int reduce = MathHelper.clamp(entry.lockItem.getCount(),0,itemStack.getCount());
-                //First reduce the itemstack in player inventory
-                itemStack.shrink(reduce);
-                //Then reduce the itemstack in the entry
-                entry.lockItem.shrink(reduce);
+            //Take their items if enabled
+            if (ShopConfig.takeLockItem) {
+                while (entry.lockItem.getCount() > 0) {
+                    //Get matching item
+                    ItemStack itemStack = player.inventory.getItem(player.inventory.findSlotMatchingItem(entry.lockItem));
+                    //Get how much I can reduce (Can't be any higher than the items count, nor lower than 0)
+                    int reduce = MathHelper.clamp(entry.lockItem.getCount(), 0, itemStack.getCount());
+                    //First reduce the itemstack in player inventory
+                    itemStack.shrink(reduce);
+                    //Then reduce the itemstack in the entry
+                    entry.lockItem.shrink(reduce);
+                }
             }
 
             //Now make sure the item is now unlocked for this player

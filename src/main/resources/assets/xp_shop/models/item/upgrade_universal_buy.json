@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "xp_shop:item/upgrade_universal_buy"
+  }
+}

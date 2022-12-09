@@ -1,8 +1,9 @@
 package invoker54.xpshop.client.screen;
 
-import com.ibm.icu.text.ArabicShaping;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.sun.org.apache.bcel.internal.generic.FieldOrMethod;
+import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.KeyInit;
@@ -13,28 +14,41 @@ import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.data.BuyEntry;
 import invoker54.xpshop.common.data.CategoryEntry;
+import invoker54.xpshop.common.data.SellEntry;
 import invoker54.xpshop.common.data.ShopData;
+import invoker54.xpshop.common.event.RefreshDealsEvent;
 import invoker54.xpshop.common.network.NetworkHandler;
-import invoker54.xpshop.common.network.msg.BuyItemMsg;
-import invoker54.xpshop.common.network.msg.OpenSellContainerMsg;
-import invoker54.xpshop.common.network.msg.UnlockItemMsg;
+import invoker54.xpshop.common.network.msg.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.util.SearchTreeManager;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentData;
+import net.minecraft.item.EnchantedBookItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.awt.*;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static net.minecraft.item.EnchantedBookItem.createForEnchantment;
 
 public class ShopScreen extends Screen {
     // Directly reference a log4j logger.
@@ -42,6 +56,9 @@ public class ShopScreen extends Screen {
     public static final ResourceLocation SHOP_LOCATION = new ResourceLocation(XPShop.MOD_ID,"textures/gui/screen/base_shop_layout.png");
     public static ArrayList<BuyEntry> localBuyEntries;
     public static ArrayList<CategoryEntry> localCatEntries;
+    public static ClientUtil.Image timeBG = new ClientUtil.Image(SHOP_LOCATION, 204, 52, 81, 26, 256);
+
+    public static final ClientUtil.Image xpOrb = new ClientUtil.Image(SHOP_LOCATION, 106, 7, 249, 7, 256);
     private ArrayList<Button> catButtons = new ArrayList<>();
     private ArrayList<Button> itemButtons = new ArrayList<>();
     private int origButtonY;
@@ -60,13 +77,23 @@ public class ShopScreen extends Screen {
     int halfWidthSpace;
     int halfHeightSpace;
 
-    public ShopScreen(){
-        this(null);
+    public final boolean clickedWanderer;
+
+//    public ClientUtil.SimpleButton generateEnchants;
+    public ClientUtil.SimpleButton generateSellItems;
+    public ClientUtil.SimpleButton clearBuyEntries;
+    public ClientUtil.SimpleButton clearSellEntries;
+    public ClientUtil.SimpleButton forceRefresh;
+    public ClientUtil.SimpleButton generateDefault;
+
+    public ShopScreen(boolean clickedWanderer){
+        this(null, clickedWanderer);
     }
-    public ShopScreen(@Nullable ArrayList<BuyEntry> buyEntries) {
+    public ShopScreen(@Nullable ArrayList<BuyEntry> buyEntries, boolean clickedWanderer) {
         super(new TranslationTextComponent("shopScreen.shop_text"));
         localBuyEntries = buyEntries == null ? new ArrayList<>(ShopData.buyEntries) : buyEntries;
         localCatEntries = new ArrayList<>(ShopData.catEntries);
+        this.clickedWanderer = clickedWanderer;
     }
 
     @Override
@@ -76,32 +103,35 @@ public class ShopScreen extends Screen {
         //XPShop.LOGGER.debug("I am the main screen right?" + (ClientUtil.mC.screen == this));
         catButtons.clear();
 
-        halfWidthSpace = (width - imageWidth) /2;
-        halfHeightSpace = (height - imageHeight) /2;
+        halfWidthSpace = (width - imageWidth) / 2;
+        halfHeightSpace = (height - imageHeight) / 2;
         origButtonY = halfHeightSpace + 29 + 1;
 
-        searchBox = new TextBoxUI(font, halfWidthSpace + 49,halfHeightSpace + 28 - 16, 109,10,ITextComponent.nullToEmpty("Search..."),
-                TextBoxUI.defOutColor,TextBoxUI.defInColor);
+        searchBox = new TextBoxUI(font, halfWidthSpace + 49, halfHeightSpace + 28 - 16, 109, 10, ITextComponent.nullToEmpty("Search..."),
+                TextBoxUI.defOutColor, TextBoxUI.defInColor);
         this.children.add(this.searchBox);
         this.buttons.add(searchBox);
 
-        ExtraUtil.SimpleButton sellButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3 + 14,halfHeightSpace + imageHeight,14,21, null,(button) ->{
-            XPShop.LOGGER.debug("WILL THIS OPEN CREATIVE MENU?: " + (ExtraUtil.mC.player.isCreative()));
-            //If the player is in creative, set the screen to add sell item screen
-            if (ExtraUtil.mC.player.isCreative()){
-                ExtraUtil.mC.setScreen(new SellItemSearch(this,(Iitem -> {})));
-            }
+        if (clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).sellUpgrade || ClientUtil.mC.player.isCreative()) {
+            ExtraUtil.SimpleButton sellButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3 + 14, halfHeightSpace + imageHeight, 14, 21, null, (button) -> {
+                XPShop.LOGGER.debug("WILL THIS OPEN CREATIVE MENU?: " + (ExtraUtil.mC.player.isCreative()));
+                //If the player is in creative, set the screen to add sell item screen
+                if (ExtraUtil.mC.player.isCreative()) {
+                    ExtraUtil.mC.setScreen(new SellItemSearch(this, (Iitem -> {
+                    })));
+                }
 
-            //Else, open up a temporary container to put the shtuff in
-            else {
+                //Else, open up a temporary container to put the shtuff in
+                else {
+                    NetworkHandler.INSTANCE.sendToServer(new OpenSellContainerMsg(this.clickedWanderer));
+                }
+            });
+            addButton(sellButton);
+        }
 
-                NetworkHandler.INSTANCE.sendToServer(new OpenSellContainerMsg());
-            }
-        });
-        addButton(sellButton);
 
-        catBounds = new ExtraUtil.Bounds(halfWidthSpace + 9, 33, halfHeightSpace + 29,139);
-        itemBounds = new ExtraUtil.Bounds(halfWidthSpace + 51, 115, halfHeightSpace + 29,139);
+        catBounds = new ExtraUtil.Bounds(halfWidthSpace + 9, 33, halfHeightSpace + 29, 139);
+        itemBounds = new ExtraUtil.Bounds(halfWidthSpace + 51, 115, halfHeightSpace + 29, 139);
 
         //region category buttons
         maxCatOffset = 0;
@@ -125,8 +155,7 @@ public class ShopScreen extends Screen {
             }
             //Sort that list by name
             localCatEntries.sort(Comparator.comparing(item -> item.categoryName));
-        }
-        else {
+        } else {
             localCatEntries = new ArrayList<>(ShopData.catEntries);
         }
         //endregion
@@ -152,6 +181,8 @@ public class ShopScreen extends Screen {
 
                 //Finally refresh the shop items
                 refreshItemList("");
+
+                this.ItemOffset = 0;
             })));
 
             //this is how many pixels high each button is.
@@ -159,17 +190,104 @@ public class ShopScreen extends Screen {
         }
 
         //Make sure the selected cat button is disabled
-        if (!catButtons.isEmpty() && catButtons.size() > pageIndex && catButtons.get(pageIndex) instanceof CategoryButton){
+        if (!catButtons.isEmpty() && catButtons.size() > pageIndex && catButtons.get(pageIndex) instanceof CategoryButton) {
             catButtons.get(pageIndex).active = false;
             XPShop.LOGGER.debug("I AM DISABLING A BUTTON");
         }
 
         //This will give us the real max Offset
         maxCatOffset -= 139;
+        if (CatOffset > maxCatOffset) CatOffset = 0;
         //endregion
 
         refreshItemList("");
         XPShop.LOGGER.debug("Finish Shop screen");
+//        generateEnchants = this.addButton(new ClientUtil.SimpleButton(0,0,8 + font.width("Generate Items"),
+
+//                18, ITextComponent.nullToEmpty("Generate Items"), (button) ->{
+//            //Generate Buy entries for enchantments
+////            this.minecraft.getSearchTree(SearchTreeManager.CREATIVE_NAMES).search("Enchanted Book".toLowerCase(Locale.ROOT))
+//            for (CategoryEntry categoryEntry : ShopData.catEntries) {
+//                if (!Objects.equals(categoryEntry.categoryName, "Enchantments")) continue;
+//
+//                for (Enchantment enchantment1 : ForgeRegistries.ENCHANTMENTS.getValues()) {
+//                    for (int a = 0; a < enchantment1.getMaxLevel(); a++) {
+//                        //Grab a book
+//                        ItemStack enchant = createForEnchantment(new EnchantmentData(enchantment1, a + 1));
+//                        //Now create the entry
+//                        BuyEntry entry = new BuyEntry();
+//                        entry.buyPrice = 250 * (a + 1);
+//                        entry.alwaysShow = false;
+//                        entry.item = enchant;
+//                        entry.limitStock = 2;
+//                        entry.parentCategory = categoryEntry;
+//                        categoryEntry.entries.add(entry);
+//                    }
+//                }
+//            }
+//
+//            //At the end, sync te shop
+//            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+//        }));
+        generateSellItems = this.addButton(new ClientUtil.SimpleButton(0,19,8 + font.width("Generate Sell Items"),
+                18, ITextComponent.nullToEmpty("Generate Sell Items"), (button) ->{
+            if (!ExtraUtil.mC.player.isCreative()) return;
+            //Generate Buy entries for enchantments
+//            this.minecraft.getSearchTree(SearchTreeManager.CREATIVE_NAMES).search("Enchanted Book".toLowerCase(Locale.ROOT))
+            for (BuyEntry entry : ShopData.buyEntries){
+                Item entryItem = entry.item.getItem();
+                SellEntry newEntry = new SellEntry(entry.item, (entry.buyPrice/(entry.item.getCount() + 0F))/4F);
+                
+                if (!ShopData.sellEntries.containsKey(entryItem) ){
+                    ShopData.sellEntries.put(entryItem, newEntry);
+                }
+                //IF there already is a sell price and it's larger than the newest one, change it.
+                else if(ShopData.sellEntries.get(entryItem).getSellPrice() > newEntry.getSellPrice()){
+                    ShopData.sellEntries.put(entryItem, newEntry);
+                }
+            }
+
+            //At the end, sync te shop
+            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+        }));
+        clearBuyEntries = this.addButton(new ClientUtil.SimpleButton(0,19 * 2,8 + font.width("Clear Buy Items"),
+                18, ITextComponent.nullToEmpty("Clear Buy Items"), (button) ->{
+            if (!ExtraUtil.mC.player.isCreative()) return;
+            ShopData.buyEntries.clear();
+            for (CategoryEntry entry : ShopData.catEntries){
+                entry.entries.clear();
+            }
+
+            //At the end, sync te shop
+            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+        }));
+        clearSellEntries = this.addButton(new ClientUtil.SimpleButton(0,19 * 3,8 + font.width("Clear Sell Items"),
+                18, ITextComponent.nullToEmpty("Clear Sell Items"), (button) ->{
+            if (!ExtraUtil.mC.player.isCreative()) return;
+            //Generate Buy entries for enchantments
+//            this.minecraft.getSearchTree(SearchTreeManager.CREATIVE_NAMES).search("Enchanted Book".toLowerCase(Locale.ROOT))
+            ShopData.sellEntries.clear();
+
+            //At the end, sync te shop
+            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+        }));
+        forceRefresh = this.addButton(new ClientUtil.SimpleButton(0,19 * 4,8 + font.width("Force Refresh"),
+                18, ITextComponent.nullToEmpty("Force Refresh"), (button) ->{
+            if (!ExtraUtil.mC.player.isCreative()) return;
+            NetworkHandler.INSTANCE.sendToServer(new ForceRefreshMsg());
+        }));
+        generateDefault = this.addButton(new ClientUtil.SimpleButton(0,19 * 5,8 + font.width("Generate Default"),
+                18, ITextComponent.nullToEmpty("Generate Default"), (button) ->{
+            if (!ExtraUtil.mC.player.isCreative()) return;
+
+            try {
+                ShopData.grabDefault();
+                NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }));
+
     }
 
     public void refreshItemList(String customSearch){
@@ -184,7 +302,6 @@ public class ShopScreen extends Screen {
 
         //region item buttons
         maxItemOffset = 0;
-        ItemOffset = 0;
 
         if (localCatEntries.isEmpty()) return;
 
@@ -194,7 +311,7 @@ public class ShopScreen extends Screen {
             }
 
             //Use this since the very first item in the category list is an "add category" button.
-            int adjustedPageIndex = pageIndex - 1;
+            int adjustedPageIndex = (ExtraUtil.mC.player.isCreative() ? pageIndex - 1 : pageIndex) ;
 
             //Add item button
             if (ExtraUtil.mC.player.isCreative()) {
@@ -220,9 +337,10 @@ public class ShopScreen extends Screen {
         }
 
         else {
+            ItemOffset = 0;
             customSearch = customSearch.toLowerCase(Locale.ROOT);
             Pattern pattern = Pattern.compile(customSearch);
-            for (BuyEntry entry : localBuyEntries){
+            for (BuyEntry entry : (ExtraUtil.mC.player.isCreative() ? ShopData.buyEntries : localBuyEntries)){
                 if (pattern.matcher(entry.item.getHoverName().getString().toLowerCase(Locale.ROOT)).find()){
                         itemButtons.add(addButton(new PriceButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                                 itemBounds, entry)));
@@ -245,12 +363,33 @@ public class ShopScreen extends Screen {
         Minecraft.getInstance().getTextureManager().bind(SHOP_LOCATION);
         //Now Render shop
         ExtraUtil.blitImage(stack, halfWidthSpace, imageWidth,
-                halfHeightSpace,  178, 0, imageWidth, 0, imageHeight, 256);
+                halfHeightSpace, 178, 0, imageWidth, 0, imageHeight, 256);
+
+        //Draw the time box
+        timeBG.x0 = halfWidthSpace + imageWidth;
+        timeBG.y0 = halfHeightSpace + 29;
+        timeBG.RenderImage(stack);
+
+        //Draw the refresh text
+        String refreshText = "Refresh in";
+        int txtSize = this.font.width(refreshText);
+        ClientUtil.drawStretchText(stack, refreshText, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
+                timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.y0 + 4, TextFormatting.WHITE.getColor(), false);
+
+        //Draw the refresh time next
+        String timeLeft = RefreshDealsEvent.getTimeLeft(ClientUtil.mC.level);
+        txtSize = this.font.width(timeLeft);
+        ClientUtil.drawStretchText(stack, timeLeft, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
+                timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.getDown() - 9 - 3, TextFormatting.GOLD.getColor(), false);
+
+        ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
 
         //Render buy flag
-        ExtraUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + imageHeight,28,190, 28, imageHeight, 56,256);
+        ExtraUtil.blitImage(stack, halfWidthSpace + 3, 14, halfHeightSpace + imageHeight, 28, 190, 28, imageHeight, 56, 256);
         //Render Sell flag
-        ExtraUtil.blitImage(stack,halfWidthSpace + 3 + 14, 14,halfHeightSpace + imageHeight,21,106, 28, imageHeight, 42,256);
+        if (clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).sellUpgrade || ClientUtil.mC.player.isCreative()) {
+            ExtraUtil.blitImage(stack, halfWidthSpace + 3 + 14, 14, halfHeightSpace + imageHeight, 21, 106, 28, imageHeight, 42, 256);
+        }
 
         //Render ScrollBars
         //Note: as soon as there are more than 5 buttons, the scrollbar will be needed
@@ -262,30 +401,30 @@ public class ShopScreen extends Screen {
         int offset = 0;
 
         //Start scissor test
-        ExtraUtil.beginCrop(halfWidthSpace + 9, 26, halfHeightSpace + 29,139, true);
-        for (int a = 0; a < catButtons.size(); a++){
+        ExtraUtil.beginCrop(halfWidthSpace + 9, 26, halfHeightSpace + 29, 139, true);
+        for (int a = 0; a < catButtons.size(); a++) {
             Button button = catButtons.get(a);
 
             button.y = origButtonY + offset + a - CatOffset;
 
             button.render(stack, xMouse, yMouse, partialTicks);
 
-            if(button.isHovered() && !(button instanceof ExtraUtil.AddButton)) hoverButton = button;
+            if (button.isHovered() && !(button instanceof ExtraUtil.AddButton)) hoverButton = button;
 
             offset += button.getHeight();
         }
         offset = 0;
         ExtraUtil.endCrop();
 
-        ExtraUtil.beginCrop(halfWidthSpace + 51, 108, halfHeightSpace + 29,139, true);
-        for (int a = 0; a < itemButtons.size(); a++){
+        ExtraUtil.beginCrop(halfWidthSpace + 51, 108, halfHeightSpace + 29, 139, true);
+        for (int a = 0; a < itemButtons.size(); a++) {
             Button button = itemButtons.get(a);
 
             button.y = origButtonY + offset + a - ItemOffset;
 
             button.render(stack, xMouse, yMouse, partialTicks);
 
-            if(button.isHovered() && !(button instanceof ExtraUtil.AddButton)) hoverButton = button;
+            if (button.isHovered() && !(button instanceof ExtraUtil.AddButton)) hoverButton = button;
 
             offset += button.getHeight();
         }
@@ -298,30 +437,41 @@ public class ShopScreen extends Screen {
         RenderXPEvent.renderXPAmount(stack, font, totalXP, xPos, yPos);
 
         //Render XP Orb
-        ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
-        ExtraUtil.blitImage(stack,xPos - 8,7,
-                yPos, 7,106,7,249,7,256);
+        xpOrb.moveTo(xPos - 8, yPos);
+        xpOrb.RenderImage(stack);
 
-        searchBox.render(stack,xMouse,yMouse,partialTicks);
+        searchBox.render(stack, xMouse, yMouse, partialTicks);
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
 
-        if (hoverButton != null){
-            if (hoverButton instanceof ExtraUtil.ItemButton){
+
+        //This is where the misc stuff will go
+//        generateEnchants.render(stack, xMouse, yMouse, partialTicks);
+        if (ClientUtil.mC.player.isCreative()) {
+            generateSellItems.render(stack, xMouse, yMouse, partialTicks);
+            clearSellEntries.render(stack, xMouse, yMouse, partialTicks);
+            clearBuyEntries.render(stack, xMouse, yMouse, partialTicks);
+            forceRefresh.render(stack, xMouse, yMouse, partialTicks);
+            generateDefault.render(stack, xMouse, yMouse, partialTicks);
+        }
+
+
+
+        //This is the tooltip, let this draw last.
+        if (hoverButton != null) {
+            if (hoverButton instanceof ExtraUtil.ItemButton) {
                 List<ITextComponent> textList = new ArrayList<>();
-                if(ExtraUtil.mC.player.isCreative())
-                textList.add(ITextComponent.nullToEmpty("\247cRight Click to edit!"));
+                if (ExtraUtil.mC.player.isCreative())
+                    textList.add(ITextComponent.nullToEmpty("\247cRight Click to edit!"));
                 textList.add(hoverButton.getMessage());
                 renderComponentTooltip(stack, textList, xMouse, yMouse);
-            }
-
-            else if (hoverButton instanceof PriceButton){
+            } else if (hoverButton instanceof PriceButton) {
                 PriceButton pButton = (PriceButton) hoverButton;
                 List<ITextComponent> textList = getTooltipFromItem(pButton.entry.item);
                 if (ExtraUtil.mC.player.isCreative())
-                textList.add(0, ITextComponent.nullToEmpty("\247cRight Click to edit!"));
+                    textList.add(0, ITextComponent.nullToEmpty("\247cRight Click to edit!"));
 
                 if (pButton.myStock != null && pButton.myStock.stockLeft < pButton.entry.limitStock) {
-                    String stockTxt = "\247c Refresh in: " + pButton.myStock.checkStock(pButton.entry);
+                    String stockTxt = "\247c Refresh in: " + RefreshDealsEvent.getTimeLeft(ClientUtil.getWorld());
                     textList.add(ITextComponent.nullToEmpty(stockTxt));
                 }
                 renderComponentTooltip(stack, textList, xMouse, yMouse);
@@ -468,8 +618,6 @@ public class ShopScreen extends Screen {
                 if(!cap.isUnlocked(entry)) {
                     //if it does, check if player has enough of that item
                     if (ExtraUtil.mC.player.inventory.countItem(entry.lockItem.getItem()) >= entry.lockItem.getCount()) {
-                        //Now make sure the item is now unlocked for this player
-                        cap.unlockItem(entry.item);
 
                         //Send a msg to unlock this item for the player on the server
                         NetworkHandler.INSTANCE.sendToServer(new UnlockItemMsg(entry.serialize()));
@@ -568,7 +716,7 @@ public class ShopScreen extends Screen {
                 drawCenteredString(stack, font,"Out of stock!", this.x + (this.width/2), this.y + 2, TextFormatting.RED.getColor());
 
                 //Time left
-                drawCenteredString(stack, font, myStock.checkStock(entry), this.x + (this.width/2), priceSpotY, TextFormatting.RED.getColor());
+//                drawCenteredString(stack, font, myStock.checkStock(entry), this.x + (this.width/2), priceSpotY, TextFormatting.RED.getColor());
             }
 
             //locked

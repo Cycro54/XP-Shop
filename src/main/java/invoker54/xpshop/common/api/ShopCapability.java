@@ -3,6 +3,7 @@ package invoker54.xpshop.common.api;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.common.data.BuyEntry;
+import invoker54.xpshop.common.item.WalletTier;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -27,17 +28,53 @@ public class ShopCapability {
     //Common string
     protected static final String SIZE = "SIZE";
     protected static final String LEFTOVER_XP = "LEFTOVER_XP";
+    protected static final String trader_xp_STRING = "TRADER_XP_FLOAT";
+    //Player Strings
+    protected static final String playerTier_STRING = "WALLET_TIER_STRING";
+    protected static final String optionUpgrade_STRING = "OPTION_BOOL";
+    protected static final String buyUpgrade_STRING = "BUY_BOOL";
+    protected static final String sellUpgrade_STRING = "SELL_BOOL";
+    protected static final String transferUpgrade_STRING = "TRANSFER_BOOL";
+    protected static final String wealthyUpgrade_STRING = "WEALTHY_BOOL";
     //endregion
+
+    //region variables
+    //Shop Variables
+    protected World level;
+    protected final ArrayList<Stock> stockItems = new ArrayList<>();
+    protected final ArrayList<ItemStack> unlockedItems = new ArrayList<>();
+    public float leftOverXP = 0;
+    public float traderXP = 0;
+
+    //Player Variables
+    protected WalletTier playerTier = WalletTier.ZERO;
+    public boolean optionUpgrade = false;
+    public boolean buyUpgrade = false;
+    public boolean sellUpgrade = false;
+    public boolean transferUpgrade = false;
+    public boolean wealthyUpgrade = false;
+    //endregion
+
 
     public ShopCapability (World level){
         this.level = level;
     }
     public ShopCapability(){}
-
-    protected World level;
-    protected final ArrayList<Stock> stockItems = new ArrayList<>();
-    protected final ArrayList<ItemStack> unlockedItems = new ArrayList<>();
-    public float leftOverXP = 0;
+    public static ShopCapability getShopCap(LivingEntity player){
+        return player.getCapability(ShopProvider.XPSHOPDATA).orElseThrow(NullPointerException::new);
+    }
+    public void refreshTradeXP(){
+        traderXP = Math.round(this.getPlayerTier().getMax() * (wealthyUpgrade ? 0.6F : 0.3F));
+    }
+    public void refreshStock(){
+        this.stockItems.clear();
+    }
+    public WalletTier getPlayerTier(){
+        return this.playerTier;
+    }
+    public void setPlayerTier(WalletTier tier){
+        this.playerTier = tier;
+    }
 
     public float getLeftOverXP(){
         return leftOverXP;
@@ -77,13 +114,13 @@ public class ShopCapability {
         return newStock;
     }
 
-    public static ShopCapability getShopCap(LivingEntity player){
-        return player.getCapability(ShopProvider.XPSHOPDATA).orElseThrow(NullPointerException::new);
-    }
+    //region Save Stuff
     
     public CompoundNBT writeNBT(){
         CompoundNBT mainNBT = new CompoundNBT();
-        
+
+        //region saving shop
+
         //region First save the stockItem List
         CompoundNBT stockNBT = new CompoundNBT();
         for (int a = 0; a < stockItems.size(); a++){
@@ -114,14 +151,26 @@ public class ShopCapability {
         mainNBT.put(UNLOCKED_LIST, unlockNBT);
         //endregion
 
-        //Quickly write down the leftover xp too.
+        //Quickly write down the leftover xp and trade xp too.
         mainNBT.putFloat(LEFTOVER_XP, leftOverXP);
+        mainNBT.putFloat(trader_xp_STRING, this.traderXP);
+        //endregion
+
+        //region saving upgrades
+        mainNBT.putString(playerTier_STRING, this.getPlayerTier().name());
+        mainNBT.putBoolean(optionUpgrade_STRING, this.optionUpgrade);
+        mainNBT.putBoolean(buyUpgrade_STRING, this.buyUpgrade);
+        mainNBT.putBoolean(sellUpgrade_STRING, this.sellUpgrade);
+        mainNBT.putBoolean(transferUpgrade_STRING, this.transferUpgrade);
+        mainNBT.putBoolean(wealthyUpgrade_STRING, this.wealthyUpgrade);
+        //endregion
 
         return mainNBT;
     }
     
     public void readNBT (CompoundNBT mainNBT){
 
+        //region loading shop
         //region First load the stockItem List
         CompoundNBT stockNBT = (CompoundNBT) mainNBT.get(STOCK_LIST);
         for (int a = 0; a < stockNBT.getInt(SIZE); a++){
@@ -138,13 +187,25 @@ public class ShopCapability {
         }
         //endregion
 
-        //Quickly unload the leftover xp too.
+        //Quickly unload the leftover xp and trade xp too.
         leftOverXP = mainNBT.getFloat(LEFTOVER_XP);
+        this.traderXP = mainNBT.getFloat(trader_xp_STRING);
+        //endregion
+
+        //region loading upgrades
+        if (mainNBT.contains(playerTier_STRING)) {
+            this.setPlayerTier(WalletTier.valueOf(mainNBT.getString(playerTier_STRING)));
+            this.optionUpgrade = mainNBT.getBoolean(optionUpgrade_STRING);
+            this.buyUpgrade = mainNBT.getBoolean(buyUpgrade_STRING);
+            this.sellUpgrade = mainNBT.getBoolean(sellUpgrade_STRING);
+            this.transferUpgrade = mainNBT.getBoolean(transferUpgrade_STRING);
+            this.wealthyUpgrade = mainNBT.getBoolean(wealthyUpgrade_STRING);
+        }
+        //endregion
     }
 
     public class Stock{
         public ItemStack item;
-        public int stockTimerStart;
         public int stockLeft;
 
         public Stock(){}
@@ -152,8 +213,6 @@ public class ShopCapability {
         public Stock(CompoundNBT entryNBT){
             //Item
             item = ItemStack.of((CompoundNBT) entryNBT.get(ITEM));
-            //Stock Timer Start
-            stockTimerStart = entryNBT.getInt(STOCK_TIMER_START);
             //Stock left to buy
             stockLeft = entryNBT.getInt(STOCK_LEFT);
         }
@@ -162,8 +221,6 @@ public class ShopCapability {
             CompoundNBT entry = new CompoundNBT();
             //Item
             entry.put(ITEM, this.item.serializeNBT());
-            //Stock Timer Start
-            entry.putInt(STOCK_TIMER_START, this.stockTimerStart);
             //Stock left to buy
             entry.putInt(STOCK_LEFT, this.stockLeft);
 
@@ -174,29 +231,7 @@ public class ShopCapability {
             //XPShop.LOGGER.debug("REDUCING STOCK!");
             //Reduce stock left
             stockLeft--;
-
-//            XPShop.LOGGER.debug("What's current game time?: " + level.getGameTime());
-//            XPShop.LOGGER.debug("What's current game time in full numbers?: " + (int)level.getGameTime());
-            if (stockTimerStart == 0) stockTimerStart = (int) level.getGameTime();
         }
-        
-        public String checkStock(BuyEntry entry){
-//            XPShop.LOGGER.debug("stock timer start: " + stockTimerStart);
-//            XPShop.LOGGER.debug("replenish time (in seconds): " + (entry.replenTime * 20));
-//            XPShop.LOGGER.debug("Current time: " + (int) level.getGameTime());
-            int timeLeft = (stockTimerStart + (entry.replenTime * 20)) - (int) level.getGameTime();
-
-            if (timeLeft <= 0){
-                stockLeft = entry.limitStock;
-                stockTimerStart = 0;
-            }
-
-            //XPShop.LOGGER.debug("TIME LEFT: " + ClientUtil.ticksToTime(timeLeft));
-
-            //Add 20 ticks to offset time
-            return ExtraUtil.ticksToTime(timeLeft + 20);
-        }
-
     }
 
     public static class ShopNBTStorage implements Capability.IStorage<ShopCapability>{
@@ -216,4 +251,5 @@ public class ShopCapability {
 
 
     }
+    //endregion
 }
