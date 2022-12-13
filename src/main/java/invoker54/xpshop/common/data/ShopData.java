@@ -172,7 +172,7 @@ public class ShopData {
 
     public static void writeFile(){
         try {
-            if (Files.notExists(getPath().getParent())) {
+            if (!filePath.isFile()) {
                 Files.createDirectories(getPath().getParent());
             }
 
@@ -186,7 +186,7 @@ public class ShopData {
 
     public static void readFile(){
         try {
-            if (Files.notExists(getPath().getParent())) {
+            if (!filePath.isFile()) {
                 Files.createDirectories(getPath().getParent());
                 ShopData.grabDefault();
             }
