@@ -6,7 +6,6 @@ import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import invoker54.xpshop.common.data.BuyEntry;
 import invoker54.xpshop.common.data.ShopData;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -46,7 +45,7 @@ public class ItemSearchScreen extends InvSearchScreen {
     @Override
     public void renderItemSlot(MatrixStack stack, ItemStack item, int x, int y, boolean inBounds) {
         for (BuyEntry entry : ShopData.buyEntries){
-            if (entry.item.sameItem(item) && ItemStack.tagMatches(entry.item, item))
+            if (ExtraUtil.itemsMatch(entry.item, item))
                 ExtraUtil.blitColor(stack,x, 16, y, 16, priceSetColor);
         }
 //

@@ -2,24 +2,30 @@ package invoker54.xpshop.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import invoker54.invocore.client.ClientUtil;
+import invoker54.xpshop.client.screen.SellContainerScreen;
+import invoker54.xpshop.client.screen.ShopFeeScreen;
 import invoker54.xpshop.client.screen.ShopScreen;
 import invoker54.xpshop.client.screen.XPTransferScreen;
+import invoker54.xpshop.common.api.ShopCapability;
+import invoker54.xpshop.common.api.WorldShopCapability;
 import invoker54.xpshop.common.data.BuyEntry;
+import invoker54.xpshop.common.network.NetworkHandler;
+import invoker54.xpshop.common.network.msg.OpenSellContainerMsg;
+import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.util.text.ITextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 
+import static invoker54.xpshop.ContainerInit.sellContainerType;
 import static invoker54.xpshop.client.screen.ShopScreen.SHOP_LOCATION;
 
 public class ExtraUtil extends ClientUtil {
     private static final Logger LOGGER = LogManager.getLogger();
     public static class ItemButton extends Button{
-
         public ItemStack displayItem;
         Bounds bounds;
         public ItemButton(int x, int y, int width, int height, String name, ItemStack item, Bounds bounds, IPressable onPress) {
@@ -85,10 +91,33 @@ public class ExtraUtil extends ClientUtil {
     public static boolean itemsMatch(ItemStack one, ItemStack two){
         return one.sameItem(two) && ItemStack.tagMatches(one, two);
     }
-    public static void openShop(ArrayList<BuyEntry> buyEntries, boolean clickedWanderer){
-        ClientUtil.mC.setScreen(new ShopScreen(buyEntries, clickedWanderer));
+    public static void openShop(boolean clickedWanderer){
+        WorldShopCapability worldCap = WorldShopCapability.getShopCap(ClientUtil.getWorld());
+        ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+
+        if (clickedWanderer || playerCap.buyUpgrade || ClientUtil.getPlayer().isCreative()) {
+            ClientUtil.mC.setScreen(new ShopScreen(worldCap.getBuyEntries(ClientUtil.getPlayer()), clickedWanderer));
+        }
+        else{
+            NetworkHandler.sendToServer(new OpenSellContainerMsg(clickedWanderer));
+        }
     }
     public static void openXPTransfer(int playerID){
         ClientUtil.mC.setScreen(new XPTransferScreen(playerID));
+    }
+    public static void openShopFee(boolean clickedWanderer){
+        ShopCapability cap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+
+        if (cap.getShopTimeLeft() > 0 || cap.feeUpgrade || ExtraUtil.getPlayer().isCreative()){
+            openShop(clickedWanderer);
+        }
+        else {
+            ClientUtil.mC.setScreen(new ShopFeeScreen(clickedWanderer));
+        }
+
+    }
+
+    public static void registerContainerScreen(){
+        ScreenManager.register(sellContainerType, SellContainerScreen::new);
     }
 }

@@ -1,28 +1,35 @@
 package invoker54.xpshop.common.network.msg;
 
+import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.Util;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.function.Supplier;
 
 public class SyncServerShopMsg {
+    private static final Logger LOGGER = LogManager.getLogger();
+    private CompoundNBT nbtData;
 
-    private INBT nbtData;
-
-    public SyncServerShopMsg(INBT nbtData){
+    public SyncServerShopMsg(CompoundNBT nbtData){
         this.nbtData = nbtData;
     }
 
     public static void encode(SyncServerShopMsg msg, PacketBuffer buffer){
-        buffer.writeNbt((CompoundNBT) msg.nbtData);
+        LOGGER.error("MAX PACKET SIZE(SERVER SHOP)" + buffer.maxCapacity());
+        buffer.writeNbt(msg.nbtData);
     }
 
     public static SyncServerShopMsg decode(PacketBuffer buffer){
+        LOGGER.error("CURRENT PACKET SIZE(SERVER SHOP)" + buffer.capacity());
         return new SyncServerShopMsg(buffer.readNbt());
     }
 
@@ -32,12 +39,22 @@ public class SyncServerShopMsg {
 
         context.enqueueWork(() -> {
             //System.out.println("Who sent this cap data? " + context.getSender());
+            if (context.getSender() == null){
+                LOGGER.error("NO SENDER FOR SYNC SERVER SHOP!!");
+                return;
+            }
+            if (!context.getSender().hasPermissions(ShopConfig.permissionLvl)){
+                context.getSender().closeContainer();
+                context.getSender().sendMessage(new StringTextComponent("Your permission level isn't high enough!"), Util.NIL_UUID);
+            }
+            else {
+                ShopData.deserialize(msg.nbtData);
+            }
 
-            CompoundNBT mainNBT = (CompoundNBT) msg.nbtData;
-
-            ShopData.deserialize(mainNBT);
-
-            NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncClientShopMsg(mainNBT));
+            for (PlayerEntity player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()){
+                NetworkHandler.sendToPlayer(player, new SyncClientShopMsg(ShopData.serialize()));
+            }
+//            NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), );
         });
         context.setPacketHandled(true);
     }

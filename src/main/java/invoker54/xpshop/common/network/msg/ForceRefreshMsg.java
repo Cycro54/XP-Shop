@@ -1,11 +1,6 @@
 package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.common.api.WorldShopCapability;
-import invoker54.xpshop.common.data.BuyEntry;
-import invoker54.xpshop.common.event.RefreshDealsEvent;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;

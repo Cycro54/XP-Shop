@@ -43,6 +43,7 @@ public class ItemInit {
     public static final Item UPGRADE_UNIVERSAL_BUY = addItem(new Item(getDefault(true)), "upgrade_universal_buy");
     public static final Item UPGRADE_UNIVERSAL_SELL = addItem(new Item(getDefault(true)), "upgrade_universal_sell");
     public static final Item UPGRADE_TRANSFER = addItem(new Item(getDefault(true)), "upgrade_transfer");
+    public static final Item UPGRADE_FEE = addItem(new Item(getDefault(true)), "upgrade_fee");
 
     //TODO: Place this in the mod
 //    public static final Item UPGRADE_WEALTHY = addItem(new Item(getDefault(true)), "upgrade_wealthy");

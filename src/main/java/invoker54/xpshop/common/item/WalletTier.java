@@ -1,6 +1,5 @@
 package invoker54.xpshop.common.item;
 
-import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.config.ShopConfig;
 
 public enum WalletTier {

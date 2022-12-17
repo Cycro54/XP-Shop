@@ -1,16 +1,13 @@
 package invoker54.xpshop;
 
 import invoker54.xpshop.client.screen.SellContainer;
-import invoker54.xpshop.client.screen.SellContainerScreen;
-import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.inventory.container.ContainerType;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.extensions.IForgeContainerType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-@Mod.EventBusSubscriber(modid = XPShop.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = XPShop.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ContainerInit {
     public static ContainerType<SellContainer> sellContainerType = null;
 
@@ -20,6 +17,5 @@ public class ContainerInit {
         sellContainerType.setRegistryName("xpshop_sell_container");
 
         event.getRegistry().register(sellContainerType);
-        ScreenManager.register(sellContainerType, SellContainerScreen::new);
     }
 }

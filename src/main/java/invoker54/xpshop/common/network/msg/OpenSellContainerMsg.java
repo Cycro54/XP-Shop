@@ -7,7 +7,6 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.minecraftforge.fml.network.NetworkHooks;
 
-import javax.swing.text.StyledEditorKit;
 import java.util.function.Supplier;
 
 public class OpenSellContainerMsg {

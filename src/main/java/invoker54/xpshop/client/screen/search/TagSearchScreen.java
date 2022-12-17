@@ -16,7 +16,6 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -114,7 +113,7 @@ public class TagSearchScreen extends Screen {
             }
 
             //Sync that list to the servers list
-            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+            NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
 
             //Finally go back to the sell screen
             ClientUtil.mC.setScreen(this.prevScreen);

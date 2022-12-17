@@ -1,22 +1,18 @@
 package invoker54.xpshop.common.data;
 
-import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.XPShop;
-import net.minecraft.client.Minecraft;
+import net.minecraft.item.EnchantedBookItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -88,6 +84,7 @@ public class ShopData {
         mainNBT.put("sellNBT", sellNBT);
         //endregion
 
+//        LOGGER.error("THIS IS HOW BIG SHOP NBT IS: " + shopNBT.);
         return mainNBT;
     }
 
@@ -120,6 +117,10 @@ public class ShopData {
                 catEntry.entries.add(buyEntry);
                 //Also add to buyEntries list for easy access
                 buyEntries.add(buyEntry);
+
+                if (buyEntry.item.getItem() instanceof EnchantedBookItem){
+                    LOGGER.debug(EnchantedBookItem.getEnchantments(buyEntry.item));
+                }
             }
             catEntry.entries.sort(Comparator.comparing(b -> b.item.getHoverName().getString()));
 
@@ -127,6 +128,7 @@ public class ShopData {
             catEntries.add(catEntry);
         }
         buyEntries.sort(Comparator.comparing(b -> b.item.getHoverName().getString()));
+
         //endregion
 
         //region Sell NBT
@@ -153,16 +155,24 @@ public class ShopData {
         return FMLPaths.CONFIGDIR.get().resolve("xp_shop_data.nbt");
     }
     public static void grabDefault() throws IOException {
-        ResourceLocation DEFAULT_LOC = new ResourceLocation(XPShop.MOD_ID, "xp_shop_data.nbt");
+
+//        ResourceLocation DEFAULT_LOC = new ResourceLocation(XPShop.MOD_ID, "xp_shop_data.nbt");
+        try {
+            InputStream in = XPShop.class.getClassLoader().getResource("assets/xp_shop/xp_shop_data.nbt").openStream();
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            LOGGER.debug("START");
+
+            CompoundNBT nbt = CompressedStreamTools.readCompressed(in);
+
+            deserialize(nbt);
+            LOGGER.debug("END");
+        }
+        catch (Exception ex) {
+            LOGGER.error("THERE WAS AN ERROR!");
+            LOGGER.debug(ex);
+        }
 
 
-        LOGGER.debug("START");
-
-        CompoundNBT nbt = CompressedStreamTools.readCompressed(
-                Minecraft.getInstance().getResourceManager().getResource(DEFAULT_LOC).getInputStream());
-
-        deserialize(nbt);
-        LOGGER.debug("END");
 
 
 //        deserialize(CompressedStreamTools.readCompressed(new File(

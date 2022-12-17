@@ -7,7 +7,10 @@ import invoker54.xpshop.common.api.WorldShopProvider;
 import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
-import invoker54.xpshop.common.network.msg.*;
+import invoker54.xpshop.common.network.msg.SyncClientCapMsg;
+import invoker54.xpshop.common.network.msg.SyncClientShopMsg;
+import invoker54.xpshop.common.network.msg.SyncConfigMsg;
+import invoker54.xpshop.common.network.msg.SyncWorldShopRequestMsg;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -54,7 +57,7 @@ public class SyncData {
         LOGGER.error("FOUND A PLAYER ");
         //This is for asking for the world shop
         if (event.getWorld().isClientSide){
-            NetworkHandler.INSTANCE.sendToServer(new SyncWorldShopRequestMsg(joinEntity.level.dimension().getRegistryName()));
+            NetworkHandler.sendToServer(new SyncWorldShopRequestMsg(joinEntity.level.dimension().getRegistryName()));
         }
         //This is for asking for the players shop data (like leftover xp or wallet upgrade
         else {
@@ -81,7 +84,7 @@ public class SyncData {
 
         //Also sync config
         ShopConfig.bakeCommonConfig();
-        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientShopMsg(ShopConfig.serialize()));
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncConfigMsg(ShopConfig.serialize()));
 
         //Now give player cap data
         NetworkHandler.sendToPlayer(event.getPlayer(),
@@ -94,7 +97,7 @@ public class SyncData {
         if (event.phase == TickEvent.Phase.START) return;
         if (ShopConfig.isDirty()){
             //Then finally send the config data to all players
-            NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncClientShopMsg(ShopConfig.serialize()));
+            NetworkHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncConfigMsg(ShopConfig.serialize()));
 
             ShopConfig.markDirty(false);
         }
@@ -104,7 +107,7 @@ public class SyncData {
 //    public static void onLogOut(ClientPlayerNetworkEvent.LoggedOutEvent event){
 //        if (event.getNetworkManager() == null) return;
 //
-//        NetworkHandler.INSTANCE.sendToServer(
+//        NetworkHandler.sendToServer(
 //                new SyncServerShopMsg(ShopCapability.getShopCap(event.getPlayer()).writeNBT()));
 //    }
 

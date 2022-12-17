@@ -64,7 +64,7 @@ public class XPTransferScreen extends Screen {
         //Done button
         this.addButton(new ClientUtil.SimpleButton(tradeBackground.x0 + 98, tradeBackground.y0 + 50, 61, 20, ITextComponent.nullToEmpty("Done"), (button) -> {
             if (!NumberUtils.isParsable(tradeAmount.getValue())) return;
-            NetworkHandler.INSTANCE.sendToServer(new TradeXPMsg(otherPlayerID, Integer.parseInt(tradeAmount.getValue())));
+            NetworkHandler.sendToServer(new TradeXPMsg(otherPlayerID, Integer.parseInt(tradeAmount.getValue())));
             ClientUtil.mC.setScreen(null);
         }));
     }

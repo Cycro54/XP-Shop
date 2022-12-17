@@ -41,7 +41,7 @@ public class CatSearchScreen extends SearchScreen {
             }
 
             ExtraUtil.mC.setScreen(prevScreen);
-            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+            NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
         };
     }
 
@@ -74,7 +74,7 @@ public class CatSearchScreen extends SearchScreen {
                         //Now go back to the previous screen
                         ExtraUtil.mC.setScreen(prevScreen);
 
-                        NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+                        NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
                         for (CategoryEntry catEntry : ShopData.catEntries) {
                             XPShop.LOGGER.debug(catEntry.categoryName);
                         }

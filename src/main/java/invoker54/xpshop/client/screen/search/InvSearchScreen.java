@@ -8,11 +8,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Locale;
 
 public class InvSearchScreen extends SearchScreen {
-
+    private static final Logger LOGGER = LogManager.getLogger();
     PlayerInventory inventory;
     private boolean inventoryMode = false;
 
@@ -54,7 +56,7 @@ public class InvSearchScreen extends SearchScreen {
                 }
             }
 
-            LOGGER.debug("The size of the search list is2: " + searchList.size());
+            LOGGER.debug("The size of the search list is: " + searchList.size());
             for (ItemStack item : searchList) {
                 LOGGER.debug(item.getDisplayName().getString());
             }

@@ -8,8 +8,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -45,14 +45,18 @@ public class WalletItem extends Item {
 
         //If there tier is too low, tell em that
         if (playerTier < myTier - 1){
-            playerIn.displayClientMessage(new TranslationTextComponent("xp_shop.chat.tier_low"),false);
+            playerIn.sendMessage(new TranslationTextComponent("xp_shop.chat.tier_low"), Util.NIL_UUID);
             return ActionResult.fail(itemStack);
         }
 
         //If there tier is too high, tell em that
-        if (playerTier >= myTier){
-            playerIn.displayClientMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"),false);
+        else if (playerTier >= myTier){
+            playerIn.sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return ActionResult.fail(itemStack);
+        }
+
+        else {
+            playerIn.sendMessage(new TranslationTextComponent("xp_shop.chat.unlock.upgrade_wallet").append(this.WALLET_TIER.getMax() + ""), Util.NIL_UUID);
         }
 
         //Else, upgrade their tier

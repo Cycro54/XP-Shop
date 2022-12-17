@@ -75,8 +75,8 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
             cap.traderXP -= menu.totalExtraXP;
             ExtraUtil.mC.player.giveExperiencePoints((int)totalExp);
             menu.tempInv.clearContent();
-            NetworkHandler.INSTANCE.sendToServer(new ClearSellContainerMsg());
-            NetworkHandler.INSTANCE.sendToServer(new SyncServerCapMsg(cap.writeNBT()));
+            NetworkHandler.sendToServer(new ClearSellContainerMsg());
+            NetworkHandler.sendToServer(new SyncServerCapMsg(cap.writeNBT()));
         }));
 
         //Change to Buy screen button

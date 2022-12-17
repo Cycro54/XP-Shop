@@ -34,7 +34,7 @@ public class BuyEntry {
         CompoundNBT buyEntryNBT = new CompoundNBT();
 
         //All entries below
-        buyEntryNBT.put("item", this.item.save(new CompoundNBT()));
+        buyEntryNBT.put("item", this.item.serializeNBT());
         buyEntryNBT.putInt("buyPrice", this.buyPrice);
         buyEntryNBT.putInt("limitStock", this.limitStock);
         buyEntryNBT.put("lockItem", this.lockItem.save(new CompoundNBT()));

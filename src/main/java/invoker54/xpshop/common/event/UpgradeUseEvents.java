@@ -6,6 +6,7 @@ import invoker54.xpshop.common.init.ItemInit;
 import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.SyncClientCapMsg;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Util;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,12 +25,14 @@ public class UpgradeUseEvents {
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
         if (playerCap.optionUpgrade) {
-            event.getPlayer().displayClientMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), false);
+            event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;
         }
 
         if (!event.getPlayer().isCreative()) itemStack.shrink(1);
         playerCap.optionUpgrade = true;
+        event.getPlayer().sendMessage(
+                new TranslationTextComponent("xp_shop.chat.unlock.upgrade_options"), Util.NIL_UUID);
 
         //finally update the clients shop capability
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(playerCap.writeNBT()));
@@ -45,12 +48,14 @@ public class UpgradeUseEvents {
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
         if (playerCap.buyUpgrade) {
-            event.getPlayer().displayClientMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), false);
+            event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;
         }
 
         if (!event.getPlayer().isCreative()) itemStack.shrink(1);
         playerCap.buyUpgrade = true;
+        event.getPlayer().sendMessage(
+                new TranslationTextComponent("xp_shop.chat.unlock.upgrade_universal_buy"), Util.NIL_UUID);
 
         //finally update the clients shop capability
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(playerCap.writeNBT()));
@@ -66,12 +71,14 @@ public class UpgradeUseEvents {
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
         if (playerCap.sellUpgrade) {
-            event.getPlayer().displayClientMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), false);
+            event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;
         }
 
         if (!event.getPlayer().isCreative()) itemStack.shrink(1);
         playerCap.sellUpgrade = true;
+        event.getPlayer().sendMessage(
+                new TranslationTextComponent("xp_shop.chat.unlock.upgrade_universal_sell"), Util.NIL_UUID);
 
         //finally update the clients shop capability
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(playerCap.writeNBT()));
@@ -87,12 +94,37 @@ public class UpgradeUseEvents {
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
         if (playerCap.transferUpgrade) {
-            event.getPlayer().displayClientMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), false);
+            event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;
         }
 
         if (!event.getPlayer().isCreative()) itemStack.shrink(1);
         playerCap.transferUpgrade = true;
+        event.getPlayer().sendMessage(
+                new TranslationTextComponent("xp_shop.chat.unlock.upgrade_transfer"), Util.NIL_UUID);
+
+        //finally update the clients shop capability
+        NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(playerCap.writeNBT()));
+    }
+
+    @SubscribeEvent
+    public static void useFeeUpgrade(PlayerInteractEvent.RightClickItem event){
+        if (event.isCanceled()) return;
+        if (event.getWorld().isClientSide) return;
+        ItemStack itemStack = event.getItemStack();
+
+        if (itemStack.getItem() != ItemInit.UPGRADE_FEE) return;
+
+        ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
+        if (playerCap.feeUpgrade) {
+            event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
+            return;
+        }
+
+        if (!event.getPlayer().isCreative()) itemStack.shrink(1);
+        playerCap.feeUpgrade = true;
+        event.getPlayer().sendMessage(
+                new TranslationTextComponent("xp_shop.chat.unlock.upgrade_fee"), Util.NIL_UUID);
 
         //finally update the clients shop capability
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncClientCapMsg(playerCap.writeNBT()));
@@ -109,7 +141,7 @@ public class UpgradeUseEvents {
 //
 //        ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
 //        if (playerCap.wealthyUpgrade) {
-//            event.getPlayer().displayClientMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), false);
+//            event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
 //            return;
 //        }
 //

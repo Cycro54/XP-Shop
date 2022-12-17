@@ -14,7 +14,6 @@ import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.SyncServerShopMsg;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.CreativeScreen;
 import net.minecraft.client.gui.widget.list.AbstractList;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -25,7 +24,6 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nonnull;
-import javax.management.remote.rmi._RMIConnection_Stub;
 import java.awt.*;
 import java.util.Objects;
 
@@ -103,7 +101,7 @@ public class AddItemScreen extends Screen {
                         categoryEntry.entries.remove(targetEntry);
                         ExtraUtil.mC.setScreen(prevScreen);
 
-                        NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+                        NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
                     }));
 
             //Duplicate button (This will create a new entry but will stay on the add item screen)
@@ -165,8 +163,7 @@ public class AddItemScreen extends Screen {
         }
         if (!foundCategory) ShopData.catEntries.add(categoryEntry);
 
-
-        NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+        NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
     }
 
     public boolean mouseScrolled(double xMouse, double yMouse, double scrollValue) {

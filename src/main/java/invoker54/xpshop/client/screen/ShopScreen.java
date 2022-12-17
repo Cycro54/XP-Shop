@@ -2,7 +2,6 @@ package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.sun.org.apache.bcel.internal.generic.FieldOrMethod;
 import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
@@ -22,20 +21,14 @@ import invoker54.xpshop.common.network.msg.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.util.SearchTreeManager;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentData;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.EnchantedBookItem;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
@@ -43,12 +36,9 @@ import org.lwjgl.glfw.GLFW;
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
-
-import static net.minecraft.item.EnchantedBookItem.createForEnchantment;
 
 public class ShopScreen extends Screen {
     // Directly reference a log4j logger.
@@ -112,6 +102,9 @@ public class ShopScreen extends Screen {
         this.children.add(this.searchBox);
         this.buttons.add(searchBox);
 
+        LOGGER.debug("Clicked wanderer: " + clickedWanderer);
+        LOGGER.debug("Has sell upgrade: " + ShopCapability.getShopCap(ClientUtil.getPlayer()).sellUpgrade);
+        LOGGER.debug("Has Creative: " + ClientUtil.mC.player.isCreative());
         if (clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).sellUpgrade || ClientUtil.mC.player.isCreative()) {
             ExtraUtil.SimpleButton sellButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3 + 14, halfHeightSpace + imageHeight, 14, 21, null, (button) -> {
                 XPShop.LOGGER.debug("WILL THIS OPEN CREATIVE MENU?: " + (ExtraUtil.mC.player.isCreative()));
@@ -123,7 +116,7 @@ public class ShopScreen extends Screen {
 
                 //Else, open up a temporary container to put the shtuff in
                 else {
-                    NetworkHandler.INSTANCE.sendToServer(new OpenSellContainerMsg(this.clickedWanderer));
+                    NetworkHandler.sendToServer(new OpenSellContainerMsg(this.clickedWanderer));
                 }
             });
             addButton(sellButton);
@@ -227,9 +220,9 @@ public class ShopScreen extends Screen {
 //            }
 //
 //            //At the end, sync te shop
-//            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+//            NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
 //        }));
-        generateSellItems = this.addButton(new ClientUtil.SimpleButton(0,19,8 + font.width("Generate Sell Items"),
+        generateSellItems = this.addButton(new ClientUtil.SimpleButton(0,19,8 + font.width("Generate Sell Items (from buy items"),
                 18, ITextComponent.nullToEmpty("Generate Sell Items"), (button) ->{
             if (!ExtraUtil.mC.player.isCreative()) return;
             //Generate Buy entries for enchantments
@@ -248,20 +241,21 @@ public class ShopScreen extends Screen {
             }
 
             //At the end, sync te shop
-            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+            NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
         }));
-        clearBuyEntries = this.addButton(new ClientUtil.SimpleButton(0,19 * 2,8 + font.width("Clear Buy Items"),
-                18, ITextComponent.nullToEmpty("Clear Buy Items"), (button) ->{
-            if (!ExtraUtil.mC.player.isCreative()) return;
-            ShopData.buyEntries.clear();
-            for (CategoryEntry entry : ShopData.catEntries){
-                entry.entries.clear();
-            }
-
-            //At the end, sync te shop
-            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
-        }));
-        clearSellEntries = this.addButton(new ClientUtil.SimpleButton(0,19 * 3,8 + font.width("Clear Sell Items"),
+//        clearBuyEntries = this.addButton(new ClientUtil.SimpleButton(0,19 * 2,8 + font.width("Clear Buy Items"),
+//                18, ITextComponent.nullToEmpty("Clear Buy Items"), (button) ->{
+//            if (!ExtraUtil.mC.player.isCreative()) return;
+//            ShopData.buyEntries.clear();
+//
+//            for (CategoryEntry entry : ShopData.catEntries){
+//                entry.entries.clear();
+//            }
+//
+//            //At the end, sync te shop
+//            NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+//        }));
+        clearSellEntries = this.addButton(new ClientUtil.SimpleButton(0,19 * 2,8 + font.width("Clear Sell Items"),
                 18, ITextComponent.nullToEmpty("Clear Sell Items"), (button) ->{
             if (!ExtraUtil.mC.player.isCreative()) return;
             //Generate Buy entries for enchantments
@@ -269,20 +263,20 @@ public class ShopScreen extends Screen {
             ShopData.sellEntries.clear();
 
             //At the end, sync te shop
-            NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+            NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
         }));
-        forceRefresh = this.addButton(new ClientUtil.SimpleButton(0,19 * 4,8 + font.width("Force Refresh"),
+        forceRefresh = this.addButton(new ClientUtil.SimpleButton(0,19 * 3,8 + font.width("Force Refresh"),
                 18, ITextComponent.nullToEmpty("Force Refresh"), (button) ->{
             if (!ExtraUtil.mC.player.isCreative()) return;
-            NetworkHandler.INSTANCE.sendToServer(new ForceRefreshMsg());
+            NetworkHandler.sendToServer(new ForceRefreshMsg());
         }));
-        generateDefault = this.addButton(new ClientUtil.SimpleButton(0,19 * 5,8 + font.width("Generate Default"),
+        generateDefault = this.addButton(new ClientUtil.SimpleButton(0,19 * 4,8 + font.width("Generate Default"),
                 18, ITextComponent.nullToEmpty("Generate Default"), (button) ->{
             if (!ExtraUtil.mC.player.isCreative()) return;
 
             try {
                 ShopData.grabDefault();
-                NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+                NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -324,9 +318,9 @@ public class ShopScreen extends Screen {
             }
 
             if (localCatEntries.size() > adjustedPageIndex) {
-
                 CategoryEntry catEntry = localCatEntries.get(adjustedPageIndex);
                 for (int i = 0; i < catEntry.entries.size(); ++i) {
+                    //If the current entry isn't in the world shop list AND the player is not in creative, skip it.
                     if (!localBuyEntries.contains(catEntry.entries.get(i)) && !ExtraUtil.mC.player.isCreative()) continue;
                     itemButtons.add(addButton(new PriceButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                             itemBounds, catEntry.entries.get(i))));
@@ -341,7 +335,7 @@ public class ShopScreen extends Screen {
             customSearch = customSearch.toLowerCase(Locale.ROOT);
             Pattern pattern = Pattern.compile(customSearch);
             for (BuyEntry entry : (ExtraUtil.mC.player.isCreative() ? ShopData.buyEntries : localBuyEntries)){
-                if (pattern.matcher(entry.item.getHoverName().getString().toLowerCase(Locale.ROOT)).find()){
+                if (pattern.matcher(entry.item.getTooltipLines(ClientUtil.getPlayer(), ITooltipFlag.TooltipFlags.NORMAL).toString().toLowerCase(Locale.ROOT)).find()){
                         itemButtons.add(addButton(new PriceButton(halfWidthSpace + 51, origButtonY + maxItemOffset, 106, 22,
                                 itemBounds, entry)));
                         maxItemOffset += 22 + 1;
@@ -365,7 +359,7 @@ public class ShopScreen extends Screen {
         ExtraUtil.blitImage(stack, halfWidthSpace, imageWidth,
                 halfHeightSpace, 178, 0, imageWidth, 0, imageHeight, 256);
 
-        //Draw the time box
+        //region This is for next stock refresh
         timeBG.x0 = halfWidthSpace + imageWidth;
         timeBG.y0 = halfHeightSpace + 29;
         timeBG.RenderImage(stack);
@@ -381,6 +375,28 @@ public class ShopScreen extends Screen {
         txtSize = this.font.width(timeLeft);
         ClientUtil.drawStretchText(stack, timeLeft, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
                 timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.getDown() - 9 - 3, TextFormatting.GOLD.getColor(), false);
+        //endregion
+
+        //region This is for Shop time left
+        if (ShopCapability.getShopCap(ClientUtil.getPlayer()).getShopTimeLeft() > 0) {
+            timeBG.x0 = halfWidthSpace + imageWidth;
+            timeBG.y0 = halfHeightSpace + 29 + 26 + 5;
+            timeBG.RenderImage(stack);
+
+            //Draw the refresh text
+            refreshText = "Time Left";
+            txtSize = this.font.width(refreshText);
+            ClientUtil.drawStretchText(stack, refreshText, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
+                    timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.y0 + 4, TextFormatting.WHITE.getColor(), false);
+
+            //Draw the refresh time next
+            timeLeft = ClientUtil.ticksToTime(ShopCapability.getShopCap(ClientUtil.getPlayer()).getShopTimeLeft());
+            txtSize = this.font.width(timeLeft);
+            ClientUtil.drawStretchText(stack, timeLeft, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
+                    timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.getDown() - 9 - 3, TextFormatting.GREEN.getColor(), false);
+        }
+        //endregion
+
 
         ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
 
@@ -449,7 +465,7 @@ public class ShopScreen extends Screen {
         if (ClientUtil.mC.player.isCreative()) {
             generateSellItems.render(stack, xMouse, yMouse, partialTicks);
             clearSellEntries.render(stack, xMouse, yMouse, partialTicks);
-            clearBuyEntries.render(stack, xMouse, yMouse, partialTicks);
+//            clearBuyEntries.render(stack, xMouse, yMouse, partialTicks);
             forceRefresh.render(stack, xMouse, yMouse, partialTicks);
             generateDefault.render(stack, xMouse, yMouse, partialTicks);
         }
@@ -620,7 +636,7 @@ public class ShopScreen extends Screen {
                     if (ExtraUtil.mC.player.inventory.countItem(entry.lockItem.getItem()) >= entry.lockItem.getCount()) {
 
                         //Send a msg to unlock this item for the player on the server
-                        NetworkHandler.INSTANCE.sendToServer(new UnlockItemMsg(entry.serialize()));
+                        NetworkHandler.sendToServer(new UnlockItemMsg(entry.serialize()));
 
                         //Make sure to unlock it for the player on the client as well
                         cap.unlockItem(entry.item);
@@ -640,7 +656,7 @@ public class ShopScreen extends Screen {
                 if(stock != null) stock.reduceStock();
 
                 //Now start to buy the item
-                NetworkHandler.INSTANCE.sendToServer(new BuyItemMsg(entry.serialize()));
+                NetworkHandler.sendToServer(new BuyItemMsg(entry.serialize()));
             });
             this.playerCap = ShopCapability.getShopCap(ExtraUtil.mC.player);
             this.myStock = playerCap.grabStock(entry);

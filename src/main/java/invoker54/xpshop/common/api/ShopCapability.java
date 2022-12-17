@@ -1,7 +1,7 @@
 package invoker54.xpshop.common.api;
 
 import invoker54.xpshop.XPShop;
-import invoker54.xpshop.client.ExtraUtil;
+import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.data.BuyEntry;
 import invoker54.xpshop.common.item.WalletTier;
 import net.minecraft.entity.LivingEntity;
@@ -29,12 +29,14 @@ public class ShopCapability {
     protected static final String SIZE = "SIZE";
     protected static final String LEFTOVER_XP = "LEFTOVER_XP";
     protected static final String trader_xp_STRING = "TRADER_XP_FLOAT";
+    protected static final String START_TIME = "START_TIME_INT";
     //Player Strings
     protected static final String playerTier_STRING = "WALLET_TIER_STRING";
     protected static final String optionUpgrade_STRING = "OPTION_BOOL";
     protected static final String buyUpgrade_STRING = "BUY_BOOL";
     protected static final String sellUpgrade_STRING = "SELL_BOOL";
     protected static final String transferUpgrade_STRING = "TRANSFER_BOOL";
+    protected static final String feeUpgrade_STRING = "FEE_BOOL";
     protected static final String wealthyUpgrade_STRING = "WEALTHY_BOOL";
     //endregion
 
@@ -45,13 +47,14 @@ public class ShopCapability {
     protected final ArrayList<ItemStack> unlockedItems = new ArrayList<>();
     public float leftOverXP = 0;
     public float traderXP = 0;
-
+    public int startTime = 0;
     //Player Variables
     protected WalletTier playerTier = WalletTier.ZERO;
     public boolean optionUpgrade = false;
     public boolean buyUpgrade = false;
     public boolean sellUpgrade = false;
     public boolean transferUpgrade = false;
+    public boolean feeUpgrade = false;
     public boolean wealthyUpgrade = false;
     //endregion
 
@@ -62,6 +65,12 @@ public class ShopCapability {
     public ShopCapability(){}
     public static ShopCapability getShopCap(LivingEntity player){
         return player.getCapability(ShopProvider.XPSHOPDATA).orElseThrow(NullPointerException::new);
+    }
+    public void setStartTime(int startTime){
+        this.startTime = startTime;
+    }
+    public int getShopTimeLeft(){
+        return (int) ((this.startTime + (ShopConfig.shopUnlockTime * 20F)) - this.level.getGameTime());
     }
     public void refreshTradeXP(){
         traderXP = Math.round(this.getPlayerTier().getMax() * (wealthyUpgrade ? 0.6F : 0.3F));
@@ -103,7 +112,7 @@ public class ShopCapability {
         if (entry.limitStock == 0) return null;
 
         for (Stock stockItem : stockItems){
-            if (stockItem.item.sameItem(entry.item))
+            if (ItemStack.matches(stockItem.item, entry.item))
                 return stockItem;
         }
 
@@ -151,9 +160,10 @@ public class ShopCapability {
         mainNBT.put(UNLOCKED_LIST, unlockNBT);
         //endregion
 
-        //Quickly write down the leftover xp and trade xp too.
+        //Quickly write down the leftover xp, trade xp, and start time .
         mainNBT.putFloat(LEFTOVER_XP, leftOverXP);
         mainNBT.putFloat(trader_xp_STRING, this.traderXP);
+        mainNBT.putInt(START_TIME, this.startTime);
         //endregion
 
         //region saving upgrades
@@ -162,6 +172,7 @@ public class ShopCapability {
         mainNBT.putBoolean(buyUpgrade_STRING, this.buyUpgrade);
         mainNBT.putBoolean(sellUpgrade_STRING, this.sellUpgrade);
         mainNBT.putBoolean(transferUpgrade_STRING, this.transferUpgrade);
+        mainNBT.putBoolean(feeUpgrade_STRING, this.feeUpgrade);
         mainNBT.putBoolean(wealthyUpgrade_STRING, this.wealthyUpgrade);
         //endregion
 
@@ -187,9 +198,10 @@ public class ShopCapability {
         }
         //endregion
 
-        //Quickly unload the leftover xp and trade xp too.
+        //Quickly unload the leftover xp, trade xp, and start time.
         leftOverXP = mainNBT.getFloat(LEFTOVER_XP);
         this.traderXP = mainNBT.getFloat(trader_xp_STRING);
+        this.startTime = mainNBT.getInt(START_TIME);
         //endregion
 
         //region loading upgrades
@@ -199,6 +211,7 @@ public class ShopCapability {
             this.buyUpgrade = mainNBT.getBoolean(buyUpgrade_STRING);
             this.sellUpgrade = mainNBT.getBoolean(sellUpgrade_STRING);
             this.transferUpgrade = mainNBT.getBoolean(transferUpgrade_STRING);
+            this.feeUpgrade = mainNBT.getBoolean(feeUpgrade_STRING);
             this.wealthyUpgrade = mainNBT.getBoolean(wealthyUpgrade_STRING);
         }
         //endregion

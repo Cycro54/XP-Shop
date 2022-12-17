@@ -66,7 +66,7 @@ public class SellContainer extends Container {
         this.clickedWanderer = clickedWanderer;
         LOGGER.error("WHAT IS CLICKED WANDERER? : " + (clickedWanderer));
         tempInv = new Inventory(SELL_INVENTORY_TOTAL_COUNT);
-        tempInv.addListener((container) -> totalExtraXP = CalculateXP());
+        if (playerInventory.player.level.isClientSide) tempInv.addListener((container) -> totalExtraXP = CalculateXP());
         if (ContainerInit.sellContainerType == null)
             throw new IllegalStateException("Must initialise containerBasicContainerType before constructing a ContainerBasic!");
 
@@ -173,7 +173,9 @@ public class SellContainer extends Container {
         }
         totalXP = BigDecimal.valueOf(totalXP).setScale(2, RoundingMode.HALF_UP).floatValue();
         /* TODO: Place this in the mod */
-//        totalXP = Math.min(ShopCapability.getShopCap(ClientUtil.mC.player).traderXP, totalXP);
+        totalXP = Math.max(
+                Math.min(ShopCapability.getShopCap(
+                        ClientUtil.getPlayer()).getPlayerTier().getMax() - ClientUtil.getPlayer().totalExperience, totalXP), 0);
         return totalXP;
     }
 

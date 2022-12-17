@@ -10,10 +10,13 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.function.Supplier;
 
 public class SyncClientShopMsg {
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private INBT nbtData;
 
@@ -22,10 +25,12 @@ public class SyncClientShopMsg {
     }
 
     public static void encode(SyncClientShopMsg msg, PacketBuffer buffer){
+        LOGGER.error("MAX PACKET SIZE(CLIENT SHOP): " + buffer.maxCapacity());
         buffer.writeNbt((CompoundNBT) msg.nbtData);
     }
 
     public static SyncClientShopMsg decode(PacketBuffer buffer){
+        LOGGER.error("CURRENT PACKET SIZE(CLIENT SHOP)" + buffer.capacity());
         return new SyncClientShopMsg(buffer.readNbt());
     }
 
@@ -37,6 +42,7 @@ public class SyncClientShopMsg {
             //System.out.println("Who sent this cap data? " + context.getSender());
 
             CompoundNBT mainNBT = (CompoundNBT) msg.nbtData;
+            LOGGER.debug(msg.nbtData.getAsString());
 
             //This is for syncing the shop data
             if(mainNBT.contains("shopNBT")) {

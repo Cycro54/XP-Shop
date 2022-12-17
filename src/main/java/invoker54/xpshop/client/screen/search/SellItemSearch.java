@@ -215,7 +215,7 @@ public class SellItemSearch  extends SearchScreen{
                     ShopData.sellEntries.put(itemStack.getItem(), new SellEntry(itemStack, sellPrice));
                 }
 //                refreshSearchResults();
-                NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+                NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
             }
             else if (mouseButton == 1){
                 //This is for tags
@@ -227,7 +227,7 @@ public class SellItemSearch  extends SearchScreen{
 
                 if (ShopData.sellEntries.containsKey(hoverItem.getItem())){
                     ShopData.sellEntries.remove(hoverItem.getItem());
-                    NetworkHandler.INSTANCE.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
+                    NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
                 }
             }
 

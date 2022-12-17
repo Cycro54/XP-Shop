@@ -1,6 +1,5 @@
 package invoker54.xpshop.common.api;
 
-import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.data.BuyEntry;
 import invoker54.xpshop.common.data.CategoryEntry;
@@ -9,12 +8,12 @@ import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.SyncClientCapMsg;
 import invoker54.xpshop.common.network.msg.SyncWorldShopMsg;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.EnchantedBookItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.fml.network.PacketDistributor;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
@@ -63,9 +62,11 @@ public class WorldShopCapability {
         while (buyEntries.size() > ShopConfig.randomBuyEntryCount && ShopConfig.randomBuyEntryCount != 0){
             buyEntries.remove(level.random.nextInt(buyEntries.size()));
         }
-        LOGGER.info("HERE ARE THE ENTRIES ");
-        for (BuyEntry entry : buyEntries){
-            LOGGER.debug(entry.item.getDisplayName().getString());
+        LOGGER.info("THESE ARE THE Buy Entries for this worlds Enchanted books");
+        for (BuyEntry entry : this.buyEntries){
+            if (entry.item.getItem() instanceof EnchantedBookItem){
+                LOGGER.debug(EnchantedBookItem.getEnchantments(entry.item));
+            }
         }
 
         //Update the trader xp
@@ -89,11 +90,17 @@ public class WorldShopCapability {
 
         //Only show half the shop if they don't have the more options upgrade
         if (!playerCap.optionUpgrade && buyList.size() >= 4){
-            int halfSize = Math.round(buyList.size()/2F) - 1;
+            int halfSize = Math.round(buyList.size()/2F);
+            LOGGER.debug("HALF SIZE IS: " + (buyList.size()/2F));
+            LOGGER.debug("ROUNDED IS: " + Math.round(buyList.size()/2F));
             buyList = new ArrayList<>(buyList.subList(0,halfSize));
+//            for (BuyEntry entry : buyList){
+//                LOGGER.info("HERES THE NEW LIST");
+//                LOGGER.debug(entry.item.getDisplayName().getString());
+//            }
         }
 
-        //Readd the ones that will always shows
+        //Readd the ones that will always show
         for (BuyEntry entry: ShopData.buyEntries){
             if (entry.alwaysShow) buyList.add(entry);
         }
@@ -122,15 +129,15 @@ public class WorldShopCapability {
 
         //Grab the saved items
         for (int a = 0; a < count; a++){
-            LOGGER.debug("" + a);
+//            LOGGER.debug("" + a);
             savedItems.add(ItemStack.of((CompoundNBT) mainNBT.get(""+a)));
         }
 
         //Next look for those items in the buyEntries list
         for (ItemStack savedItem : savedItems){
             for (BuyEntry entry : ShopData.buyEntries){
-                if (savedItem.sameItem(entry.item)){
-                    LOGGER.debug("THEY WERE THE SAME: " + entry.item.getDisplayName().getString());
+                if (ItemStack.matches(savedItem, entry.item)){
+//                    LOGGER.debug("THEY WERE THE SAME: " + entry.item.getDisplayName().getString());
                     buyEntries.add(entry);
                     break;
                 }

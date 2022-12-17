@@ -2,7 +2,6 @@ package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.common.api.WorldShopCapability;
 import invoker54.xpshop.common.network.NetworkHandler;
-import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;

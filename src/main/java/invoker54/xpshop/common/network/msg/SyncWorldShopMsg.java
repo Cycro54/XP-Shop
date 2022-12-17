@@ -1,7 +1,6 @@
 package invoker54.xpshop.common.network.msg;
 
 import invoker54.invocore.client.ClientUtil;
-import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.common.api.WorldShopCapability;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
