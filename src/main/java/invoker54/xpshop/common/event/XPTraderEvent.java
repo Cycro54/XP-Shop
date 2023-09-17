@@ -75,6 +75,7 @@ public class XPTraderEvent {
 
         //If they don't have universal sell/buy, return.
         ShopCapability cap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (cap == null) return;
         if (!cap.buyUpgrade && !cap.sellUpgrade && !ExtraUtil.getPlayer().isCreative()) return;
 
         //Open the fee screen if they haven't paid the fee already
@@ -90,7 +91,9 @@ public class XPTraderEvent {
 
         if (!(event.getTarget() instanceof PlayerEntity)) return;
         boolean flag = (stack.getItem() == ItemInit.XP_TRADER);
-        if (!ShopCapability.getShopCap(event.getPlayer()).transferUpgrade) return;
+        ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
+        if (playerCap == null) return;
+        if (!playerCap.transferUpgrade) return;
 
         //If they have the limited XP Trader, they may only use parts of the shop
         if (event.getWorld().isClientSide) {

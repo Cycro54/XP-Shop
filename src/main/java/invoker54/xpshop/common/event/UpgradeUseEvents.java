@@ -24,6 +24,7 @@ public class UpgradeUseEvents {
         if (itemStack.getItem() != ItemInit.UPGRADE_OPTIONS) return;
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
+        if (playerCap == null) return;
         if (playerCap.optionUpgrade) {
             event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;
@@ -47,6 +48,7 @@ public class UpgradeUseEvents {
         if (itemStack.getItem() != ItemInit.UPGRADE_UNIVERSAL_BUY) return;
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
+        if (playerCap == null) return;
         if (playerCap.buyUpgrade) {
             event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;
@@ -70,6 +72,7 @@ public class UpgradeUseEvents {
         if (itemStack.getItem() != ItemInit.UPGRADE_UNIVERSAL_SELL) return;
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
+        if (playerCap == null) return;
         if (playerCap.sellUpgrade) {
             event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;
@@ -93,6 +96,7 @@ public class UpgradeUseEvents {
         if (itemStack.getItem() != ItemInit.UPGRADE_TRANSFER) return;
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
+        if (playerCap == null) return;
         if (playerCap.transferUpgrade) {
             event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;
@@ -116,6 +120,7 @@ public class UpgradeUseEvents {
         if (itemStack.getItem() != ItemInit.UPGRADE_FEE) return;
 
         ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
+        if (playerCap == null) return;
         if (playerCap.feeUpgrade) {
             event.getPlayer().sendMessage(new TranslationTextComponent("xp_shop.chat.have_upgrade"), Util.NIL_UUID);
             return;

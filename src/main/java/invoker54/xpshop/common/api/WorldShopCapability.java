@@ -73,6 +73,7 @@ public class WorldShopCapability {
         if (this.level.dimension() == World.OVERWORLD) {
             for (PlayerEntity player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
                 ShopCapability playerCap = ShopCapability.getShopCap(player);
+                if (playerCap == null) return;
                 playerCap.refreshTradeXP();
                 //This will place all items back in stock
                 playerCap.refreshStock();
@@ -87,6 +88,7 @@ public class WorldShopCapability {
     public ArrayList<BuyEntry> getBuyEntries(PlayerEntity player){
         ArrayList<BuyEntry> buyList = new ArrayList<>(this.buyEntries);
         ShopCapability playerCap = ShopCapability.getShopCap(player);
+        if (playerCap == null) return new ArrayList<>();
 
         //Only show half the shop if they don't have the more options upgrade
         if (!playerCap.optionUpgrade && buyList.size() >= 4){

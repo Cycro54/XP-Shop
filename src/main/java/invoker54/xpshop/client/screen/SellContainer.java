@@ -173,9 +173,10 @@ public class SellContainer extends Container {
         }
         totalXP = BigDecimal.valueOf(totalXP).setScale(2, RoundingMode.HALF_UP).floatValue();
         /* TODO: Place this in the mod */
+        ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null) return 0;
         totalXP = Math.max(
-                Math.min(ShopCapability.getShopCap(
-                        ClientUtil.getPlayer()).getPlayerTier().getMax() - ClientUtil.getPlayer().totalExperience, totalXP), 0);
+                Math.min(playerCap.getPlayerTier().getMax() - ClientUtil.getPlayer().totalExperience, totalXP), 0);
         return totalXP;
     }
 

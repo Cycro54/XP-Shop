@@ -40,6 +40,8 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     float tempProgress;
     float tempTotal;
 
+    ShopCapability cap;
+
     public SellContainerScreen(SellContainer inst, PlayerInventory inv, ITextComponent title) {
         super(inst, inv, title);
         this.imageWidth = 176;
@@ -66,9 +68,14 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
         inventoryLabelX = 7;
         inventoryLabelY = 129;
 
+        cap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (cap == null){
+            ClientUtil.mC.setScreen(null);
+            return;
+        }
+
         //This is the sell button
         addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 115, halfHeightSpace + 122,54,13, ITextComponent.nullToEmpty("Sell"), (button) -> {
-            ShopCapability cap = ShopCapability.getShopCap(ExtraUtil.mC.player);
 
             float totalExp = menu.totalExtraXP + cap.getLeftOverXP();
             cap.setLeftOverXP(totalExp - ((int)totalExp));
@@ -80,7 +87,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
         }));
 
         //Change to Buy screen button
-        if (this.menu.clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).buyUpgrade || ClientUtil.mC.player.isCreative()) {
+        if (this.menu.clickedWanderer || cap.buyUpgrade || ClientUtil.mC.player.isCreative()) {
             ExtraUtil.SimpleButton buyButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3, halfHeightSpace + imageHeight - offsetY, 14, 21, null, (button) -> {
 
                 ExtraUtil.mC.setScreen(new ShopScreen(
@@ -93,13 +100,12 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
         //Now to set the initial values for the xp
         tempLvl = ExtraUtil.mC.player.experienceLevel;
         tempProgress = ExtraUtil.mC.player.experienceProgress;
-        tempTotal = ExtraUtil.mC.player.totalExperience + ShopCapability.getShopCap(ExtraUtil.mC.player).getLeftOverXP();
+        tempTotal = ExtraUtil.mC.player.totalExperience + cap.getLeftOverXP();
 
         this.menu.tempInv.addListener((container) -> recalculateXP());
     }
 
     public void recalculateXP(){
-        ShopCapability cap = ShopCapability.getShopCap(ExtraUtil.mC.player);
         tempLvl = 0;
         tempTotal = ExtraUtil.mC.player.totalExperience + cap.getLeftOverXP() + menu.totalExtraXP;
         tempProgress = (int)tempTotal / (float)RenderXPEvent.getXpNeededForNextLevel(tempLvl);
@@ -152,7 +158,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
         ExtraUtil.TEXTURE_MANAGER.bind(ShopScreen.SHOP_LOCATION);
 
         //Render buy flag
-        if (this.menu.clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).buyUpgrade || ClientUtil.mC.player.isCreative()) {
+        if (this.menu.clickedWanderer || cap.buyUpgrade || ClientUtil.mC.player.isCreative()) {
             ExtraUtil.blitImage(stack, halfWidthSpace + 3, 14, halfHeightSpace + imageHeight - offsetY, 21, 162, 28, 177, 42, 256);
         }
         //Render Sell flag
@@ -181,7 +187,6 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     }
 
     protected void renderExperienceBar(MatrixStack stack) {
-        ShopCapability shopCap = ShopCapability.getShopCap(ExtraUtil.mC.player);
         ExtraUtil.mC.getProfiler().push("expBar");
         ExtraUtil.TEXTURE_MANAGER.bind(AbstractGui.GUI_ICONS_LOCATION);
         int i = RenderXPEvent.getXpNeededForNextLevel(tempLvl);

@@ -15,6 +15,7 @@ public class XPEvents {
     public static void pickupXP(PlayerXpEvent.XpChange event){
         PlayerEntity player = event.getPlayer();
         ShopCapability playerCap = ShopCapability.getShopCap(player);
+        if (playerCap == null) return;
         int max = playerCap.getPlayerTier().getMax();
 
         if (event.isCanceled()) return;

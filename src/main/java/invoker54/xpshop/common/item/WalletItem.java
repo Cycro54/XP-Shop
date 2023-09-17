@@ -40,6 +40,7 @@ public class WalletItem extends Item {
         //Now let's start checking!
         //First grab the shop cap
         ShopCapability cap = ShopCapability.getShopCap(playerIn);
+        if (cap == null) return ActionResult.fail(itemStack);
         int myTier = this.WALLET_TIER.ordinal();
         int playerTier = cap.getPlayerTier().ordinal();
 

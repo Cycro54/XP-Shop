@@ -66,6 +66,7 @@ public class ShopScreen extends Screen {
     private final int imageHeight = 177;
     int halfWidthSpace;
     int halfHeightSpace;
+    ShopCapability playerCap;
 
     public final boolean clickedWanderer;
 
@@ -102,10 +103,16 @@ public class ShopScreen extends Screen {
         this.children.add(this.searchBox);
         this.buttons.add(searchBox);
 
+        playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null){
+            ClientUtil.mC.setScreen(null);
+            return;
+        }
+
         LOGGER.debug("Clicked wanderer: " + clickedWanderer);
         LOGGER.debug("Has sell upgrade: " + ShopCapability.getShopCap(ClientUtil.getPlayer()).sellUpgrade);
         LOGGER.debug("Has Creative: " + ClientUtil.mC.player.isCreative());
-        if (clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).sellUpgrade || ClientUtil.mC.player.isCreative()) {
+        if (clickedWanderer || playerCap.sellUpgrade || ClientUtil.mC.player.isCreative()) {
             ExtraUtil.SimpleButton sellButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3 + 14, halfHeightSpace + imageHeight, 14, 21, null, (button) -> {
                 XPShop.LOGGER.debug("WILL THIS OPEN CREATIVE MENU?: " + (ExtraUtil.mC.player.isCreative()));
                 //If the player is in creative, set the screen to add sell item screen
@@ -378,7 +385,7 @@ public class ShopScreen extends Screen {
         //endregion
 
         //region This is for Shop time left
-        if (ShopCapability.getShopCap(ClientUtil.getPlayer()).getShopTimeLeft() > 0) {
+        if (playerCap.getShopTimeLeft() > 0) {
             timeBG.x0 = halfWidthSpace + imageWidth;
             timeBG.y0 = halfHeightSpace + 29 + 26 + 5;
             timeBG.RenderImage(stack);
@@ -390,7 +397,7 @@ public class ShopScreen extends Screen {
                     timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.y0 + 4, TextFormatting.WHITE.getColor(), false);
 
             //Draw the refresh time next
-            timeLeft = ClientUtil.ticksToTime(ShopCapability.getShopCap(ClientUtil.getPlayer()).getShopTimeLeft());
+            timeLeft = ClientUtil.ticksToTime(playerCap.getShopTimeLeft());
             txtSize = this.font.width(timeLeft);
             ClientUtil.drawStretchText(stack, timeLeft, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
                     timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.getDown() - 9 - 3, TextFormatting.GREEN.getColor(), false);
@@ -403,7 +410,7 @@ public class ShopScreen extends Screen {
         //Render buy flag
         ExtraUtil.blitImage(stack, halfWidthSpace + 3, 14, halfHeightSpace + imageHeight, 28, 190, 28, imageHeight, 56, 256);
         //Render Sell flag
-        if (clickedWanderer || ShopCapability.getShopCap(ClientUtil.mC.player).sellUpgrade || ClientUtil.mC.player.isCreative()) {
+        if (clickedWanderer || playerCap.sellUpgrade || ClientUtil.mC.player.isCreative()) {
             ExtraUtil.blitImage(stack, halfWidthSpace + 3 + 14, 14, halfHeightSpace + imageHeight, 21, 106, 28, imageHeight, 42, 256);
         }
 
@@ -629,6 +636,10 @@ public class ShopScreen extends Screen {
         public PriceButton(int x, int y, int width, int height, ExtraUtil.Bounds bounds, BuyEntry entry) {
             super(x, y, width, height, ITextComponent.nullToEmpty(entry.item.getDisplayName().getString()), (button) -> {
                 ShopCapability cap = ShopCapability.getShopCap(ExtraUtil.mC.player);
+                if (cap == null){
+                    ClientUtil.mC.setScreen(null);
+                    return;
+                }
                 ShopCapability.Stock stock = cap.grabStock(entry);
                 //First check if item has a lock item and if it's locked
                 if(!cap.isUnlocked(entry)) {
@@ -659,6 +670,10 @@ public class ShopScreen extends Screen {
                 NetworkHandler.sendToServer(new BuyItemMsg(entry.serialize()));
             });
             this.playerCap = ShopCapability.getShopCap(ExtraUtil.mC.player);
+            if (this.playerCap == null){
+                ClientUtil.mC.setScreen(null);
+                return;
+            }
             this.myStock = playerCap.grabStock(entry);
             this.visible = true;
             this.entry = entry;

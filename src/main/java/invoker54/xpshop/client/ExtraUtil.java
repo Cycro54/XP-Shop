@@ -94,6 +94,7 @@ public class ExtraUtil extends ClientUtil {
     public static void openShop(boolean clickedWanderer){
         WorldShopCapability worldCap = WorldShopCapability.getShopCap(ClientUtil.getWorld());
         ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null) return;
 
         if (clickedWanderer || playerCap.buyUpgrade || ClientUtil.getPlayer().isCreative()) {
             ClientUtil.mC.setScreen(new ShopScreen(worldCap.getBuyEntries(ClientUtil.getPlayer()), clickedWanderer));
@@ -107,6 +108,7 @@ public class ExtraUtil extends ClientUtil {
     }
     public static void openShopFee(boolean clickedWanderer){
         ShopCapability cap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (cap == null) return;
 
         if (cap.getShopTimeLeft() > 0 || cap.feeUpgrade || ExtraUtil.getPlayer().isCreative()){
             openShop(clickedWanderer);

@@ -8,6 +8,7 @@ import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.ForgeConfig;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -21,7 +22,10 @@ public class ItemHoverEvents {
     
     @SubscribeEvent
     public static void hoverOptions(ItemTooltipEvent event){
+        if (ClientUtil.getPlayer() == null) return;
         if (event.getItemStack().getItem() != ItemInit.UPGRADE_OPTIONS) return;
+        ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null) return;
 
         if (ShopCapability.getShopCap(ClientUtil.getPlayer()).optionUpgrade) {
             event.getToolTip().add(getUnlockTXT());
@@ -31,7 +35,10 @@ public class ItemHoverEvents {
 
     @SubscribeEvent
     public static void hoverBuy(ItemTooltipEvent event){
+        if (ClientUtil.getPlayer() == null) return;
         if (event.getItemStack().getItem() != ItemInit.UPGRADE_UNIVERSAL_BUY) return;
+        ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null) return;
 
         if (ShopCapability.getShopCap(ClientUtil.getPlayer()).buyUpgrade) {
             event.getToolTip().add(getUnlockTXT());
@@ -41,7 +48,11 @@ public class ItemHoverEvents {
 
     @SubscribeEvent
     public static void hoverSell(ItemTooltipEvent event){
+        if (ClientUtil.getPlayer() == null) return;
         if (event.getItemStack().getItem() != ItemInit.UPGRADE_UNIVERSAL_SELL) return;
+        ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null) return;
+
 
         if (ShopCapability.getShopCap(ClientUtil.getPlayer()).sellUpgrade) {
             event.getToolTip().add(getUnlockTXT());
@@ -51,7 +62,10 @@ public class ItemHoverEvents {
 
     @SubscribeEvent
     public static void hoverTransfer(ItemTooltipEvent event){
+        if (ClientUtil.getPlayer() == null) return;
         if (event.getItemStack().getItem() != ItemInit.UPGRADE_TRANSFER) return;
+        ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null) return;
 
         if (ShopCapability.getShopCap(ClientUtil.getPlayer()).transferUpgrade) {
             event.getToolTip().add(getUnlockTXT());
@@ -61,7 +75,10 @@ public class ItemHoverEvents {
 
     @SubscribeEvent
     public static void hoverFee(ItemTooltipEvent event){
+        if (ClientUtil.getPlayer() == null) return;
         if (event.getItemStack().getItem() != ItemInit.UPGRADE_FEE) return;
+        ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null) return;
 
         if (ShopCapability.getShopCap(ClientUtil.getPlayer()).feeUpgrade) {
             event.getToolTip().add(getUnlockTXT());

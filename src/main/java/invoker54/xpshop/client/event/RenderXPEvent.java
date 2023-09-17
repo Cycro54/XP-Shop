@@ -36,6 +36,7 @@ public class RenderXPEvent {
         if(ExtraUtil.mC.options.keyShift.isDown()) xpAmount = Integer.toString(ExtraUtil.mC.player.totalExperience);
         //Add in the max too
         ShopCapability cap = ShopCapability.getShopCap(ClientUtil.mC.player);
+        if (cap == null) return;
         if(ExtraUtil.mC.options.keyShift.isDown()) xpAmount += "/" + cap.getPlayerTier().getMax();
 
         //X position

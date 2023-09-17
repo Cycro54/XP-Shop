@@ -11,11 +11,16 @@ import net.minecraft.nbt.INBT;
 import net.minecraft.util.Direction;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public class ShopCapability {
+    public static final Logger LOGGER = LogManager.getLogger();
+
     //region NBT Strings
     //StockNBT Strings
     protected final String ITEM = "ITEM";
@@ -64,7 +69,11 @@ public class ShopCapability {
     }
     public ShopCapability(){}
     public static ShopCapability getShopCap(LivingEntity player){
-        return player.getCapability(ShopProvider.XPSHOPDATA).orElseThrow(NullPointerException::new);
+        ShopCapability playerCap = player.getCapability(ShopProvider.XPSHOPDATA).orElse(null);
+        if (playerCap == null) {
+            LOGGER.error("MISSING SHOP CAPABILITY!!!");
+        }
+        return playerCap;
     }
     public void setStartTime(int startTime){
         this.startTime = startTime;

@@ -23,6 +23,7 @@ public class ShopFeeScreen extends Screen {
     int fee;
     private ClientUtil.SimpleButton yesButton;
     private boolean clickedWanderer;
+    ShopCapability playerCap;
 
     public ShopFeeScreen(boolean clickedWanderer) {
         super(new TranslationTextComponent("ShopFeeScreen.shop_text"));
@@ -37,7 +38,11 @@ public class ShopFeeScreen extends Screen {
         super.init();
 
         PlayerEntity player = ClientUtil.getPlayer();
-        ShopCapability playerCap = ShopCapability.getShopCap(player);
+        playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        if (playerCap == null){
+            ClientUtil.mC.setScreen(null);
+            return;
+        }
 
         this.fee = Math.min(ShopConfig.shopFee,(playerCap.getPlayerTier().getMax()/ 6));
         

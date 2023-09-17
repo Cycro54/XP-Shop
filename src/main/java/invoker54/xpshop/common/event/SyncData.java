@@ -55,6 +55,10 @@ public class SyncData {
         if (!(joinEntity instanceof PlayerEntity)) return;
 
         LOGGER.error("FOUND A PLAYER ");
+        ShopCapability playerCap = ShopCapability.getShopCap((LivingEntity) joinEntity);
+        if (playerCap == null){
+            throw new NullPointerException();
+        }
         //This is for asking for the world shop
         if (event.getWorld().isClientSide){
             NetworkHandler.sendToServer(new SyncWorldShopRequestMsg(joinEntity.level.dimension().getRegistryName()));
@@ -62,7 +66,7 @@ public class SyncData {
         //This is for asking for the players shop data (like leftover xp or wallet upgrade
         else {
             NetworkHandler.sendToPlayer((PlayerEntity) joinEntity,
-                    new SyncClientCapMsg(ShopCapability.getShopCap((LivingEntity) joinEntity).writeNBT()));
+                    new SyncClientCapMsg(playerCap.writeNBT()));
         }
         if (!event.getWorld().isClientSide) return;
     }
