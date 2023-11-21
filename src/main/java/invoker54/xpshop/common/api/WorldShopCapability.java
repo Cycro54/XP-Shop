@@ -36,7 +36,7 @@ public class WorldShopCapability {
 
         //Don't do calculations on the client
         if (level.isClientSide) return;
-        LOGGER.error("SETTING UP BUY ENTRIES FOR TRADER");
+//        LOGGER.error("SETTING UP BUY ENTRIES FOR TRADER");
         refreshDeals();
     }
 
@@ -62,12 +62,12 @@ public class WorldShopCapability {
         while (buyEntries.size() > ShopConfig.randomBuyEntryCount && ShopConfig.randomBuyEntryCount != 0){
             buyEntries.remove(level.random.nextInt(buyEntries.size()));
         }
-        LOGGER.info("THESE ARE THE Buy Entries for this worlds Enchanted books");
-        for (BuyEntry entry : this.buyEntries){
-            if (entry.item.getItem() instanceof EnchantedBookItem){
-                LOGGER.debug(EnchantedBookItem.getEnchantments(entry.item));
-            }
-        }
+//        LOGGER.info("THESE ARE THE Buy Entries for this worlds Enchanted books");
+//        for (BuyEntry entry : this.buyEntries){
+//            if (entry.item.getItem() instanceof EnchantedBookItem){
+//                LOGGER.debug(EnchantedBookItem.getEnchantments(entry.item));
+//            }
+//        }
 
         //Update the trader xp
         if (this.level.dimension() == World.OVERWORLD) {
@@ -93,8 +93,8 @@ public class WorldShopCapability {
         //Only show half the shop if they don't have the more options upgrade
         if (!playerCap.optionUpgrade && buyList.size() >= 4){
             int halfSize = Math.round(buyList.size()/2F);
-            LOGGER.debug("HALF SIZE IS: " + (buyList.size()/2F));
-            LOGGER.debug("ROUNDED IS: " + Math.round(buyList.size()/2F));
+//            LOGGER.debug("HALF SIZE IS: " + (buyList.size()/2F));
+//            LOGGER.debug("ROUNDED IS: " + Math.round(buyList.size()/2F));
             buyList = new ArrayList<>(buyList.subList(0,halfSize));
 //            for (BuyEntry entry : buyList){
 //                LOGGER.info("HERES THE NEW LIST");

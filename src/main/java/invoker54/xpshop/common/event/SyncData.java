@@ -54,7 +54,7 @@ public class SyncData {
         Entity joinEntity = event.getEntity();
         if (!(joinEntity instanceof PlayerEntity)) return;
 
-        LOGGER.error("FOUND A PLAYER ");
+//        LOGGER.error("FOUND A PLAYER ");
         ShopCapability playerCap = ShopCapability.getShopCap((LivingEntity) joinEntity);
         if (playerCap == null){
             throw new NullPointerException();
@@ -118,7 +118,7 @@ public class SyncData {
     @SubscribeEvent
     public static void onWorldSave(WorldEvent.Save event){
         if (((ServerWorld)event.getWorld()).dimension() != World.OVERWORLD) return;
-        LOGGER.debug("Saving shop data");
+//        LOGGER.debug("Saving shop data");
         ShopData.writeFile();
     }
 
@@ -127,7 +127,7 @@ public class SyncData {
         if(event.getWorld().isClientSide()) return;
 
         if(((ServerWorld)event.getWorld()).dimension() == World.OVERWORLD) {
-            LOGGER.debug("Reading shop data");
+//            LOGGER.debug("Reading shop data");
             ShopData.readFile();
         }
     }

@@ -5,8 +5,10 @@ import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.common.api.ShopCapability;
+import net.minecraft.block.EnchantingTableBlock;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.command.impl.ExperienceCommand;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -26,13 +28,10 @@ public class RenderXPEvent {
         if (!ClientUtil.mC.player.isAlive()) return;
 
         FontRenderer font = ExtraUtil.mC.font;
-
         MainWindow window = event.getWindow();
 
-
-        
         //String to render
-        String xpAmount = ExtraUtil.formatValue(ExtraUtil.mC.player.totalExperience);
+        String xpAmount = ExtraUtil.formatValue(ExtraUtil.getPlayer().totalExperience);
         if(ExtraUtil.mC.options.keyShift.isDown()) xpAmount = Integer.toString(ExtraUtil.mC.player.totalExperience);
         //Add in the max too
         ShopCapability cap = ShopCapability.getShopCap(ClientUtil.mC.player);
@@ -68,13 +67,5 @@ public class RenderXPEvent {
         font.draw(stack, text, (float)xPos, (float)(yPos + 1), 0);
         font.draw(stack, text, (float)xPos, (float)(yPos - 1), 0);
         font.draw(stack, text, (float)xPos, (float)yPos, 8453920);
-    }
-
-    public static int getXpNeededForNextLevel(int lvl){
-        if (lvl >= 30) {
-            return 112 + (lvl - 30) * 9;
-        } else {
-            return lvl >= 15 ? 37 + (lvl - 15) * 5 : 7 + lvl * 2;
-        }
     }
 }

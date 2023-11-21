@@ -20,7 +20,7 @@ public class UnlockShopMsg {
         context.enqueueWork(() -> {
             if (context.getSender() == null) return;
             PlayerEntity player = context.getSender();
-            LOGGER.warn(player.getClass());
+//            LOGGER.warn(player.getClass());
             ShopCapability playerCap = ShopCapability.getShopCap(player);
 
             //The fee will be 1/6th of players total allowed xp

@@ -90,7 +90,7 @@ public class AddItemScreen extends Screen {
                 halfHeightSpace + 4, 40, 16, ITextComponent.nullToEmpty("Cancel"),
                 (button) -> ExtraUtil.mC.setScreen(prevScreen)));
 
-        XPShop.LOGGER.debug("Is the target entry null? " + (targetEntry == null));
+//        XPShop.LOGGER.debug("Is the target entry null? " + (targetEntry == null));
 
         if (targetEntry != null) {
             //Delete button
@@ -368,7 +368,7 @@ public class AddItemScreen extends Screen {
         public void changeButton(){
             this.enabled = !this.enabled;
             this.boolButton.setMessage(ITextComponent.nullToEmpty("" + this.enabled));
-            LOGGER.warn("BOOL IS CHANGING TO: " + this.enabled);
+//            LOGGER.warn("BOOL IS CHANGING TO: " + this.enabled);
         }
 
         @Override

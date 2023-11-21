@@ -25,12 +25,12 @@ public class SyncClientShopMsg {
     }
 
     public static void encode(SyncClientShopMsg msg, PacketBuffer buffer){
-        LOGGER.error("MAX PACKET SIZE(CLIENT SHOP): " + buffer.maxCapacity());
+//        LOGGER.error("MAX PACKET SIZE(CLIENT SHOP): " + buffer.maxCapacity());
         buffer.writeNbt((CompoundNBT) msg.nbtData);
     }
 
     public static SyncClientShopMsg decode(PacketBuffer buffer){
-        LOGGER.error("CURRENT PACKET SIZE(CLIENT SHOP)" + buffer.capacity());
+//        LOGGER.error("CURRENT PACKET SIZE(CLIENT SHOP)" + buffer.capacity());
         return new SyncClientShopMsg(buffer.readNbt());
     }
 
@@ -42,18 +42,18 @@ public class SyncClientShopMsg {
             //System.out.println("Who sent this cap data? " + context.getSender());
 
             CompoundNBT mainNBT = (CompoundNBT) msg.nbtData;
-            LOGGER.debug(msg.nbtData.getAsString());
+//            LOGGER.debug(msg.nbtData.getAsString());
 
             //This is for syncing the shop data
             if(mainNBT.contains("shopNBT")) {
                 ShopData.deserialize(mainNBT);
 
-                if (ExtraUtil.mC.screen != null)
-                    XPShop.LOGGER.debug("What's the current screen?: " + (ExtraUtil.mC.screen.getClass()));
+//                if (ExtraUtil.mC.screen != null)
+//                    XPShop.LOGGER.debug("What's the current screen?: " + (ExtraUtil.mC.screen.getClass()));
 
                 //If shop screen, refresh it!
                 if (ExtraUtil.mC.screen instanceof ShopScreen || ExtraUtil.mC.screen instanceof AddItemScreen) {
-                    XPShop.LOGGER.debug("Refreshing shop screen");
+//                    XPShop.LOGGER.debug("Refreshing shop screen");
                     ExtraUtil.mC.setScreen(ExtraUtil.mC.screen);
                 }
             }

@@ -24,12 +24,12 @@ public class SyncServerShopMsg {
     }
 
     public static void encode(SyncServerShopMsg msg, PacketBuffer buffer){
-        LOGGER.error("MAX PACKET SIZE(SERVER SHOP)" + buffer.maxCapacity());
+//        LOGGER.error("MAX PACKET SIZE(SERVER SHOP)" + buffer.maxCapacity());
         buffer.writeNbt(msg.nbtData);
     }
 
     public static SyncServerShopMsg decode(PacketBuffer buffer){
-        LOGGER.error("CURRENT PACKET SIZE(SERVER SHOP)" + buffer.capacity());
+//        LOGGER.error("CURRENT PACKET SIZE(SERVER SHOP)" + buffer.capacity());
         return new SyncServerShopMsg(buffer.readNbt());
     }
 

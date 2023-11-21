@@ -9,6 +9,7 @@ import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.api.WorldShopCapability;
 import invoker54.xpshop.common.data.SellEntry;
 import invoker54.xpshop.common.data.ShopData;
+import invoker54.xpshop.common.event.XPEvents;
 import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.ClearSellContainerMsg;
 import invoker54.xpshop.common.network.msg.SyncServerCapMsg;
@@ -39,6 +40,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     int tempLvl;
     float tempProgress;
     float tempTotal;
+    int prevPlayerXP;
 
     ShopCapability cap;
 
@@ -76,14 +78,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
 
         //This is the sell button
         addButton(new ExtraUtil.SimpleButton(halfWidthSpace + 115, halfHeightSpace + 122,54,13, ITextComponent.nullToEmpty("Sell"), (button) -> {
-
-            float totalExp = menu.totalExtraXP + cap.getLeftOverXP();
-            cap.setLeftOverXP(totalExp - ((int)totalExp));
-            cap.traderXP -= menu.totalExtraXP;
-            ExtraUtil.mC.player.giveExperiencePoints((int)totalExp);
-            menu.tempInv.clearContent();
             NetworkHandler.sendToServer(new ClearSellContainerMsg());
-            NetworkHandler.sendToServer(new SyncServerCapMsg(cap.writeNBT()));
         }));
 
         //Change to Buy screen button
@@ -108,12 +103,12 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     public void recalculateXP(){
         tempLvl = 0;
         tempTotal = ExtraUtil.mC.player.totalExperience + cap.getLeftOverXP() + menu.totalExtraXP;
-        tempProgress = (int)tempTotal / (float)RenderXPEvent.getXpNeededForNextLevel(tempLvl);
+        tempProgress = (int)tempTotal / (float)XPEvents.getXpNeededForNextLevel(tempLvl);
 
         while(this.tempProgress >= 1.0F) {
-            this.tempProgress = (this.tempProgress - 1.0F) * (float)RenderXPEvent.getXpNeededForNextLevel(tempLvl);
+            this.tempProgress = (this.tempProgress - 1.0F) * (float)XPEvents.getXpNeededForNextLevel(tempLvl);
             this.tempLvl++;
-            this.tempProgress /= RenderXPEvent.getXpNeededForNextLevel(tempLvl);
+            this.tempProgress /= XPEvents.getXpNeededForNextLevel(tempLvl);
         }
     }
 
@@ -181,6 +176,15 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     }
 
     @Override
+    public void tick() {
+        super.tick();
+        if (ClientUtil.getPlayer().totalExperience != prevPlayerXP){
+            this.recalculateXP();
+            prevPlayerXP = ClientUtil.getPlayer().totalExperience;
+        }
+    }
+
+    @Override
     public void render(MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
         super.render(stack, xMouse, yMouse, partialTicks);
         this.renderTooltip(stack,xMouse,yMouse);
@@ -189,7 +193,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     protected void renderExperienceBar(MatrixStack stack) {
         ExtraUtil.mC.getProfiler().push("expBar");
         ExtraUtil.TEXTURE_MANAGER.bind(AbstractGui.GUI_ICONS_LOCATION);
-        int i = RenderXPEvent.getXpNeededForNextLevel(tempLvl);
+        int i = XPEvents.getXpNeededForNextLevel(tempLvl);
         int x = halfWidthSpace + (imageWidth /2);
         int y = halfHeightSpace + 110;
 

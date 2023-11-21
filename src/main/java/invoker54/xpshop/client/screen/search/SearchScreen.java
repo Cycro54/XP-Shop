@@ -268,8 +268,8 @@ public class SearchScreen extends Screen {
     public boolean mouseScrolled(double xMouse, double yMouse, double scrollValue) {
         scrollValue = -MathHelper.sign(scrollValue);
 
-        LOGGER.debug("Is scrolloffset larger than searchlist size? " + ((scrollOffs * 10) + 60) + ">=" + searchList.size());
-        LOGGER.debug((scrollOffs * 10) + 60 >= searchList.size());
+//        LOGGER.debug("Is scrolloffset larger than searchlist size? " + ((scrollOffs * 10) + 60) + ">=" + searchList.size());
+//        LOGGER.debug((scrollOffs * 10) + 60 >= searchList.size());
 
         if ((scrollOffs * 10) + 60 >= searchList.size() && scrollValue >= 1) return false;
         if (scrollOffs == 0 && scrollValue < 0) return false;

@@ -109,12 +109,12 @@ public class ShopScreen extends Screen {
             return;
         }
 
-        LOGGER.debug("Clicked wanderer: " + clickedWanderer);
-        LOGGER.debug("Has sell upgrade: " + ShopCapability.getShopCap(ClientUtil.getPlayer()).sellUpgrade);
-        LOGGER.debug("Has Creative: " + ClientUtil.mC.player.isCreative());
+//        LOGGER.debug("Clicked wanderer: " + clickedWanderer);
+//        LOGGER.debug("Has sell upgrade: " + ShopCapability.getShopCap(ClientUtil.getPlayer()).sellUpgrade);
+//        LOGGER.debug("Has Creative: " + ClientUtil.mC.player.isCreative());
         if (clickedWanderer || playerCap.sellUpgrade || ClientUtil.mC.player.isCreative()) {
             ExtraUtil.SimpleButton sellButton = new ExtraUtil.SimpleButton(halfWidthSpace + 3 + 14, halfHeightSpace + imageHeight, 14, 21, null, (button) -> {
-                XPShop.LOGGER.debug("WILL THIS OPEN CREATIVE MENU?: " + (ExtraUtil.mC.player.isCreative()));
+//                XPShop.LOGGER.debug("WILL THIS OPEN CREATIVE MENU?: " + (ExtraUtil.mC.player.isCreative()));
                 //If the player is in creative, set the screen to add sell item screen
                 if (ExtraUtil.mC.player.isCreative()) {
                     ExtraUtil.mC.setScreen(new SellItemSearch(this, (Iitem -> {
@@ -167,7 +167,7 @@ public class ShopScreen extends Screen {
             catEntry = localCatEntries.get(i);
             //XPShop.LOGGER.debug( "SHOPDATA has this category right? " + (ShopData.catEntries.contains(catEntry)));
             int index = catButtons.size();
-            LOGGER.debug("WHATS THE CURRENT INDEX? " + index);
+//            LOGGER.debug("WHATS THE CURRENT INDEX? " + index);
             catButtons.add(addButton(new CategoryButton(halfWidthSpace + 9, origButtonY + maxCatOffset, 26, 26,
                     catEntry, catBounds, (button) -> {
                 //turn back on the prev category
@@ -192,7 +192,7 @@ public class ShopScreen extends Screen {
         //Make sure the selected cat button is disabled
         if (!catButtons.isEmpty() && catButtons.size() > pageIndex && catButtons.get(pageIndex) instanceof CategoryButton) {
             catButtons.get(pageIndex).active = false;
-            XPShop.LOGGER.debug("I AM DISABLING A BUTTON");
+//            XPShop.LOGGER.debug("I AM DISABLING A BUTTON");
         }
 
         //This will give us the real max Offset
@@ -201,7 +201,7 @@ public class ShopScreen extends Screen {
         //endregion
 
         refreshItemList("");
-        XPShop.LOGGER.debug("Finish Shop screen");
+//        XPShop.LOGGER.debug("Finish Shop screen");
 //        generateEnchants = this.addButton(new ClientUtil.SimpleButton(0,0,8 + font.width("Generate Items"),
 
 //                18, ITextComponent.nullToEmpty("Generate Items"), (button) ->{

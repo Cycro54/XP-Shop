@@ -64,9 +64,9 @@ public class SellContainer extends Container {
     public SellContainer(int containerID, PlayerInventory playerInventory, boolean clickedWanderer) {
         super(ContainerInit.sellContainerType, containerID);
         this.clickedWanderer = clickedWanderer;
-        LOGGER.error("WHAT IS CLICKED WANDERER? : " + (clickedWanderer));
+//        LOGGER.error("WHAT IS CLICKED WANDERER? : " + (clickedWanderer));
         tempInv = new Inventory(SELL_INVENTORY_TOTAL_COUNT);
-        if (playerInventory.player.level.isClientSide) tempInv.addListener((container) -> totalExtraXP = CalculateXP());
+        tempInv.addListener((container) -> totalExtraXP = CalculateXP(playerInventory.player));
         if (ContainerInit.sellContainerType == null)
             throw new IllegalStateException("Must initialise containerBasicContainerType before constructing a ContainerBasic!");
 
@@ -153,7 +153,7 @@ public class SellContainer extends Container {
         this.clearContainer(player, player.level, tempInv);
     }
 
-    public float CalculateXP(){
+    public float CalculateXP(PlayerEntity player){
         float totalXP = 0;
         ArrayList<Item> slotItems = new ArrayList<>();
 
@@ -173,10 +173,10 @@ public class SellContainer extends Container {
         }
         totalXP = BigDecimal.valueOf(totalXP).setScale(2, RoundingMode.HALF_UP).floatValue();
         /* TODO: Place this in the mod */
-        ShopCapability playerCap = ShopCapability.getShopCap(ClientUtil.getPlayer());
+        ShopCapability playerCap = ShopCapability.getShopCap(player);
         if (playerCap == null) return 0;
         totalXP = Math.max(
-                Math.min(playerCap.getPlayerTier().getMax() - ClientUtil.getPlayer().totalExperience, totalXP), 0);
+                Math.min(playerCap.getPlayerTier().getMax() - player.totalExperience, totalXP), 0);
         return totalXP;
     }
 

@@ -44,7 +44,7 @@ public class PacketSplitter {
     }
 
     public boolean shouldMessageBeSplit(Class<?> clazz) {
-        LOGGER.warn("SHOULD THE MSG SPLIT? " + messagesToSplit.contains(clazz) + " : " +  clazz.getName());
+//        LOGGER.warn("SHOULD THE MSG SPLIT? " + messagesToSplit.contains(clazz) + " : " +  clazz.getName());
         return messagesToSplit.contains(clazz);
     }
 
@@ -98,8 +98,8 @@ public class PacketSplitter {
         return (MSG, buf) -> {
 
             if (buf.writerIndex() < MAX_PACKET_SIZE) {
-                LOGGER.debug("WHATS THE WRITER INDEX: " + buf.writerIndex());
-                LOGGER.debug("WHATS THE MAX ALLOWED: " + MAX_PACKET_SIZE);
+//                LOGGER.debug("WHATS THE WRITER INDEX: " + buf.writerIndex());
+//                LOGGER.debug("WHATS THE MAX ALLOWED: " + MAX_PACKET_SIZE);
                 return;
             }
 
@@ -132,9 +132,9 @@ public class PacketSplitter {
                 if (packetIndex == 0) { // Assign Data for first Packet to this packet.
                     packetData = subPacketData;
                     packetIndex++;
-                    LOGGER.debug("THIS IS THE FIRST PACKET");
+//                    LOGGER.debug("THIS IS THE FIRST PACKET");
                 } else {
-                    LOGGER.debug("CURRENT PACKET IS " + packetIndex);
+//                    LOGGER.debug("CURRENT PACKET IS " + packetIndex);
                     //Construct the split packet.
                     SplitPacketMsg splitPacketMessage = new SplitPacketMsg(comId, packetIndex++, subPacketData);
 

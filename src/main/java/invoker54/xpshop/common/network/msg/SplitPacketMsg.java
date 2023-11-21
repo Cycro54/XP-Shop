@@ -27,7 +27,7 @@ public class SplitPacketMsg {
     private final byte[] payload;
 
     public SplitPacketMsg(final int communicationId, final int packetIndex, final byte[] payload) {
-        LOGGER.debug("I AM MAKING A SPLIT PACKET MSG");
+//        LOGGER.debug("I AM MAKING A SPLIT PACKET MSG");
         this.communicationId = communicationId;
         this.packetIndex = packetIndex;
         this.payload = payload;

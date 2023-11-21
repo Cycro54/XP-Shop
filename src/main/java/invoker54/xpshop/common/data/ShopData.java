@@ -90,7 +90,7 @@ public class ShopData {
 
     public static void deserialize(CompoundNBT mainNBT){
 
-        XPShop.LOGGER.debug("Start Deserialize");
+//        XPShop.LOGGER.debug("Start Deserialize");
         //region Shop NBT
         catEntries.clear();
         buyEntries.clear();
@@ -102,10 +102,10 @@ public class ShopData {
             CategoryEntry catEntry = new CategoryEntry();
 
             catEntry.categoryName = catEntryNBT.getString("name");
-            LOGGER.debug("Cat name: " + catEntry.categoryName);
+//            LOGGER.debug("Cat name: " + catEntry.categoryName);
 
             catEntry.categoryItem = ItemStack.of((CompoundNBT) catEntryNBT.get("categoryItem"));
-            LOGGER.debug("Cat item: " + catEntry.categoryItem.getDisplayName().getString());
+//            LOGGER.debug("Cat item: " + catEntry.categoryItem.getDisplayName().getString());
 
             for (int b = 0; b < catEntryNBT.getInt("size"); b++){
                 CompoundNBT buyEntryNBT = (CompoundNBT) catEntryNBT.get(String.valueOf(b));
@@ -118,9 +118,9 @@ public class ShopData {
                 //Also add to buyEntries list for easy access
                 buyEntries.add(buyEntry);
 
-                if (buyEntry.item.getItem() instanceof EnchantedBookItem){
-                    LOGGER.debug(EnchantedBookItem.getEnchantments(buyEntry.item));
-                }
+//                if (buyEntry.item.getItem() instanceof EnchantedBookItem){
+//                    LOGGER.debug(EnchantedBookItem.getEnchantments(buyEntry.item));
+//                }
             }
             catEntry.entries.sort(Comparator.comparing(b -> b.item.getHoverName().getString()));
 
@@ -148,7 +148,7 @@ public class ShopData {
         }
         //endregion
 
-        XPShop.LOGGER.debug("End Deserialize");
+//        XPShop.LOGGER.debug("End Deserialize");
     }
 
     protected static Path getPath(){
@@ -160,12 +160,12 @@ public class ShopData {
         try {
             InputStream in = XPShop.class.getClassLoader().getResource("assets/xp_shop/xp_shop_data.nbt").openStream();
 //            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            LOGGER.debug("START");
+//            LOGGER.debug("START");
 
             CompoundNBT nbt = CompressedStreamTools.readCompressed(in);
 
             deserialize(nbt);
-            LOGGER.debug("END");
+//            LOGGER.debug("END");
         }
         catch (Exception ex) {
             LOGGER.error("THERE WAS AN ERROR!");

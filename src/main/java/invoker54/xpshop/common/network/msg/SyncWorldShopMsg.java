@@ -16,7 +16,7 @@ public class SyncWorldShopMsg {
     private INBT nbtData;
 
     public SyncWorldShopMsg(INBT nbtData){
-        LOGGER.debug("I AM BEING CREATED");
+//        LOGGER.debug("I AM BEING CREATED");
         this.nbtData = nbtData;
     }
 
@@ -36,7 +36,7 @@ public class SyncWorldShopMsg {
             WorldShopCapability cap = WorldShopCapability.getShopCap(ClientUtil.getWorld());
             cap.readNBT((CompoundNBT) msg.nbtData);
 
-            LOGGER.debug(cap.getBuyEntries(ClientUtil.getPlayer()));
+//            LOGGER.debug(cap.getBuyEntries(ClientUtil.getPlayer()));
         });
         context.setPacketHandled(true);
     }

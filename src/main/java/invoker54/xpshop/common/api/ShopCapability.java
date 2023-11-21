@@ -159,7 +159,7 @@ public class ShopCapability {
         for (int a = 0; a < unlockedItems.size(); a++){
             //Use a-value as the name of this NBT, then place into unlockNBT
             unlockNBT.put(String.valueOf(a), unlockedItems.get(a).serializeNBT());
-            XPShop.LOGGER.debug("Saved item: " + unlockedItems.get(a).getHoverName().getString());
+//            XPShop.LOGGER.debug("Saved item: " + unlockedItems.get(a).getHoverName().getString());
         }
 
         //Record the size of the list

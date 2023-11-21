@@ -61,7 +61,7 @@ public class NetworkHandler {
 
         if (!(player instanceof FakePlayer)) {
             if (splitter.shouldMessageBeSplit(message.getClass())) {
-                LOGGER.debug("SENDING A SPLIT PACKET TO PLAYER");
+//                LOGGER.debug("SENDING A SPLIT PACKET TO PLAYER");
                 splitter.sendToPlayer((ServerPlayerEntity) player, message);
             } else {
                 INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) player), message);
@@ -70,7 +70,7 @@ public class NetworkHandler {
     }
     public static void sendToServer(Object message) {
         if (splitter.shouldMessageBeSplit(message.getClass())) {
-            LOGGER.debug("SENDING A SPLIT PACKET TO SERVER");
+//            LOGGER.debug("SENDING A SPLIT PACKET TO SERVER");
             splitter.sendToServer(message);
         } else {
             INSTANCE.send(PacketDistributor.SERVER.noArg(), message);

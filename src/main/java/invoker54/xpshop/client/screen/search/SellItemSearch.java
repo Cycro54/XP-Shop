@@ -113,7 +113,7 @@ public class SellItemSearch  extends SearchScreen{
     protected void refreshSearchResults() {
         if (showSellOnly) {
             searchList.clear();
-            LOGGER.debug("Refreshing items");
+//            LOGGER.debug("Refreshing items");
             this.scrollOffs = 0;
 
             String s = this.searchBox.getValue();
@@ -139,10 +139,10 @@ public class SellItemSearch  extends SearchScreen{
 
             for(SellEntry entry : foundEntries) searchList.add(entry.item);
 
-            LOGGER.debug("The size of the search list is2: " + searchList.size());
-            for (ItemStack item : searchList) {
-                LOGGER.debug(item.getDisplayName().getString());
-            }
+//            LOGGER.debug("The size of the search list is2: " + searchList.size());
+//            for (ItemStack item : searchList) {
+//                LOGGER.debug(item.getDisplayName().getString());
+//            }
 
             recalcItemRenderList();
         }

@@ -94,7 +94,7 @@ public class TagSearchScreen extends Screen {
 
                 //Begin going through all the items under this tag
                 for (Item item : currTag.getValues()) {
-                    LOGGER.warn("CURRENT TAG: " + ((ToggleEntry) entry).toggleButton.tag);
+//                    LOGGER.warn("CURRENT TAG: " + ((ToggleEntry) entry).toggleButton.tag);
                     //Make sure we don't already have the item in the list
                     if (!addedItems.contains(item)) {
                         //For adding sell entries

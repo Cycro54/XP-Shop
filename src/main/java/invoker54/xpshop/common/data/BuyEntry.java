@@ -21,7 +21,7 @@ public class BuyEntry {
         //Assign all the values
         this.item = ItemStack.of((CompoundNBT) buyEntryNBT.get("item"));
 
-        logger.debug(item.getDisplayName().getString());
+//        logger.debug(item.getDisplayName().getString());
 
         this.buyPrice = buyEntryNBT.getInt("buyPrice");
         this.limitStock = buyEntryNBT.getInt("limitStock");

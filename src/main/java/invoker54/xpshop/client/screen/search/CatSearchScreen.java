@@ -48,7 +48,7 @@ public class CatSearchScreen extends SearchScreen {
     @Override
     public void init() {
         super.init();
-        XPShop.LOGGER.debug("Starting CAT SCREEN");
+//        XPShop.LOGGER.debug("Starting CAT SCREEN");
 
         //Make title field
         this.titleBox = new TextBoxUI(this.font, halfWidthSpace + 11, halfHeightSpace + 154,
@@ -67,16 +67,16 @@ public class CatSearchScreen extends SearchScreen {
                             ShopData.buyEntries.remove(buyEntry);
                         }
                         //Finally delete the category
-                        XPShop.LOGGER.debug("Does cat entries have this? " + ShopData.catEntries.contains(targEntry));
+//                        XPShop.LOGGER.debug("Does cat entries have this? " + ShopData.catEntries.contains(targEntry));
                         ShopData.catEntries.remove(targEntry);
-                        XPShop.LOGGER.debug("Does it have it now? " + ShopData.catEntries.contains(targEntry));
+//                        XPShop.LOGGER.debug("Does it have it now? " + ShopData.catEntries.contains(targEntry));
 
                         //Now go back to the previous screen
                         ExtraUtil.mC.setScreen(prevScreen);
 
                         NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
                         for (CategoryEntry catEntry : ShopData.catEntries) {
-                            XPShop.LOGGER.debug(catEntry.categoryName);
+//                            XPShop.LOGGER.debug(catEntry.categoryName);
                         }
                     }));
         }

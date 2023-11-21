@@ -42,7 +42,7 @@ public class InvSearchScreen extends SearchScreen {
 
         if (inventoryMode) {
             searchList.clear();
-            LOGGER.debug("Refreshing items");
+//            LOGGER.debug("Refreshing items");
             this.scrollOffs = 0;
 
             String s = this.searchBox.getValue();
@@ -56,10 +56,10 @@ public class InvSearchScreen extends SearchScreen {
                 }
             }
 
-            LOGGER.debug("The size of the search list is: " + searchList.size());
-            for (ItemStack item : searchList) {
-                LOGGER.debug(item.getDisplayName().getString());
-            }
+//            LOGGER.debug("The size of the search list is: " + searchList.size());
+//            for (ItemStack item : searchList) {
+//                LOGGER.debug(item.getDisplayName().getString());
+//            }
 
             recalcItemRenderList();
         }
