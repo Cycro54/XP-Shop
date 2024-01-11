@@ -1,6 +1,5 @@
 package invoker54.xpshop.common.network.msg;
 
-import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.screen.AddItemScreen;
 import invoker54.xpshop.client.screen.ShopScreen;

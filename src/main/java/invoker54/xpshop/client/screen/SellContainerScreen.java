@@ -12,7 +12,6 @@ import invoker54.xpshop.common.data.ShopData;
 import invoker54.xpshop.common.event.XPEvents;
 import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.ClearSellContainerMsg;
-import invoker54.xpshop.common.network.msg.SyncServerCapMsg;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;

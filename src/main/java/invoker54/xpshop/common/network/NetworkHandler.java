@@ -53,6 +53,7 @@ public class NetworkHandler {
         INSTANCE.registerMessage(12, SyncConfigMsg.class,SyncConfigMsg::encode, SyncConfigMsg::decode, SyncConfigMsg::handle);
         INSTANCE.registerMessage(13, SplitPacketMsg.class, SplitPacketMsg::encode, SplitPacketMsg::decode, SplitPacketMsg::handle);
         INSTANCE.registerMessage(14, UnlockShopMsg.class, (message, buf) -> {}, it -> new UnlockShopMsg(), UnlockShopMsg::handle);
+        INSTANCE.registerMessage(15, OpenBuyScreenMsg.class, (message, buf) -> {}, it -> new OpenBuyScreenMsg(), OpenBuyScreenMsg::handle);
     }
 
     //Custom method used to send data to players

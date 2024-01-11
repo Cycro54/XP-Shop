@@ -1,6 +1,5 @@
 package invoker54.xpshop.client.screen;
 
-import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.ContainerInit;
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.data.ShopData;

@@ -44,5 +44,6 @@
   "xp_shop.chat.unlock.upgrade_universal_sell": "You've unlocked Universal Sell!",
   "xp_shop.chat.unlock.upgrade_transfer": "You've unlocked XP Transfer!",
   "xp_shop.chat.unlock.upgrade_fee": "You've unlocked Fee Removal!",
-  "xp_shop.chat.unlock.upgrade_wealthy": "You've unlocked Wealthy Traders!"
+  "xp_shop.chat.unlock.upgrade_wealthy": "You've unlocked Wealthy Traders!",
+  "xp_shop.chat.shop.cant_open_shop": "Player is dead or dying, can't open shop."
 }

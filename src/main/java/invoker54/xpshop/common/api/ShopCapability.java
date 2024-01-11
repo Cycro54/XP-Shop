@@ -1,6 +1,5 @@
 package invoker54.xpshop.common.api;
 
-import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.data.BuyEntry;
 import invoker54.xpshop.common.item.WalletTier;
@@ -14,7 +13,6 @@ import net.minecraftforge.common.capabilities.Capability;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 

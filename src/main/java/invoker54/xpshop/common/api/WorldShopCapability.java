@@ -8,7 +8,6 @@ import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.SyncClientCapMsg;
 import invoker54.xpshop.common.network.msg.SyncWorldShopMsg;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.EnchantedBookItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;

@@ -3,7 +3,6 @@ package invoker54.xpshop.common.event;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.api.ShopCapability;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.eventbus.api.EventPriority;

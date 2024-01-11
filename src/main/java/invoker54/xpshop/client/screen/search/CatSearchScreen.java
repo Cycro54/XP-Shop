@@ -1,7 +1,6 @@
 package invoker54.xpshop.client.screen.search;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import invoker54.xpshop.common.data.BuyEntry;

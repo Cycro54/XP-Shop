@@ -8,7 +8,7 @@ import invoker54.xpshop.client.screen.ShopScreen;
 import invoker54.xpshop.client.screen.XPTransferScreen;
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.api.WorldShopCapability;
-import invoker54.xpshop.common.data.BuyEntry;
+import invoker54.xpshop.common.config.ShopConfig;
 import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.common.network.msg.OpenSellContainerMsg;
 import net.minecraft.client.gui.ScreenManager;
@@ -17,8 +17,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.ArrayList;
 
 import static invoker54.xpshop.ContainerInit.sellContainerType;
 import static invoker54.xpshop.client.screen.ShopScreen.SHOP_LOCATION;
@@ -110,7 +108,7 @@ public class ExtraUtil extends ClientUtil {
         ShopCapability cap = ShopCapability.getShopCap(ClientUtil.getPlayer());
         if (cap == null) return;
 
-        if (cap.getShopTimeLeft() > 0 || cap.feeUpgrade || ExtraUtil.getPlayer().isCreative()){
+        if (cap.getShopTimeLeft() > 0 || cap.feeUpgrade || ExtraUtil.getPlayer().isCreative() || ShopConfig.shopFee == 0){
             openShop(clickedWanderer);
         }
         else {

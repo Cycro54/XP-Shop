@@ -1,6 +1,5 @@
 package invoker54.xpshop.common.network.msg;
 
-import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.screen.SellContainer;
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.network.NetworkHandler;

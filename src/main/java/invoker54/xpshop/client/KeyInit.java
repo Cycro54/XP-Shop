@@ -1,5 +1,6 @@
 package invoker54.xpshop.client;
 
+import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.keybind.CustomKeybind;
 import invoker54.invocore.client.keybind.KeybindsInit;
 import invoker54.xpshop.XPShop;
@@ -18,6 +19,7 @@ public class KeyInit {
         shopKey = KeybindsInit.addBind(new CustomKeybind("open_shop", GLFW.GLFW_KEY_GRAVE_ACCENT, XPShop.MOD_ID,
                 (action) ->{
                     if (action != GLFW.GLFW_PRESS) return;
+                    if (!ClientUtil.getPlayer().hasPermissions(2)) return;
 
                     if (ExtraUtil.mC.screen == null){
                         ExtraUtil.mC.setScreen(new ShopScreen(false));

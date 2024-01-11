@@ -1,7 +1,6 @@
 package invoker54.xpshop.common.data;
 
 import invoker54.xpshop.XPShop;
-import net.minecraft.item.EnchantedBookItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
