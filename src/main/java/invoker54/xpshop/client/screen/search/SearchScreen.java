@@ -358,7 +358,9 @@ public class SearchScreen extends Screen {
             isearchtree = this.minecraft.getSearchTree(SearchTreeManager.CREATIVE_NAMES);
         }
 
-        searchList.addAll(isearchtree.search(s.toLowerCase(Locale.ROOT)));
+        for (ItemStack itemStack : isearchtree.search(s.toLowerCase(Locale.ROOT))){
+            searchList.add(itemStack.copy());
+        }
 
         //LOGGER.debug("The size of the search list is2: " + searchList.size());
         for(ItemStack item : searchList){

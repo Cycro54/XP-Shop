@@ -287,7 +287,6 @@ public class ShopScreen extends Screen {
                 throw new RuntimeException(e);
             }
         }));
-
     }
 
     public void refreshItemList(String customSearch){
@@ -759,9 +758,7 @@ public class ShopScreen extends Screen {
                 //Render item
                 itemRenderer.renderAndDecorateItem(entry.lockItem, this.x + ((this.width - 16)/2), this.y + 3);
                 //Render item decor
-                if (!entry.item.isDamageableItem()) {
-                    itemRenderer.renderGuiItemDecorations(font, entry.lockItem, this.x + ((this.width - 16)/2), this.y + 3);
-                }
+                itemRenderer.renderGuiItemDecorations(font, entry.lockItem, this.x + ((this.width - 16)/2), this.y + 3);
 
                 color = ExtraUtil.mC.player.inventory.countItem(entry.lockItem.getItem()) >= entry.lockItem.getCount() ?
                         TextFormatting.GREEN.getColor() : TextFormatting.RED.getColor();
