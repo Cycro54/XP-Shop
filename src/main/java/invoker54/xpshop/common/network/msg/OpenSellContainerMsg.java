@@ -1,6 +1,7 @@
 package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.client.screen.SellContainer;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.SimpleNamedContainerProvider;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.text.StringTextComponent;
@@ -29,9 +30,12 @@ public class OpenSellContainerMsg {
         NetworkEvent.Context context = contextSupplier.get();
 
         context.enqueueWork(() -> {
+            ServerPlayerEntity senderPlayer = context.getSender();
+            if (senderPlayer == null) return;
+
             //Open the Sell Container
-            NetworkHooks.openGui(context.getSender(), new SimpleNamedContainerProvider((id, playerInv, player) -> {
-                return new SellContainer(id, playerInv, msg.clickedWanderer);
+            NetworkHooks.openGui(senderPlayer, new SimpleNamedContainerProvider((id, playerInv, player) -> {
+                return new SellContainer(id, senderPlayer.inventory, msg.clickedWanderer);
             }, new StringTextComponent("Items To Sell")), (buffer -> buffer.writeBoolean(msg.clickedWanderer)));
         });
         context.setPacketHandled(true);

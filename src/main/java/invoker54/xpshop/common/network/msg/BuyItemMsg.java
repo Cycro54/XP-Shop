@@ -1,6 +1,8 @@
 package invoker54.xpshop.common.network.msg;
 
+import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.data.BuyEntry;
+import invoker54.xpshop.common.event.XPEvents;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
@@ -34,11 +36,20 @@ public class BuyItemMsg {
             //Grab the player
             ServerPlayerEntity player = context.getSender();
 
+            //Check if it was a limited stock item
+            ShopCapability cap = ShopCapability.getShopCap(player);
+            if (cap == null) return;
+            ShopCapability.Stock stock = cap.grabStock(entry);
+            if (stock != null){
+                stock.reduceStock();
+            }
+
             //Give the player the item (if not enough space, drop on floor)
-            if (!player.addItem(entry.item)) player.drop(entry.item, true);
+            if (!player.addItem(entry.item.copy())) player.drop(entry.item.copy(), true);
 
             //NOW TAKE THEIR XP!!!! TAKE IT ALL, HAHAHAHAHAHAAA!!
-            player.giveExperiencePoints(-entry.buyPrice);
+            XPEvents.giveExperience(player, -entry.buyPrice);
+//            player.giveExperiencePoints(-entry.buyPrice);
         });
         context.setPacketHandled(true);
     }

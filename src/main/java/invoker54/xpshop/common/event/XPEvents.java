@@ -56,4 +56,27 @@ public class XPEvents {
             return lvl >= 15 ? 37 + (lvl - 15) * 5 : 7 + lvl * 2;
         }
     }
+
+    public static void giveExperience(PlayerEntity player, int xp){
+        player.totalExperience = Math.min(player.totalExperience + xp, Integer.MAX_VALUE);
+        player.increaseScore(xp);
+
+        //55 points is level 5
+//        LOGGER.error("What's total experience: " + player.totalExperience);
+        int xpLeft = player.totalExperience;
+        int xpLevel = 0;
+        int neededAmount = getXpNeededForNextLevel(xpLevel);
+//        LOGGER.error("How many points for xp level " + xpLevel +": " + neededAmount);
+        while (xpLeft >= neededAmount){
+            xpLeft = xpLeft - neededAmount;
+//            LOGGER.error("How much xp is left? " + xpLeft);
+            xpLevel++;
+            neededAmount = getXpNeededForNextLevel(xpLevel);
+//            LOGGER.error("How many points for xp level " + xpLevel +": " + neededAmount);
+        }
+
+        player.experienceLevel = xpLevel;
+        player.experienceProgress = (float) xpLeft / neededAmount;
+
+    }
 }

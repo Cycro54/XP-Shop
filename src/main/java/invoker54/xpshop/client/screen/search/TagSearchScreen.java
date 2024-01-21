@@ -99,11 +99,13 @@ public class TagSearchScreen extends Screen {
                     if (!addedItems.contains(item)) {
                         //For adding sell entries
                         if (this.sellPrice != 0) {
-                            ShopData.sellEntries.put(item, new SellEntry(new ItemStack(item), this.sellPrice));
+                            ItemStack stack = new ItemStack(item);
+                            ShopData.sellEntries.put(stack, new SellEntry(stack, this.sellPrice));
                         }
                         //For removing sell entries
                         else {
-                            ShopData.sellEntries.remove(item);
+                            ItemStack matchingStack = ShopData.getMatchingStack(new ItemStack(item), ShopData.sellEntries.keySet());
+                            if (matchingStack != null) ShopData.sellEntries.remove(matchingStack);
                         }
 
                         //Make sure to add the item to the addedItems list to know which items we went through already

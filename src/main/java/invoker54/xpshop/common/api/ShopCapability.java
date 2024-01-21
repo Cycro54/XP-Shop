@@ -114,13 +114,14 @@ public class ShopCapability {
         return false;
     }
 
-    public Stock grabStock(BuyEntry entry){
+    public Stock grabStock(BuyEntry entry) {
         //If limitStock is 0 for the BuyEntry, it's always in stock.
         if (entry.limitStock == 0) return null;
 
-        for (Stock stockItem : stockItems){
-            if (ItemStack.matches(stockItem.item, entry.item))
-                return stockItem;
+        for (Stock stock : stockItems) {
+            if (stock.item.equals(entry.item, true)) {
+                return stock;
+            }
         }
 
         Stock newStock = new Stock();
@@ -145,6 +146,7 @@ public class ShopCapability {
         }
 
         //Finally record the size for later
+        LOGGER.error("how many items have limited stock the player bought: " + this.stockItems.size());
         stockNBT.putInt(SIZE, stockItems.size());
 
         //Place stockNBT into the main NBT variable
@@ -191,8 +193,12 @@ public class ShopCapability {
         //region loading shop
         //region First load the stockItem List
         CompoundNBT stockNBT = (CompoundNBT) mainNBT.get(STOCK_LIST);
+        LOGGER.error("How many stock items saved? " + stockNBT.getInt(SIZE));
         for (int a = 0; a < stockNBT.getInt(SIZE); a++){
-            stockItems.add(new Stock((CompoundNBT) stockNBT.get(String.valueOf(a))));
+            Stock stock = new Stock((CompoundNBT) stockNBT.get(a + ""));
+            LOGGER.error("Stock item: " + stock.item.getDisplayName().getString());
+            LOGGER.error("Stock left: " + stock.stockLeft);
+            stockItems.add(stock);
         }
         //endregion
 

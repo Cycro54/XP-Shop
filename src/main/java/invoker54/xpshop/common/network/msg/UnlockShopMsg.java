@@ -2,6 +2,7 @@ package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.config.ShopConfig;
+import invoker54.xpshop.common.event.XPEvents;
 import invoker54.xpshop.common.network.NetworkHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -25,7 +26,7 @@ public class UnlockShopMsg {
             //The fee will be 1/6th of players total allowed xp
             int fee = Math.min(ShopConfig.shopFee,(playerCap.getPlayerTier().getMax()/ 6));
             //Take the xp
-            player.giveExperiencePoints(-fee);
+            XPEvents.giveExperience(player, -fee);
 
             //Unlock the shop by setting the start point (for a limited amount of time)
             playerCap.setStartTime((int) player.level.getGameTime());

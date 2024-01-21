@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static invoker54.xpshop.client.screen.ShopScreen.SHOP_LOCATION;
+import static invoker54.xpshop.common.data.ShopData.getMatchingStack;
 
 public class SellItemSearch  extends SearchScreen{
 
@@ -93,9 +94,10 @@ public class SellItemSearch  extends SearchScreen{
     @Override
     protected void renderTooltip(MatrixStack stack, ItemStack item, int xMouse, int yMouse) {
         SellEntry targEntry = null;
+        ItemStack matchingStack = getMatchingStack(item, ShopData.sellEntries.keySet());
 
-        if (ShopData.sellEntries.containsKey(item.getItem()))
-            targEntry = ShopData.sellEntries.get(item.getItem());
+        if (matchingStack != null)
+            targEntry = ShopData.sellEntries.get(matchingStack);
 
         List<ITextComponent> textList = getTooltipFromItem(item);
 
@@ -130,8 +132,9 @@ public class SellItemSearch  extends SearchScreen{
             ArrayList<SellEntry> foundEntries = new ArrayList<>();
 
             for (ItemStack itemStack : tempList){
-                if (ShopData.sellEntries.containsKey(itemStack.getItem()))
-                    foundEntries.add(ShopData.sellEntries.get(itemStack.getItem()));
+                ItemStack matchingStack = getMatchingStack(itemStack, ShopData.sellEntries.keySet());
+                if (matchingStack != null)
+                    foundEntries.add(ShopData.sellEntries.get(matchingStack));
             }
 
             //Now sort that list
@@ -173,8 +176,9 @@ public class SellItemSearch  extends SearchScreen{
 
     @Override
     public void renderItemSlot(MatrixStack stack, ItemStack item, int x, int y, boolean inBounds) {
-        if (ShopData.sellEntries.containsKey(item.getItem()))
-        ExtraUtil.blitColor(stack,x, 16, y, 16, priceSetColor);
+        ItemStack matchingStack = getMatchingStack(item, ShopData.sellEntries.keySet());
+        if (matchingStack != null)
+            ExtraUtil.blitColor(stack,x, 16, y, 16, priceSetColor);
 
         super.renderItemSlot(stack, item, x, y, inBounds);
     }
@@ -197,8 +201,10 @@ public class SellItemSearch  extends SearchScreen{
                     return true;
                 }
 
-                if (ShopData.sellEntries.containsKey(hoverItem.getItem())){
-                    SellEntry entry = ShopData.sellEntries.get(hoverItem.getItem());
+                ItemStack matchingStack = getMatchingStack(hoverItem, ShopData.sellEntries.keySet());
+
+                if (matchingStack != null){
+                    SellEntry entry = ShopData.sellEntries.get(matchingStack);
                     if (NumberUtils.isParsable(priceBox.getValue()))
                         entry.setPrice(Float.parseFloat(priceBox.getValue())/(fullStack ? hoverItem.getMaxStackSize() : 1));
                 }
@@ -212,7 +218,7 @@ public class SellItemSearch  extends SearchScreen{
 
                     if (fullStack) sellPrice = sellPrice/(float) hoverItem.getMaxStackSize();
 
-                    ShopData.sellEntries.put(itemStack.getItem(), new SellEntry(itemStack, sellPrice));
+                    ShopData.sellEntries.put(itemStack, new SellEntry(itemStack, sellPrice));
                 }
 //                refreshSearchResults();
                 NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
@@ -225,8 +231,10 @@ public class SellItemSearch  extends SearchScreen{
                     return true;
                 }
 
-                if (ShopData.sellEntries.containsKey(hoverItem.getItem())){
-                    ShopData.sellEntries.remove(hoverItem.getItem());
+                ItemStack matchingStack = getMatchingStack(hoverItem, ShopData.sellEntries.keySet());
+
+                if (matchingStack != null){
+                    ShopData.sellEntries.remove(matchingStack);
                     NetworkHandler.sendToServer(new SyncServerShopMsg(ShopData.serialize()));
                 }
             }

@@ -1,6 +1,7 @@
 package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.common.api.ShopCapability;
+import invoker54.xpshop.common.event.XPEvents;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -42,8 +43,8 @@ public class TradeXPMsg {
             msg.amount = Math.min(otherCap.getPlayerTier().getMax() - taker.totalExperience, msg.amount);
             if (msg.amount <= 0) return;
 
-            giver.giveExperiencePoints(-msg.amount);
-            taker.giveExperiencePoints(msg.amount);
+            XPEvents.giveExperience(giver, -msg.amount);
+            XPEvents.giveExperience(taker, msg.amount);
         });
         context.setPacketHandled(true);
     }

@@ -1,7 +1,6 @@
 package invoker54.xpshop.common.data;
 
 import invoker54.xpshop.XPShop;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -14,9 +13,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class ShopData {
@@ -26,7 +24,7 @@ public class ShopData {
 
     protected static final File filePath = new File(getPath().toUri());
     public static final ArrayList<CategoryEntry> catEntries = new ArrayList<>();
-    public static final HashMap<Item, SellEntry> sellEntries = new HashMap<>();
+    public static final Map<ItemStack, SellEntry> sellEntries = new ConcurrentHashMap<>();
     public static final ArrayList<BuyEntry> buyEntries = new ArrayList<>();
 
     public static CompoundNBT serialize(){
@@ -143,7 +141,7 @@ public class ShopData {
             );
 
             //Finally add to the sellEntries list
-            sellEntries.put(sellEntry.item.getItem(), sellEntry);
+            sellEntries.put(sellEntry.item, sellEntry);
         }
         //endregion
 
@@ -207,5 +205,40 @@ public class ShopData {
             LOGGER.error(ex);
         }
 
+    }
+
+    public static ItemStack getMatchingStack(ItemStack stackToFind, Collection<ItemStack> stackList) {
+        ItemStack alikeStack = null;
+        if (stackToFind == null) return null;
+
+        for (ItemStack stack : stackList) {
+            boolean sameItem = stackToFind.sameItem(stack);
+            boolean matchingTags = ItemStack.tagMatches(stackToFind, stack);
+            if (sameItem && matchingTags) return stack;
+            if (sameItem && sortaMatchTags(stack, stackToFind)) alikeStack = stack;
+        }
+        return alikeStack;
+    }
+
+    public static boolean sortaMatchTags(ItemStack stackA, ItemStack stackB){
+        if (!stackA.hasTag() && !stackB.hasTag()) return true;
+        if (!stackA.hasTag() && stackB.hasTag()) return true;
+        if (stackA.hasTag() && !stackB.hasTag()) return false;
+
+        CompoundNBT nbtA = stackA.getOrCreateTag();
+        CompoundNBT nbtB = stackB.getOrCreateTag();
+
+        if (nbtA.size() > nbtB.size()){
+            nbtA = stackB.getOrCreateTag();
+            nbtB = stackA.getOrCreateTag();
+        }
+
+        for (String entry : nbtA.getAllKeys()){
+            if (!nbtB.contains(entry)) return false;
+            if (!nbtA.contains(entry)) continue;
+            if (!nbtA.get(entry).equals(nbtB.get(entry))) return false;
+        }
+
+        return true;
     }
 }

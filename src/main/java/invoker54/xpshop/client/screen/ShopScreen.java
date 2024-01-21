@@ -22,7 +22,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
@@ -160,17 +160,18 @@ public class ShopScreen extends Screen {
         //endregion
 
         CategoryEntry catEntry;
-        for (int i = 0; i < localCatEntries.size(); ++i)
         //Lets get cat buttons
-        {
-            catEntry = localCatEntries.get(i);
+        for (CategoryEntry localCatEntry : localCatEntries) {
+            catEntry = localCatEntry;
             //XPShop.LOGGER.debug( "SHOPDATA has this category right? " + (ShopData.catEntries.contains(catEntry)));
             int index = catButtons.size();
 //            LOGGER.debug("WHATS THE CURRENT INDEX? " + index);
             catButtons.add(addButton(new CategoryButton(halfWidthSpace + 9, origButtonY + maxCatOffset, 26, 26,
                     catEntry, catBounds, (button) -> {
-                //turn back on the prev category
-                catButtons.get(pageIndex).active = true;
+
+                //turn back on the prev category (if there was a previous)
+                if (catButtons.size() > pageIndex && pageIndex >= 0)
+                    catButtons.get(pageIndex).active = true;
 
                 //Change the current page
                 pageIndex = index;
@@ -234,15 +235,15 @@ public class ShopScreen extends Screen {
             //Generate Buy entries for enchantments
 //            this.minecraft.getSearchTree(SearchTreeManager.CREATIVE_NAMES).search("Enchanted Book".toLowerCase(Locale.ROOT))
             for (BuyEntry entry : ShopData.buyEntries){
-                Item entryItem = entry.item.getItem();
+                ItemStack matchingStack = ShopData.getMatchingStack(entry.item, ShopData.sellEntries.keySet());
                 SellEntry newEntry = new SellEntry(entry.item, (entry.buyPrice/(entry.item.getCount() + 0F))/4F);
                 
-                if (!ShopData.sellEntries.containsKey(entryItem) ){
-                    ShopData.sellEntries.put(entryItem, newEntry);
+                if (matchingStack == null){
+                    ShopData.sellEntries.put(entry.item, newEntry);
                 }
                 //IF there already is a sell price and it's larger than the newest one, change it.
-                else if(ShopData.sellEntries.get(entryItem).getSellPrice() > newEntry.getSellPrice()){
-                    ShopData.sellEntries.put(entryItem, newEntry);
+                else if(ShopData.sellEntries.get(matchingStack).getSellPrice() > newEntry.getSellPrice()){
+                    ShopData.sellEntries.put(matchingStack, newEntry);
                 }
             }
 

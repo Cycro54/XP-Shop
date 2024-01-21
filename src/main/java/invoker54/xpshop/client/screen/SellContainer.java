@@ -8,7 +8,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
@@ -19,6 +18,8 @@ import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+
+import static invoker54.xpshop.common.data.ShopData.getMatchingStack;
 
 public class SellContainer extends Container {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -154,20 +155,21 @@ public class SellContainer extends Container {
 
     public float CalculateXP(PlayerEntity player){
         float totalXP = 0;
-        ArrayList<Item> slotItems = new ArrayList<>();
+        ArrayList<ItemStack> slotItems = new ArrayList<>();
 
         for (Slot slot : slots){
             if (slot.container.equals(tempInv)){
                 if (!slot.hasItem()) continue;
 
-                if (!slotItems.contains(slot.getItem().getItem()))
-                    slotItems.add(slot.getItem().getItem());
+                if (getMatchingStack(slot.getItem(), slotItems) == null)
+                    slotItems.add(slot.getItem());
             }
         }
 
-        for (Item item : slotItems){
-            if (ShopData.sellEntries.containsKey(item))
-                totalXP += (ShopData.sellEntries.get(item).calcPrice(tempInv.countItem(item)));
+        for (ItemStack itemStack : slotItems){
+            itemStack = getMatchingStack(itemStack, ShopData.sellEntries.keySet());
+            if (itemStack != null)
+                totalXP += (ShopData.sellEntries.get(itemStack).calcPrice(tempInv.countItem(itemStack.getItem())));
 
         }
         totalXP = BigDecimal.valueOf(totalXP).setScale(2, RoundingMode.HALF_UP).floatValue();

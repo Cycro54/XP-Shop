@@ -114,7 +114,7 @@ public final class ShopConfig {
             randomBuyEntryCount = builder.comment("How many buy entries to choose (0 will be all entries in every selected category)").defineInRange("Random_Buy_Entry_Count", 14, 0,Integer.MAX_VALUE);
             refreshTime = builder.comment("How long in seconds it takes to refresh current deals").defineInRange("Refresh_Time", 1500, 10,Integer.MAX_VALUE);
             takeLockItem = builder.comment("Take the items you use to unlock shop items").define("Take_Items", true);
-            shopFee = builder.comment("Max amount of xp it'll cost to unlock the XP Shop (Fee will be 1/6th of the current wallet tier)").defineInRange("Shop_Max_Fee", 400, 0, Integer.MAX_VALUE);
+            shopFee = builder.comment("Max amount of xp it'll cost to unlock the XP Shop (Setting to 0 disables shop fee)(Fee will be 1/6th of the current wallet tier)").defineInRange("Shop_Max_Fee", 400, 0, Integer.MAX_VALUE);
             shopUnlockTime = builder.comment("How long in seconds the shop will remain unlocked for").defineInRange("Shop_Unlock_Time", 1500, 10,Integer.MAX_VALUE);
             builder.pop();
 

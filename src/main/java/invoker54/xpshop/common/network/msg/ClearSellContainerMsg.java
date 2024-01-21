@@ -2,6 +2,7 @@ package invoker54.xpshop.common.network.msg;
 
 import invoker54.xpshop.client.screen.SellContainer;
 import invoker54.xpshop.common.api.ShopCapability;
+import invoker54.xpshop.common.event.XPEvents;
 import invoker54.xpshop.common.network.NetworkHandler;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraftforge.fml.network.NetworkEvent;
@@ -30,7 +31,7 @@ public class ClearSellContainerMsg {
             float totalExp = container.totalExtraXP + cap.getLeftOverXP();
             cap.setLeftOverXP(totalExp - ((int)totalExp));
             cap.traderXP -= container.totalExtraXP;
-            player.giveExperiencePoints((int)totalExp);
+            XPEvents.giveExperience(player, (int)totalExp);
 
             //Clear the container
             container.tempInv.clearContent();

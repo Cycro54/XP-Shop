@@ -24,6 +24,8 @@ import net.minecraft.util.text.TextFormatting;
 import java.awt.*;
 import java.util.List;
 
+import static invoker54.xpshop.common.data.ShopData.getMatchingStack;
+
 public class SellContainerScreen extends ContainerScreen<SellContainer> {
 
     protected final ResourceLocation SELL_LOCATION = new ResourceLocation(XPShop.MOD_ID,"textures/gui/screen/sell_container_screen.png");
@@ -165,7 +167,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
 
             if (!slot.hasItem()) continue;
 
-            if (ShopData.sellEntries.containsKey(slot.getItem().getItem())){
+            if (getMatchingStack(slot.getItem(),ShopData.sellEntries.keySet()) != null){
                 ExtraUtil.blitColor(stack,slot.x + halfWidthSpace, 16, slot.y + halfHeightSpace, 16, sellableColor);
             }
             else {
@@ -225,9 +227,10 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
             //this.renderTooltip(p_230459_1_, this.hoveredSlot.getItem(), p_230459_2_, p_230459_3_);
             SellEntry targEntry = null;
             ItemStack item = this.hoveredSlot.getItem();
+            ItemStack matchingStack = getMatchingStack(item, ShopData.sellEntries.keySet());
 
-            if (ShopData.sellEntries.containsKey(item.getItem()))
-                targEntry = ShopData.sellEntries.get(item.getItem());
+            if (matchingStack != null)
+                targEntry = ShopData.sellEntries.get(matchingStack);
 
             if (targEntry == null) {
                 super.renderTooltip(stack, item, xMouse, yMouse);
