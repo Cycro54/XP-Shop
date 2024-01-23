@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 public class PacketSplitter {
     private static final Logger LOGGER = LogManager.getLogger();
 //    private final static int MAX_PACKET_SIZE = 32000;
-    private final static int MAX_PACKET_SIZE = 32700;
+    private final static int MAX_PACKET_SIZE = 32000;
 //    private final static int MAX_PACKET_SIZE = 943718;
 
     private final ResourceLocation CHANNEL_ID;
@@ -44,6 +44,7 @@ public class PacketSplitter {
     }
 
     public boolean shouldMessageBeSplit(Class<?> clazz) {
+
 //        LOGGER.warn("SHOULD THE MSG SPLIT? " + messagesToSplit.contains(clazz) + " : " +  clazz.getName());
         return messagesToSplit.contains(clazz);
     }

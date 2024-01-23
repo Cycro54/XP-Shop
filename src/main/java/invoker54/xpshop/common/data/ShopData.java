@@ -13,7 +13,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -146,6 +149,12 @@ public class ShopData {
         //endregion
 
 //        XPShop.LOGGER.debug("End Deserialize");
+//        PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
+//        buffer.writeNbt(mainNBT);
+//        LOGGER.error("How large is the packet: " + buffer.readableBytes());
+//        LOGGER.error("How many shop items: " + buyEntries.size());
+//        LOGGER.error("How many categories: " + catEntries.size());
+//        LOGGER.error("How many sellable items: " + sellEntries.size());
     }
 
     protected static Path getPath(){

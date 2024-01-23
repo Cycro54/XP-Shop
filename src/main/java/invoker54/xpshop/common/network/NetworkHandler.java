@@ -31,7 +31,7 @@ public class NetworkHandler {
             //Checks incoming network protocol version for server (If they don't equal, it won't work.)
             PROTOCOL_VERSION::equals
     );
-    private static final PacketSplitter splitter = new PacketSplitter(9, INSTANCE, channel);
+    private static final PacketSplitter splitter = new PacketSplitter(200, INSTANCE, channel);
 
     public static void init(){
         //This is how you avoid sending anything to the server when you don't need to.
