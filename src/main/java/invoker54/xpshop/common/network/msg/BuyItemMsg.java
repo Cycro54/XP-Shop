@@ -39,7 +39,7 @@ public class BuyItemMsg {
             //Check if it was a limited stock item
             ShopCapability cap = ShopCapability.getShopCap(player);
             if (cap == null) return;
-            ShopCapability.Stock stock = cap.grabStock(entry);
+            ShopCapability.Stock stock = cap.grabStock(entry, true);
             if (stock != null){
                 stock.reduceStock();
             }

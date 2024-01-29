@@ -28,6 +28,7 @@ public final class ShopConfig {
     public static int shopFee;
     public static int shopUnlockTime;
     public static boolean takeLockItem;
+    public static boolean reLockItem;
     public static boolean showXP;
     private static boolean isDirty = false;
 
@@ -66,6 +67,7 @@ public final class ShopConfig {
         randomBuyEntryCount = COMMON.randomBuyEntryCount.get();
         refreshTime = COMMON.refreshTime.get();
         takeLockItem = COMMON.takeLockItem.get();
+        reLockItem = COMMON.reLockItem.get();
         showXP = COMMON.showXP.get();
         walletAmount = (List<Integer>) COMMON.walletAmount.get();
         permissionLvl = COMMON.permissionLvl.get();
@@ -98,6 +100,7 @@ public final class ShopConfig {
         public final ForgeConfigSpec.ConfigValue<Integer> randomBuyEntryCount;
         public final ForgeConfigSpec.ConfigValue<Integer> refreshTime;
         public final ForgeConfigSpec.ConfigValue<Boolean> takeLockItem;
+        public final ForgeConfigSpec.ConfigValue<Boolean> reLockItem;
         public final ForgeConfigSpec.ConfigValue<Boolean> showXP;
         public final ForgeConfigSpec.ConfigValue<List<? extends Integer>> walletAmount;
         public final ForgeConfigSpec.ConfigValue<Integer> permissionLvl;
@@ -114,6 +117,7 @@ public final class ShopConfig {
             randomBuyEntryCount = builder.comment("How many buy entries to choose (0 will be all entries in every selected category)").defineInRange("Random_Buy_Entry_Count", 14, 0,Integer.MAX_VALUE);
             refreshTime = builder.comment("How long in seconds it takes to refresh current deals").defineInRange("Refresh_Time", 1500, 10,Integer.MAX_VALUE);
             takeLockItem = builder.comment("Take the items you use to unlock shop items").define("Take_Items", true);
+            reLockItem = builder.comment("Lock unlocked items when the shop refreshes").define("Relock_Items", false);
             shopFee = builder.comment("Max amount of xp it'll cost to unlock the XP Shop (Setting to 0 disables shop fee)(Fee will be 1/6th of the current wallet tier)").defineInRange("Shop_Max_Fee", 400, 0, Integer.MAX_VALUE);
             shopUnlockTime = builder.comment("How long in seconds the shop will remain unlocked for").defineInRange("Shop_Unlock_Time", 1500, 10,Integer.MAX_VALUE);
             builder.pop();

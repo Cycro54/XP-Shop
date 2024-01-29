@@ -90,9 +90,12 @@ public class SyncData {
         ShopConfig.bakeCommonConfig();
         NetworkHandler.sendToPlayer(event.getPlayer(), new SyncConfigMsg(ShopConfig.serialize()));
 
-        //Now give player cap data
+        //Now give player cap data (refresh the stock and
+        ShopCapability playerCap = ShopCapability.getShopCap(event.getPlayer());
+        playerCap.refreshStock(false);
+
         NetworkHandler.sendToPlayer(event.getPlayer(),
-                new SyncClientCapMsg(ShopCapability.getShopCap(event.getPlayer()).writeNBT()));
+                new SyncClientCapMsg(playerCap.writeNBT()));
     }
 
     @SubscribeEvent

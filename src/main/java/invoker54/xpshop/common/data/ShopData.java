@@ -1,9 +1,11 @@
 package invoker54.xpshop.common.data;
 
 import invoker54.xpshop.XPShop;
+import io.netty.buffer.Unpooled;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -149,12 +151,12 @@ public class ShopData {
         //endregion
 
 //        XPShop.LOGGER.debug("End Deserialize");
-//        PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
-//        buffer.writeNbt(mainNBT);
-//        LOGGER.error("How large is the packet: " + buffer.readableBytes());
-//        LOGGER.error("How many shop items: " + buyEntries.size());
-//        LOGGER.error("How many categories: " + catEntries.size());
-//        LOGGER.error("How many sellable items: " + sellEntries.size());
+        PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
+        buffer.writeNbt(mainNBT);
+        LOGGER.debug("How large is the packet: " + buffer.readableBytes());
+        LOGGER.debug("How many shop items: " + buyEntries.size());
+        LOGGER.debug("How many categories: " + catEntries.size());
+        LOGGER.debug("How many sellable items: " + sellEntries.size());
     }
 
     protected static Path getPath(){

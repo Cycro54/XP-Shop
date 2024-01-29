@@ -3,6 +3,7 @@ package invoker54.xpshop.common.init;
 import com.mojang.brigadier.CommandDispatcher;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.commands.OpenShopCommand;
+import invoker54.xpshop.commands.RefreshShopCommand;
 import net.minecraft.command.CommandSource;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -16,5 +17,6 @@ public class CommandInit {
         CommandDispatcher<CommandSource> commandDispatcher = event.getDispatcher();
 
         OpenShopCommand.register(commandDispatcher);
+        RefreshShopCommand.register(commandDispatcher);
     }
 }

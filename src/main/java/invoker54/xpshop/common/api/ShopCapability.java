@@ -22,7 +22,7 @@ public class ShopCapability {
     //region NBT Strings
     //StockNBT Strings
     protected final String ITEM = "ITEM";
-    protected final String STOCK_TIMER_START = "STOCK_START";
+    protected final String LAST_REFRESH = "LAST_REFRESH";
     protected final String STOCK_LEFT = "STOCK_LEFT";
     protected static final String STOCK_LIST = "STOCK_ITEMS";
     //UnlockNBT Strings
@@ -50,7 +50,8 @@ public class ShopCapability {
     protected final ArrayList<ItemStack> unlockedItems = new ArrayList<>();
     public float leftOverXP = 0;
     public float traderXP = 0;
-    public int startTime = 0;
+    public int lastRefresh = 0;
+    public int unlockedShopTime = 0;
     //Player Variables
     protected WalletTier playerTier = WalletTier.ZERO;
     public boolean optionUpgrade = false;
@@ -60,7 +61,6 @@ public class ShopCapability {
     public boolean feeUpgrade = false;
     public boolean wealthyUpgrade = false;
     //endregion
-
 
     public ShopCapability (World level){
         this.level = level;
@@ -73,17 +73,23 @@ public class ShopCapability {
         }
         return playerCap;
     }
-    public void setStartTime(int startTime){
-        this.startTime = startTime;
+    public void setUnlockedShopTime(int unlockedShopTime){
+        this.unlockedShopTime = unlockedShopTime;
     }
     public int getShopTimeLeft(){
-        return (int) ((this.startTime + (ShopConfig.shopUnlockTime * 20F)) - this.level.getGameTime());
+        return (int) ((this.unlockedShopTime + (ShopConfig.shopUnlockTime * 20F)) - this.level.getGameTime());
     }
     public void refreshTradeXP(){
         traderXP = Math.round(this.getPlayerTier().getMax() * (wealthyUpgrade ? 0.6F : 0.3F));
     }
-    public void refreshStock(){
+    public void refreshStock(Boolean override){
+        if (!override && this.lastRefresh + (ShopConfig.refreshTime * 20F) > this.level.getGameTime()) return;
+        this.lastRefresh = (int) this.level.getGameTime();
+
         this.stockItems.clear();
+        if (ShopConfig.reLockItem){
+            this.unlockedItems.clear();
+        }
     }
     public WalletTier getPlayerTier(){
         return this.playerTier;
@@ -114,7 +120,7 @@ public class ShopCapability {
         return false;
     }
 
-    public Stock grabStock(BuyEntry entry) {
+    public Stock grabStock(BuyEntry entry, boolean grabDefault) {
         //If limitStock is 0 for the BuyEntry, it's always in stock.
         if (entry.limitStock == 0) return null;
 
@@ -123,6 +129,8 @@ public class ShopCapability {
                 return stock;
             }
         }
+
+        if (!grabDefault) return null;
 
         Stock newStock = new Stock();
         newStock.stockLeft = entry.limitStock;
@@ -169,10 +177,11 @@ public class ShopCapability {
         mainNBT.put(UNLOCKED_LIST, unlockNBT);
         //endregion
 
-        //Quickly write down the leftover xp, trade xp, and start time .
+        //Quickly write down the leftover xp, trade xp, and start time for the shop and refresh .
         mainNBT.putFloat(LEFTOVER_XP, leftOverXP);
         mainNBT.putFloat(trader_xp_STRING, this.traderXP);
-        mainNBT.putInt(START_TIME, this.startTime);
+        mainNBT.putInt(START_TIME, this.unlockedShopTime);
+        mainNBT.putInt(LAST_REFRESH, this.lastRefresh);
         //endregion
 
         //region saving upgrades
@@ -192,6 +201,7 @@ public class ShopCapability {
 
         //region loading shop
         //region First load the stockItem List
+        this.stockItems.clear();
         CompoundNBT stockNBT = (CompoundNBT) mainNBT.get(STOCK_LIST);
 //        LOGGER.error("How many stock items saved? " + stockNBT.getInt(SIZE));
         for (int a = 0; a < stockNBT.getInt(SIZE); a++){
@@ -202,19 +212,20 @@ public class ShopCapability {
         }
         //endregion
 
-        //region Next, save the unlockedItemList
+        //region Next, load the unlockedItemList
+        this.unlockedItems.clear();
         CompoundNBT unlockNBT = (CompoundNBT) mainNBT.get(UNLOCKED_LIST);
-
         for (int a = 0; a < unlockNBT.getInt(SIZE); a++){
             //Use a-value as the name of this NBT, then place into unlockNBT
             unlockedItems.add(ItemStack.of((CompoundNBT)unlockNBT.get(String.valueOf(a))));
         }
         //endregion
 
-        //Quickly unload the leftover xp, trade xp, and start time.
+        //Quickly unload the leftover xp, trade xp, and start time for the shop and refresh .
         leftOverXP = mainNBT.getFloat(LEFTOVER_XP);
         this.traderXP = mainNBT.getFloat(trader_xp_STRING);
-        this.startTime = mainNBT.getInt(START_TIME);
+        this.unlockedShopTime = mainNBT.getInt(START_TIME);
+        this.lastRefresh = mainNBT.getInt(LAST_REFRESH);
         //endregion
 
         //region loading upgrades

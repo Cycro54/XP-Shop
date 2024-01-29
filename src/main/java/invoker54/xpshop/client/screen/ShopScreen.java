@@ -639,7 +639,9 @@ public class ShopScreen extends Screen {
                     ClientUtil.mC.setScreen(null);
                     return;
                 }
-                ShopCapability.Stock stock = cap.grabStock(entry);
+                PriceButton button1 = (PriceButton) button;
+                if (button1.myStock == null) button1.myStock = cap.grabStock(entry, true);
+
                 //First check if item has a lock item and if it's locked
                 if(!cap.isUnlocked(entry)) {
                     //if it does, check if player has enough of that item
@@ -657,13 +659,13 @@ public class ShopScreen extends Screen {
                     return;
                 }
 
-                if (stock != null && stock.stockLeft == 0) return;
+                if (button1.myStock != null && button1.myStock.stockLeft == 0) return;
 
                 //If not enough xp, deny buy
                 if (ExtraUtil.mC.player.totalExperience < entry.buyPrice) return;
 
                 //Reduce stock
-                if(stock != null) stock.reduceStock();
+                if(button1.myStock != null) button1.myStock.reduceStock();
 
                 //Now start to buy the item
                 NetworkHandler.sendToServer(new BuyItemMsg(entry.serialize()));
@@ -673,7 +675,7 @@ public class ShopScreen extends Screen {
                 ClientUtil.mC.setScreen(null);
                 return;
             }
-            this.myStock = playerCap.grabStock(entry);
+            this.myStock = playerCap.grabStock(entry, false);
             this.visible = true;
             this.entry = entry;
             txtToRender = this.entry.item.getHoverName().getString();
@@ -725,8 +727,9 @@ public class ShopScreen extends Screen {
             font.drawShadow(stack,String.valueOf(entry.buyPrice), priceSpotX, priceSpotY, color);
 
             //Render stock left if stock is limited
-            if (myStock != null) {
-                font.drawShadow(stack, "Stock: " + myStock.stockLeft,
+            int stockCount = this.myStock == null ? this.entry.limitStock : this.myStock.stockLeft;
+            if (stockCount != 0) {
+                font.drawShadow(stack, "Stock: " + stockCount,
                         this.x + 6 + 16, priceSpotY, color);
             }
 

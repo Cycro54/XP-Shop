@@ -74,8 +74,8 @@ public class WorldShopCapability {
                 ShopCapability playerCap = ShopCapability.getShopCap(player);
                 if (playerCap == null) return;
                 playerCap.refreshTradeXP();
-                //This will place all items back in stock
-                playerCap.refreshStock();
+                //This will place all items back in stock and probably lock the previously locked items.
+                playerCap.refreshStock(true);
                 NetworkHandler.sendToPlayer(player, new SyncClientCapMsg(playerCap.writeNBT()));
             }
         }

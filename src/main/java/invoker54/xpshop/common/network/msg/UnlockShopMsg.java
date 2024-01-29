@@ -29,7 +29,7 @@ public class UnlockShopMsg {
             XPEvents.giveExperience(player, -fee);
 
             //Unlock the shop by setting the start point (for a limited amount of time)
-            playerCap.setStartTime((int) player.level.getGameTime());
+            playerCap.setUnlockedShopTime((int) player.level.getGameTime());
 //            LOGGER.warn("THIS IS HOW MUCH TIME THEY HAVE: " + (ClientUtil.ticksToTime(playerCap.getShopTimeLeft())));
             NetworkHandler.sendToPlayer(player, new SyncClientCapMsg(playerCap.writeNBT()));
         });
