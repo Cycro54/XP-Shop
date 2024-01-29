@@ -26,6 +26,8 @@ import java.util.Collections;
 public class WorldShopCapability {
     public static final Logger LOGGER = LogManager.getLogger();
     protected final String ENTRY_SIZE = "ENTRY_SIZE";
+    protected final String LAST_REFRESH = "LAST_REFRESH";
+    protected int lastRefresh;
     protected World level;
     protected ArrayList<BuyEntry> buyEntries;
     public WorldShopCapability(){}
@@ -44,6 +46,7 @@ public class WorldShopCapability {
     }
 
     public void refreshDeals(){
+        this.lastRefresh = (int) this.level.getGameTime();
         //Grab all the categories then remove them until we reach our max category count
         ArrayList<CategoryEntry> categoryEntries = new ArrayList<>(ShopData.catEntries);
         while (categoryEntries.size() > ShopConfig.randomCategoryCount && ShopConfig.randomCategoryCount != 0){
@@ -107,6 +110,10 @@ public class WorldShopCapability {
         }
 
         return buyList;
+    }
+
+    public int getLastRefreshTime(){
+        return this.lastRefresh;
     }
 
     public CompoundNBT writeNBT(){

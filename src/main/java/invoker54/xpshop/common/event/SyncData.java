@@ -14,6 +14,7 @@ import invoker54.xpshop.common.network.msg.SyncWorldShopRequestMsg;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -35,17 +36,22 @@ public class SyncData {
     @SubscribeEvent
     public static void attachPlayerCaps(AttachCapabilitiesEvent<Entity> event){
         if (event.getObject() instanceof PlayerEntity){
-            event.addCapability(XPShop.XPSHOP_LOC,new ShopProvider(event.getObject().level));
-        }
+            MinecraftServer server = event.getObject().getServer();
+            World world = server == null ? event.getObject().level : server.overworld();
+            if (world == null) world = event.getObject().level;
 
+            event.addCapability(XPShop.XPSHOP_LOC,new ShopProvider(world));
+        }
     }
 
     @SubscribeEvent
     public static void attachWorldCaps(AttachCapabilitiesEvent<World> event){
-//        if (event.getObject().dimension().equals(World.OVERWORLD)){
-//            event.addCapability(XPShop.XPSHOP_LOC,new WanderShopProvider(event.getObject()));
-//        }
-        event.addCapability(XPShop.XPSHOP_LOC,new WorldShopProvider(event.getObject()));
+        if (event.getObject().dimension().equals(World.OVERWORLD)){
+            event.addCapability(XPShop.XPSHOP_LOC,new WorldShopProvider(event.getObject()));
+        }
+        else if (event.getObject().isClientSide){
+            event.addCapability(XPShop.XPSHOP_LOC,new WorldShopProvider(event.getObject()));
+        }
     }
 
     @SubscribeEvent
@@ -54,7 +60,7 @@ public class SyncData {
         Entity joinEntity = event.getEntity();
         if (!(joinEntity instanceof PlayerEntity)) return;
 
-//        LOGGER.error("FOUND A PLAYER ");
+//      LOGGER.error("FOUND A PLAYER ");
         ShopCapability playerCap = ShopCapability.getShopCap((LivingEntity) joinEntity);
         if (playerCap == null){
             throw new NullPointerException();

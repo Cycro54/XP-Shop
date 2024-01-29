@@ -16,8 +16,12 @@ import net.minecraft.util.Util;
 import net.minecraft.util.text.ChatType;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RefreshShopCommand {
+    public static final Logger LOGGER = LogManager.getLogger();
     public static void register(CommandDispatcher<CommandSource> dispatcher) {
         dispatcher.register(
                 Commands.literal("xpshop")
@@ -38,7 +42,7 @@ public class RefreshShopCommand {
             ServerWorld level = commandContext.getSource().getLevel();
             if (level == null) return 1;
 
-            WorldShopCapability.getShopCap(commandContext.getSource().getLevel()).refreshDeals();
+            WorldShopCapability.getShopCap(ServerLifecycleHooks.getCurrentServer().overworld()).refreshDeals();
             level.getServer().getPlayerList().broadcastMessage(new TranslationTextComponent("xp_shop.chat.shop.refresh.all"), ChatType.CHAT, Util.NIL_UUID);
             return 1;
         }

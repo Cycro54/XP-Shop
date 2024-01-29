@@ -5,7 +5,6 @@ import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.api.WorldShopCapability;
 import invoker54.xpshop.common.config.ShopConfig;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -32,8 +31,6 @@ public class RefreshDealsEvent {
         if (event.world.getGameTime() % (ShopConfig.refreshTime * 20F) != 0) return;
 
         //Refresh every dimension and send to every player
-        for (ServerWorld world : ServerLifecycleHooks.getCurrentServer().getAllLevels()) {
-            WorldShopCapability.getShopCap(world).refreshDeals();
-        }
+        WorldShopCapability.getShopCap(ServerLifecycleHooks.getCurrentServer().overworld()).refreshDeals();
     }
 }

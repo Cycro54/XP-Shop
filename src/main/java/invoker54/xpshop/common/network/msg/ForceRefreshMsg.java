@@ -14,9 +14,7 @@ public class ForceRefreshMsg {
         NetworkEvent.Context context = contextSupplier.get();
 
         context.enqueueWork(() -> {
-            for (ServerWorld world : ServerLifecycleHooks.getCurrentServer().getAllLevels()) {
-                WorldShopCapability.getShopCap(world).refreshDeals();
-            }
+            WorldShopCapability.getShopCap(ServerLifecycleHooks.getCurrentServer().overworld()).refreshDeals();
         });
         context.setPacketHandled(true);
     }

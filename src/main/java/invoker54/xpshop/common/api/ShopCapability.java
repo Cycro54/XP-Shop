@@ -83,7 +83,7 @@ public class ShopCapability {
         traderXP = Math.round(this.getPlayerTier().getMax() * (wealthyUpgrade ? 0.6F : 0.3F));
     }
     public void refreshStock(Boolean override){
-        if (!override && this.lastRefresh + (ShopConfig.refreshTime * 20F) > this.level.getGameTime()) return;
+        if (!override && this.lastRefresh == WorldShopCapability.getShopCap(this.level).getLastRefreshTime()) return;
         this.lastRefresh = (int) this.level.getGameTime();
 
         this.stockItems.clear();
