@@ -118,6 +118,7 @@ public class WorldShopCapability {
 
     public CompoundNBT writeNBT(){
         CompoundNBT mainNBT = new CompoundNBT();
+        mainNBT.putInt(LAST_REFRESH, this.lastRefresh);
 
         //Save each buy entry item so we can look for it later
         for (int a = 0; a < buyEntries.size(); a++){
@@ -131,6 +132,8 @@ public class WorldShopCapability {
     }
 
     public void readNBT (CompoundNBT mainNBT){
+        this.lastRefresh = mainNBT.getInt(LAST_REFRESH);
+
         buyEntries.clear();
         ArrayList<ItemStack> savedItems = new ArrayList<>();
         int count = mainNBT.getInt(ENTRY_SIZE);
