@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static invoker54.xpshop.event.generation.ShopGenerationCopyEvent.df;
+import static invoker54.xpshop.event.generation.ShopGenerationEvent.df;
 
 public class PriceList implements INBTSerializable<CompoundTag> {
     private static final ModLogger LOGGER = ModLogger.getLogger(XPShopConfig.debugMode);

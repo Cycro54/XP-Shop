@@ -6,6 +6,7 @@ import invoker54.xpshop.api.WorldShopProvider;
 import invoker54.xpshop.capability.WorldShopCapability;
 import invoker54.xpshop.config.XPShopConfig;
 import invoker54.xpshop.data.ModLogger;
+import invoker54.xpshop.event.generation.ShopGenerationEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -46,7 +47,8 @@ public class CapabilityEvents {
 
     @SubscribeEvent
     public static void syncOnPlayerJoin(PlayerEvent.PlayerLoggedInEvent event){
-//        WorldShopCapability.syncInitialCapToClient(event.getEntity());
+        if (ShopGenerationEvent.isRunning.get()) return;
+        WorldShopCapability.syncInitialCapToClient(event.getEntity());
     }
 
 //    @SubscribeEvent

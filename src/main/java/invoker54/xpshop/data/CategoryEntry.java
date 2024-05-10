@@ -5,7 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.util.INBTSerializable;
 
-import static invoker54.xpshop.event.generation.ShopGenerationCopyEvent.getOrCreateCategory;
+import static invoker54.xpshop.event.generation.ShopGenerationEvent.getOrCreateCategory;
 
 public class CategoryEntry implements INBTSerializable<CompoundTag> {
     public static final CategoryEntry ODDITY = new CategoryEntry(-1, 0, "Oddity", new ItemStack(Items.BEDROCK));

@@ -1,7 +1,7 @@
 package invoker54.xpshop.event.generation.stat;
 
 import invoker54.xpshop.data.PriceList;
-import invoker54.xpshop.event.generation.ShopGenerationCopyEvent;
+import invoker54.xpshop.event.generation.ShopGenerationEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.Event;
 
@@ -11,7 +11,7 @@ public class PriceEvent extends Event {
     private final PriceList priceList;
 
     public PriceEvent(ItemStack currentItem){
-        this(currentItem, ShopGenerationCopyEvent.getPriceList(currentItem));
+        this(currentItem, ShopGenerationEvent.getPriceList(currentItem));
     }
 
     public PriceEvent(ItemStack currentItem, PriceList priceList){

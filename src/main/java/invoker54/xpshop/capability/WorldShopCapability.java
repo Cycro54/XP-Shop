@@ -20,6 +20,7 @@ import java.util.Map;
 
 public class WorldShopCapability implements INBTSerializable<CompoundTag> {
     private static final ModLogger LOGGER = ModLogger.getLogger(XPShopConfig.debugMode);
+
     public enum EntryType{
         SHOP,
         CATEGORY,
@@ -32,6 +33,10 @@ public class WorldShopCapability implements INBTSerializable<CompoundTag> {
     public static final Map<ItemStack, Double> skippedStackMap = new HashMap<>();
 
     public WorldShopCapability(){
+        resetAll();
+    }
+
+    public static void resetAll() {
         classShopMap.clear();
         shopEntryMap.clear();
         categoryEntryMap.clear();
@@ -50,18 +55,23 @@ public class WorldShopCapability implements INBTSerializable<CompoundTag> {
         });
     }
 
-    public static void syncInitialCapToClient(Player player){
-        //First do categories
-        LOGGER.error("How many categories? " + categoryEntryMap.size());
-        syncMapInPiecesToClient(player, EntryType.CATEGORY, categoryEntryMap);
+    public static void syncInitialCapToClient(Player player) {
+        try {
+            //First do categories
+            LOGGER.error("How many categories? " + categoryEntryMap.size());
+            syncMapInPiecesToClient(player, EntryType.CATEGORY, categoryEntryMap);
 
-        //Then do Items
-        LOGGER.error("How many items? " + itemEntryMap.size());
-        syncMapInPiecesToClient(player, EntryType.ITEM, itemEntryMap);
+            //Then do Items
+            LOGGER.error("How many items? " + itemEntryMap.size());
+            syncMapInPiecesToClient(player, EntryType.ITEM, itemEntryMap);
 
-        //Finally do shops
-        LOGGER.error("How many shops? " + shopEntryMap.size());
-        syncMapInPiecesToClient(player, EntryType.SHOP, shopEntryMap);
+            //Finally do shops
+            LOGGER.error("How many shops? " + shopEntryMap.size());
+            syncMapInPiecesToClient(player, EntryType.SHOP, shopEntryMap);
+        } catch (Exception e) {
+            LOGGER.error(e.getLocalizedMessage());
+            LOGGER.info("Something went wrong with syncing!");
+        }
 
     }
     private static void syncMapInPiecesToClient(Player player, EntryType entryType, Map<Integer,? extends INBTSerializable<CompoundTag>> map){
