@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "invoker54.xpshop.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "xpshop.refmap.json",
+  "mixins": [
+    "IngredientSupplierHelperMixin",
+    "RecipeLayoutBuilderMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

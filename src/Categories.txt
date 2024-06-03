@@ -15,4 +15,4 @@ if it gets calculated and it isn't made in a recipe, set it as complete
 If it comes from the world shop capability, set it as complete
 
 Calculate recipe price for item
-If it was a 
+If it was a

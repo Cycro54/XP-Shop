@@ -1,5 +1,6 @@
 package invoker54.xpshop.event.generation;
 
+import com.google.common.util.concurrent.AtomicDouble;
 import com.mojang.authlib.GameProfile;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.capability.WorldShopCapability;
@@ -10,9 +11,6 @@ import invoker54.xpshop.data.ModLogger;
 import invoker54.xpshop.data.PriceList;
 import invoker54.xpshop.data.recipe.IngredientData;
 import invoker54.xpshop.data.recipe.ItemData;
-import invoker54.xpshop.data.recipe.RecipeData;
-import invoker54.xpshop.event.generation.recipe.GatherIngredientsEvent;
-import invoker54.xpshop.event.generation.recipe.PriceRecipeEvent;
 import invoker54.xpshop.event.generation.stat.PriceEvent;
 import invoker54.xpshop.event.generation.stat.StatPriceEvents;
 import invoker54.xpshop.util.MiniTicker;
@@ -32,10 +30,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -50,7 +48,6 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.registries.ForgeRegistries;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nullable;
 import java.math.RoundingMode;
@@ -60,126 +57,147 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+
 public class ShopGenerationEvent {
-    public static final DecimalFormat df = new DecimalFormat("#.#");
+    public static final DecimalFormat df = new DecimalFormat("#.##");
     private static final ModLogger LOGGER = ModLogger.getLogger(XPShopConfig.debugMode);
 
     //ItemEntry: Shop item entry, Boolean: If it's a valid item
     public static final Map<ItemStack, PriceList> priceListMap = new ConcurrentHashMap<>();
     public static final Map<ItemEntry, Boolean> allItemEntries = new ConcurrentHashMap<>();
     public static final NonNullList<ItemStack> allItems = NonNullList.create();
-    public record InitialRecipeData(List<Pair<Recipe<?>, List<Ingredient>>> recipes) {
+    public record RecipeInfo(String recipeType, ItemStack resultStack, List<Ingredient> ingredients) {
     }
 
-    public static final Map<ItemStack, InitialRecipeData> craftResultMap = new ConcurrentHashMap<>();
+    public static final Map<ItemStack, List<RecipeInfo>> craftResultMap = new ConcurrentHashMap<>();
     public static final Map<String, Double> basicResourceMap = new HashMap<>();
     public static final Map<ItemStack, CategoryEntry> categoryMap = new ConcurrentHashMap<>();
     //black listed stuff
     public static final List<ItemStack> blackListedItems = new ArrayList<>();
     public static final List<TagKey<?>> blackListedTags = new ArrayList<>();
-    public static AtomicBoolean isRunning = new AtomicBoolean(false);
+    public static Thread runningThread = null;
     public static PriceBranchData priceBranchData = new PriceBranchData( 0, 0, 0, 0, new ArrayList<>());
-    private static final ExecutorService threadPool = Executors.newFixedThreadPool(10);
+    private static final ExecutorService threadPool = Executors.newFixedThreadPool(1);
     private static final Set<CompletableFuture<?>> futures = new HashSet<>();
+
+//    public static final Set<String> recipeTypes = new HashSet<>();
 
     public static void initializeGenerator(Level level) {
         if (level.isClientSide()) return;
+
         df.setRoundingMode(RoundingMode.HALF_UP);
         MiniTicker<?> myTimer = ModTimer.getTimer(XPShop.MOD_ID, "generator").ticker();
         ModStopWatch branchStopWatch = ModStopWatch.getTimer(XPShop.MOD_ID, "BranchInfo", ModStopWatch.Time.ACCUMULATE);
         resetAll();
 
-        Thread t = new Thread(() -> {
-            isRunning.set(true);
-            LOGGER.error("Now beginning the auto-generation");
-            StatPriceEvents.setDummyEntity(new FakePlayer((ServerLevel) level, new GameProfile(null, "dummy")));
-            myTimer.reset();
-            initItemList();
-            grabRecipes(level);
-            myTimer.reset();
-//            grabEnchants();
-//            LOGGER.info(myTimer.record("grab enchants"));
-//            grabPotions();
-//            LOGGER.info(myTimer.record("grab potions"));
-            grabOresAndDrops((ServerLevel) level);
-            LOGGER.info(myTimer.record("grab ores"));
-            grabMobDrops((ServerLevel) level);
-            LOGGER.info(myTimer.record("grab mob drops"));
-            grabResources();
-            initBlacklist();
-            LOGGER.info(myTimer.record("grab resources and blacklist"));
+//        recipeTypes.forEach(s -> LOGGER.warn("JEI class: " + s));
 
-            //First price items by stats
-            ArrayList<ItemStack> recipeItems = new ArrayList<>();
-            AtomicInteger counter = new AtomicInteger(0);
+        runningThread = new Thread(() -> {
+            try {
+                waitForTasks();
+                LOGGER.error("Now beginning the auto-generation");
+                StatPriceEvents.setDummyEntity(new FakePlayer((ServerLevel) level, new GameProfile(null, "dummy")));
+                myTimer.reset();
+                initItemList();
+//                grabRecipes(level);
+                myTimer.reset();
+
+                grabOresAndDrops((ServerLevel) level);
+                LOGGER.info(myTimer.record("grab ores"));
+                grabMobDrops((ServerLevel) level);
+                LOGGER.info(myTimer.record("grab mob drops"));
+                grabResources();
+                initBlacklist();
+                LOGGER.info(myTimer.record("grab resources and blacklist"));
+
+                //First price items by stats
+                AtomicInteger counter = new AtomicInteger(0);
+                List<ItemStack> recipeList = new ArrayList<>();
 //            allItems.subList(0, Math.min(1100, allItems.size()))
-            for (ItemStack shopStack : allItems) {
-                addTask(() -> {
-                    ItemStack recipeStack = getMatchingItemStack(shopStack, craftResultMap.keySet());
-                    double statPrice = calculateStatPrice(shopStack);
-                    if (recipeStack != null || statPrice == 0) {
-                        recipeItems.add(shopStack);
-                    }
+                for (ItemStack shopStack : allItems) {
+                    ItemStack matchingStack = calculateStatPrice(shopStack);
+                    if (matchingStack != null) recipeList.add(matchingStack);
                     LOGGER.error("Stat progress: " + df.format(100 *
                             (counter.addAndGet(1) / (double) (allItems.size()))) + "%");
-                    return null;
-                });
-            }
-            LOGGER.info(myTimer.record("Queue all stat tasks"));
-            waitForTasks();
-            LOGGER.info(myTimer.record("Complete all stat tasks"));
-            counter.set(0);
-            //Then price items by recipe
-            for (ItemStack stack : recipeItems) {
-                    ItemData itemData = ItemData.getMatchingData(stack);
-//                itemData.isInitialized = addTask(() -> {
-                    calculateRecipePrice(stack);
-                    LOGGER.error("Recipe progress: " + df.format(100 * (counter.addAndGet(1) / (double) recipeItems.size())) + "%");
-//                    return true;
-//                });
-            }
-            waitForTasks();
-            LOGGER.info(myTimer.record("Complete all recipe tasks"));
-            LOGGER.info(branchStopWatch.compileTime("Gathering branch data", false, true));
-            LOGGER.debug(ItemData.STOP_WATCH.bestTime());
+                }
+                LOGGER.info(myTimer.record("Queue all stat tasks"));
+                waitForTasks();
+                LOGGER.info(myTimer.record("Complete all stat tasks"));
+                StatPriceEvents.printAllTickers();
 
-            LOGGER.error("Branch data");
-            LOGGER.warn("Highest Bad Count: " + priceBranchData.highestBadCount());
-            LOGGER.warn("Average Bad Count: " + priceBranchData.getAverageBadCount());
-            LOGGER.warn("Highest branch Count: " + priceBranchData.highestBranch());
-            LOGGER.warn("Average branch Count: " + priceBranchData.getAverageBranchCount());
-            LOGGER.warn("Total items: " + priceBranchData.stackList.size());
-            LOGGER.warn("Total skipped items: " + WorldShopCapability.skippedStackMap.size());
-            LOGGER.warn("Total entry items: " + allItemEntries.size());
-            priceBranchData = new PriceBranchData( 0, 0, 0, 0, new ArrayList<>());
+                counter.set(0);
+                List<ItemData> dataList = new ArrayList<>(recipeList.stream().map(ItemData::getMatchingData).toList());
+                dataList.forEach(ItemData::gatherBaseIngredients);
+                dataList.sort(Comparator.comparingInt(A -> -A.userSet.size()));
+                IngredientData.initialize();
+                LOGGER.error("Who has the most items? " +
+                        ItemData.getItemName(dataList.get(0)) +
+                        " ("+dataList.get(0).userSet.size()+")");
+                //Then price items by recipe
+                try {
+                    for (ItemData itemData : dataList) {
+                        LOGGER.info("Recipe item: " + ItemData.getItemName(itemData));
+                        calculateRecipePrice(itemData);
+                        LOGGER.error("Recipe progress: " + df.format(100 * (counter.addAndGet(1) / (double) recipeList.size())) + "%");
+                    }
+                } catch (Exception e) {
+                    runningThread.interrupt();
+                    LOGGER.debug("Generation stopped");
+                    throw e;
+                }
+                waitForTasks();
+                LOGGER.info(myTimer.record("Complete all recipe tasks"));
+                LOGGER.info("Depth data");
+                StringBuilder depthBuilder = new StringBuilder();
+                ItemData.depthMap.entrySet().stream().sorted(Comparator.comparingInt(Map.Entry::getKey))
+                        .forEach(entry -> depthBuilder.append("\n").append(entry));
+                LOGGER.warn(depthBuilder.toString());
+                LOGGER.info(branchStopWatch.compileTime("Gathering branch data", false, true));
+                LOGGER.debug(ItemData.STOP_WATCH.bestTime());
 
-            LOGGER.debug("What are the categories?");
-            for (CategoryEntry categoryEntry : WorldShopCapability.categoryEntryMap.values()) {
-                LOGGER.warn("ID: " + categoryEntry.getCategoryId() + ", Name: " + categoryEntry.getCategoryName() + ", Item: " + categoryEntry.getDisplayItem().getDisplayName().getString());
-            }
-            LOGGER.debug("What are the items? ");
-            for (ItemEntry itemEntry : WorldShopCapability.itemEntryMap.values()) {
-                LOGGER.warn("ID: " + itemEntry.getItemId() + ", Price: " + itemEntry.getPrice(true) + ", Name: " + itemEntry.getShopItem().getDisplayName().getString());
-            }
-            LOGGER.debug("What items didn't get an entry?");
-            for (ItemStack itemStack : WorldShopCapability.skippedStackMap.keySet()) {
-                LOGGER.debug(itemStack.getDisplayName().getString());
-            }
-            LOGGER.error("Blacklisted stuff");
-            for (ItemStack itemStack : blackListedItems) {
-                LOGGER.warn("Blacklisted item: " + itemStack.getDisplayName().getString());
-            }
+                LOGGER.error("Branch data");
+                LOGGER.warn("Highest Bad Count: " + priceBranchData.highestBadCount());
+                LOGGER.warn("Average Bad Count: " + priceBranchData.getAverageBadCount());
+                LOGGER.warn("Highest branch Count: " + priceBranchData.highestBranch());
+                LOGGER.warn("Average branch Count: " + priceBranchData.getAverageBranchCount());
+                LOGGER.warn("Total items: " + priceBranchData.stackList.size());
+                LOGGER.warn("Total skipped items: " + WorldShopCapability.skippedStackMap.size());
+                LOGGER.warn("Total entry items: " + allItemEntries.size());
+                priceBranchData = new PriceBranchData(0, 0, 0, 0, new ArrayList<>());
 
-            ModLogger.getAllTimePassed();
-            for (Player player : level.getServer().getPlayerList().getPlayers()) {
-                WorldShopCapability.syncInitialCapToClient(player);
+
+                LOGGER.debug("What are the categories?");
+                for (CategoryEntry categoryEntry : WorldShopCapability.categoryEntryMap.values()) {
+                    LOGGER.warn("ID: " + categoryEntry.getCategoryId() + ", Name: " + categoryEntry.getCategoryName() + ", Item: " + categoryEntry.getDisplayItem().getDisplayName().getString());
+                }
+                LOGGER.debug("What are the items? ");
+                for (ItemEntry itemEntry : WorldShopCapability.itemEntryMap.values()) {
+                    LOGGER.warn("ID: " + itemEntry.getItemId() + ", Price: " + itemEntry.getPrice(true) + ", Name: " + itemEntry.getShopItem().getDisplayName().getString());
+                }
+                LOGGER.debug("What items didn't get an entry?");
+                for (ItemStack itemStack : WorldShopCapability.skippedStackMap.keySet()) {
+                    LOGGER.debug(itemStack.getDisplayName().getString());
+                }
+                LOGGER.error("Blacklisted stuff");
+                for (ItemStack itemStack : blackListedItems) {
+                    LOGGER.warn("Blacklisted item: " + itemStack.getDisplayName().getString());
+                }
+
+                ModLogger.getAllTimePassed();
+                for (Player player : level.getServer().getPlayerList().getPlayers()) {
+                    WorldShopCapability.syncInitialCapToClient(player);
+                }
+                runningThread = null;
             }
-            isRunning.set(false);
+            catch (Exception e){
+                runningThread = null;
+                LOGGER.error("Generation failed!");
+                throw e;
+            }
         });
-        t.start();
+        runningThread.start();
         LOGGER.debug("the new thread is now running.");
     }
 
@@ -192,12 +210,12 @@ public class ShopGenerationEvent {
     }
 
     public static void resetAll() {
+        blackListedItems.clear();
         priceListMap.clear();
         allItemEntries.clear();
 
         WorldShopCapability.resetAll();
         ItemData.allItemDataList.clear();
-        RecipeData.allRecipeData.clear();
         IngredientData.allIngredientDataList.clear();
     }
 
@@ -223,18 +241,21 @@ public class ShopGenerationEvent {
         return new ItemEntry(itemID, getCurrentCategoryID(shopItem), shopItem, lockItem, hideIfLocked, stockAmount, priceList);
     }
 
-    public static double calculateStatPrice(ItemStack shopItem) {
+    public static ItemStack calculateStatPrice(ItemStack shopItem) {
         //If their is already a matching ItemEntry, that means the item already has a price
         //If the item is in the skipped list, that means the item has no redeeming qualities
         //Go through the possible stats then calculate the price
         //If a price is established make sure
         LOGGER.warn("Stat Item: " + shopItem.getDisplayName().getString());
         ItemEntry matchingEntry = getItemEntry(shopItem);
-        if (matchingEntry != null) return matchingEntry.getPrice(false);
+        if (matchingEntry != null) {
+            matchingEntry.getPrice(false);
+            return getMatchingItemStack(shopItem, craftResultMap.keySet());
+        }
         double skippedPrice = isSkipped(shopItem);
         if (skippedPrice != -1) {
             LOGGER.warn("Skipped: " + shopItem.getDisplayName().getString());
-            return skippedPrice;
+            return null;
         }
 
         PriceList priceList = getPriceList(shopItem);
@@ -242,43 +263,44 @@ public class ShopGenerationEvent {
         PriceEvent priceEvent = new PriceEvent(shopItem, priceList);
         MinecraftForge.EVENT_BUS.post(priceEvent);
 
+        ItemStack matchingStack = getMatchingItemStack(shopItem, craftResultMap.keySet());
+
         if (!priceList.isEmpty()) {
 //            boolean valid = priceList.hasStats() && getMatchingItemStack(shopItem, craftResultMap.keySet()) == null;
-            boolean valid = priceList.hasStats();
             ItemEntry entry = createItemEntry(shopItem, priceList);
-            addItemEntry(entry, valid);
-            return entry.getPrice(false);
-        } else return 0F;
+
+            addItemEntry(entry, matchingStack == null);
+            entry.getPrice(false);
+        }
+
+        return matchingStack;
     }
 
-    public static void calculateRecipePrice(ItemStack shopStack) {
-        PriceRecipeEvent recipeEvent = new PriceRecipeEvent(shopStack);
-        MinecraftForge.EVENT_BUS.post(recipeEvent);
-        PriceList priceList = getPriceList(shopStack);
+    public static void calculateRecipePrice(ItemData itemData) {
+        Set<ItemData> frozenSet = new HashSet<>(List.of(itemData));
+        List<PriceList.PriceInfo> infoList = itemData.getResultList(frozenSet);
+        infoList.forEach(itemData.priceList::addRecipe);
 
-        if (priceList.hasRecipes()) assignCategory(shopStack, CategoryEntry.CRAFTABLES);
+        PriceList priceList = itemData.priceList;
+
+        if (priceList.hasRecipes()) assignCategory(itemData.mainItem, CategoryEntry.CRAFTABLES);
 
         //What makes an item get skipped?
         //Its full price is 0
         //It's not in the allItems list
         //It's not a vanilla item, It's in the craft result map, and its recipe sum is 0.
         boolean skipItem = priceList.getFullPrice(false) == 0 ||
-                getMatchingItemStack(shopStack, allItems) == null ||
-                !Objects.equals(shopStack.getItem().getCreatorModId(shopStack), "minecraft") &&
-                        craftResultMap.get(shopStack) != null &&
+                getMatchingItemStack(itemData.mainItem, allItems) == null ||
+                !Objects.equals(itemData.mainItem.getItem().getCreatorModId(itemData.mainItem), "minecraft") &&
+                        craftResultMap.get(itemData.mainItem) != null &&
                         !priceList.hasRecipes();
-
         if (skipItem) {
-            LOGGER.warn("Skip this item: " + shopStack.getDisplayName().getString() + ", Price: " + priceList.getFullPrice(false));
-//            if (priceList.isEmpty()) priceList.addRecipe("Oddity", XPShopConfig.xpPerOddity, 1);
-            skipItem(shopStack, priceList.getFullPrice(false));
+            LOGGER.warn("Skip this item: " + itemData.mainItem.getDisplayName().getString() + ", Price: " + priceList.getFullPrice(false));
+            skipItem(itemData.mainItem, priceList.getFullPrice(false));
             return;
         }
-//        if (isValidEntry(shopStack) || isSkipped(shopStack) != -1)
-//            LOGGER.error("THIS WAS ALREADY PRICED!! " + shopStack.getDisplayName().getString());
-//        else LOGGER.warn("Item being fully priced: " + shopStack.getDisplayName().getString());
 
-        ItemEntry entry = createItemEntry(shopStack, priceList);
+        ItemEntry entry = createItemEntry(itemData.mainItem, priceList);
         //Only add the item if its recipe price is higher than 0, or if it's the base item being checked
         addItemEntry(entry, true);
     }
@@ -343,74 +365,73 @@ public class ShopGenerationEvent {
         }
     }
 
-    public static void grabRecipes(Level level) {
-        if (!craftResultMap.isEmpty()) return;
-        Collection<Recipe<?>> recipes = level.getRecipeManager().getRecipes();
-        LOGGER.warn("How many recipes are there? " + recipes.size());
-        List<RecipeType<?>> failedRecipes = new ArrayList<>();
-
-
-        MiniTicker<?> timer = ModTimer.getTimer(XPShop.MOD_ID, "RecipeTimer").ticker();
-        for (Recipe<?> recipe : recipes) {
-            addTask(() -> {
-                List<ItemStack> craftList = new ArrayList<>(craftResultMap.keySet());
-
-                ItemStack resultItem = recipe.getResultItem();
-                if (resultItem.isEmpty()) {
-                    LOGGER.error("Result item is missing, skip...");
-                    if (!failedRecipes.contains(recipe.getType())) {
-                        failedRecipes.add(recipe.getType());
-                    }
-                    return null;
-                }
-//            LOGGER.debug("Craft result item: " + resultItem.getDisplayName().getString());
-                ItemStack mapStack = getMatchingItemStack(resultItem, craftList);
-                InitialRecipeData initialRecipeData;
-
-                if (mapStack == null) {
-                    initialRecipeData = new InitialRecipeData(new ArrayList<>());
-                    craftResultMap.put(resultItem, initialRecipeData);
-                } else initialRecipeData = craftResultMap.get(mapStack);
-
-                GatherIngredientsEvent ingredientsEvent = new GatherIngredientsEvent(recipe);
-                MinecraftForge.EVENT_BUS.post(ingredientsEvent);
-
-                //This will skip bad recipes
-                if (ingredientsEvent.isCanceled()) {
-                    LOGGER.warn(resultItem.getDisplayName().getString() + "Ingredient issue: Invalid recipe, skip...");
-                    return null;
-                }
-                //This will skip empty recipes
-                else if (ingredientsEvent.getIngredients().isEmpty()) {
-                    LOGGER.warn(resultItem.getDisplayName().getString() + "Ingredient issue: Couldn't find any ingredients, skip...");
-                    if (!failedRecipes.contains(recipe.getType())) {
-                        failedRecipes.add(recipe.getType());
-                    }
-                    return null;
-                }
-
-                //Add the recipe
-                List<Ingredient> ingredients = new ArrayList<>();
-
-                //Grab the ingredient items from the recipe.
-                for (Ingredient ingredient : ingredientsEvent.getIngredients()) {
-                    if (ingredient == null) continue;
-                    if (ingredient.isEmpty()) continue;
-                    ingredients.add(ingredient);
-                }
-
-                //Add the recipe and its ingredients to recipe data
-                initialRecipeData.recipes.add(Pair.of(recipe, ingredients));
-                return null;
-            });
-        }
-        LOGGER.info(timer.record("Queuing all of the recipe tasks"));
-        waitForTasks();
-        LOGGER.info(timer.record("Went through all of the recipes"));
-
-        LOGGER.info("These are all the invalid recipe types: ");
-        failedRecipes.forEach((type) -> LOGGER.debug(type.toString()));
-    }
+//    public static void grabRecipes(Level level) {
+//        if (!craftResultMap.isEmpty()) return;
+//        Collection<Recipe<?>> recipes = level.getRecipeManager().getRecipes();
+//        LOGGER.warn("How many recipes are there? " + recipes.size());
+//        List<RecipeType<?>> failedRecipes = new ArrayList<>();
+//
+//        MiniTicker<?> timer = ModTimer.getTimer(XPShop.MOD_ID, "RecipeTimer").ticker();
+//        for (Recipe<?> recipe : recipes) {
+//            addTask(() -> {
+//                List<ItemStack> craftList = new ArrayList<>(craftResultMap.keySet());
+//
+//                ItemStack resultItem = recipe.getResultItem();
+//                if (resultItem.isEmpty()) {
+//                    LOGGER.error("Result item is missing, skip...");
+//                    if (!failedRecipes.contains(recipe.getType())) {
+//                        failedRecipes.add(recipe.getType());
+//                    }
+//                    return null;
+//                }
+////            LOGGER.debug("Craft result item: " + resultItem.getDisplayName().getString());
+//                ItemStack mapStack = getMatchingItemStack(resultItem, craftList);
+//                InitialRecipeData initialRecipeData;
+//
+//                if (mapStack == null) {
+//                    initialRecipeData = new InitialRecipeData(new ArrayList<>());
+//                    craftResultMap.put(resultItem, initialRecipeData);
+//                } else initialRecipeData = craftResultMap.get(mapStack);
+//
+//                GatherIngr0edientsEvent ingredientsEvent = new GatherIngredientsEvent(recipe);
+//                MinecraftForge.EVENT_BUS.post(ingredientsEvent);
+//
+//                //This will skip bad recipes
+//                if (ingredientsEvent.isCanceled()) {
+//                    LOGGER.warn(resultItem.getDisplayName().getString() + "Ingredient issue: Invalid recipe, skip...");
+//                    return null;
+//                }
+//                //This will skip empty recipes
+//                else if (ingredientsEvent.getIngredients().isEmpty()) {
+//                    LOGGER.warn(resultItem.getDisplayName().getString() + "Ingredient issue: Couldn't find any ingredients, skip...");
+//                    if (!failedRecipes.contains(recipe.getType())) {
+//                        failedRecipes.add(recipe.getType());
+//                    }
+//                    return null;
+//                }
+//
+//                //Add the recipe
+//                List<Ingredient> ingredients = new ArrayList<>();
+//
+//                //Grab the ingredient items from the recipe.
+//                for (Ingredient ingredient : ingredientsEvent.getIngredients()) {
+//                    if (ingredient == null) continue;
+//                    if (ingredient.isEmpty()) continue;
+//                    ingredients.add(ingredient);
+//                }
+//
+//                //Add the recipe and its ingredients to recipe data
+//                initialRecipeData.recipes.add(Pair.of(recipe, ingredients));
+//                return null;
+//            });
+//        }
+//        LOGGER.info(timer.record("Queuing all of the recipe tasks"));
+//        waitForTasks();
+//        LOGGER.info(timer.record("Went through all of the recipes"));
+//
+//        LOGGER.info("These are all the invalid recipe types: ");
+//        failedRecipes.forEach((type) -> LOGGER.debug(type.toString()));
+//    }
     public static void grabOresAndDrops(ServerLevel level) {
         Map<Block, Double> oreMap = new HashMap<>();
 
@@ -519,7 +540,6 @@ public class ShopGenerationEvent {
                 double individualPrice = customLootPrice / customStack.getCount();
                 getPriceList(customStack).addStat(priceTypeString, individualPrice);
 
-//                LOGGER.debug(customStack.getDisplayName().getString() + " will cost: " + dropsMap.get(getMatchingItemStack(customStack, dropsMap.keySet())));
                 itemEntity.setItem(ItemStack.EMPTY);
             }
         }
@@ -588,18 +608,18 @@ public class ShopGenerationEvent {
 
         allItemEntries.put(entry, valid);
         if (valid) {
-            PriceList priceList = getPriceList(entry.getShopItem());
-            PriceList.PriceInfo uneditedInfo = priceList.getFinalPriceInfo();
+//            PriceList priceList = getPriceList(entry.getShopItem());
+//            PriceList.PriceInfo uneditedInfo = priceList.getFinalPriceInfo();
 
             WorldShopCapability.itemEntryMap.put(entry.getItemId(), entry);
-            LOGGER.warn(entry.getShopItem().getDisplayName().getString() + " is fully priced! " +
-                    "(Full Price:" + priceList.getFullPrice(false) +
-                    ",Low Price:" + uneditedInfo.lowPrice() + ", High Price:" + uneditedInfo.highPrice());
+//            LOGGER.warn(entry.getShopItem().getDisplayName().getString() + " is fully priced! " +
+//                    "(Full Price:" + priceList.getFullPrice(false) +
+//                    ",Low Price:" + uneditedInfo.lowPrice() + ", High Price:" + uneditedInfo.highPrice());
         }
     }
 
     public static ItemStack getMatchingItemStack(ItemStack stackToFind, Collection<ItemStack> stackList) {
-        for (ItemStack stack : new ArrayList<>(stackList)) {
+        for (ItemStack stack : stackList) {
             if (!stackToFind.sameItem(stack)) continue;
             if (!ItemStack.tagMatches(stackToFind, stack)) continue;
             return stack;
@@ -726,8 +746,6 @@ public class ShopGenerationEvent {
     }
 
     public static boolean isValidEntry(ItemStack stack) {
-//        LOGGER.error("Is an entry? " + ((getItemEntry(stack) != null)) +
-//                ", Is valid? " + (allItemEntries.getOrDefault(getItemEntry(stack), false)));
         ItemEntry entry = getItemEntry(stack);
         if (entry == null) return false;
         return allItemEntries.getOrDefault(entry, false);
@@ -736,7 +754,7 @@ public class ShopGenerationEvent {
     public static <U> CompletableFuture<U> addTask(Supplier<U> supplier) {
         CompletableFuture<U> future = CompletableFuture.supplyAsync(supplier, threadPool)
                 .exceptionally(ex -> {
-                    System.err.println("Error in task: " + ex.getMessage());
+                    LOGGER.error("Error in task: " + ex.getMessage());
                     ex.printStackTrace();
                     threadPool.shutdownNow();
                     return null;
@@ -746,13 +764,18 @@ public class ShopGenerationEvent {
     }
 
     public static void waitForTasks() {
-        futures.forEach(CompletableFuture::join);
+        AtomicDouble count = new AtomicDouble(0);
+        LOGGER.error("how many tasks are there? " + futures.size());
+        futures.forEach(future -> {
+            future.join();
+            LOGGER.error("Task progress: " + df.format(100 * (count.addAndGet(1) / futures.size())) + "%");
+        });
         futures.clear();
     }
 
     public record PriceBranchData(double highestBadCount, double totalBadCount, double highestBranch,
                                   double totalBranchCount, List<ItemStack> stackList) {
-        public void calculateNewInfo(ItemData.PriceBranch newBranch, ItemData data) {
+        public void calculateNewInfo(IngredientData.PriceBranch newBranch, ItemData data, IngredientData ingData) {
             MiniTicker<?> stopWatch =
                     ModStopWatch.getTimer(XPShop.MOD_ID, "BranchInfo", ModStopWatch.Time.ACCUMULATE).ticker();
             stopWatch.reset();
@@ -761,34 +784,28 @@ public class ShopGenerationEvent {
             double highestBranch = priceBranchData.highestBranch();
             double totalBranchCount = priceBranchData.totalBranchCount();
 
-            if (highestBadCount < (newBranch.invalidList().size())) {
-                highestBadCount = newBranch.invalidList().size();
-            }
-            totalBadCount += newBranch.invalidList().size();
+            List<IngredientData.PriceBranch> ingList = ingData.branchMap.get(newBranch.invalidSet().size());
 
-            int count = 1;
-            for (var entry : data.branches.entrySet()){
-                count += entry.getValue().size();
+            if (highestBadCount < (newBranch.invalidSet().size())) {
+                highestBadCount = newBranch.invalidSet().size();
+                LOGGER.error(ItemData.getItemName(data)+" Highest bad count: " + highestBadCount);
             }
+            totalBadCount += newBranch.invalidSet().size();
+            int localBranchCount = ingList.size() + 1;
 
-            if (highestBranch < count) {
-                highestBranch = count;
+            if (highestBranch < localBranchCount) {
+                highestBranch = localBranchCount;
+                LOGGER.error(ItemData.getItemName(data)+" New branch score: " + localBranchCount);
             }
             totalBranchCount += 1;
             if (!this.stackList.contains(data.mainItem)) this.stackList.add(data.mainItem);
 
-            LOGGER.error("The item we are creating the price branch for: " + ItemData.getItemName(data));
-            LOGGER.error("Price branch " + (count));
-//            PriceGroup.GroupOperation op = ((list) -> {
-//                list.removeIf((info) -> info.highPrice() == 0);
-//                return PriceList.compilePriceListData(ItemData.getItemName(data), list);
-//            });
-//            LOGGER.error(new PriceGroup(data, newBranch.priceGroupList(),op, null).getResult().toString());
-//            List<ItemData> ingredientList = new ArrayList<>(data.ingredientList);
-//            ingredientList.removeIf(stack -> newBranch.invalidList().contains(stack));
-//            LOGGER.error("Valid ingredients:" + "(" + ingredientList.size() + ") " + ItemData.getItemDataNames(ingredientList));
-
-            LOGGER.error("Bad ingredients:" + "(" + newBranch.invalidList().size() + ") " + ItemData.getItemDataNames(newBranch.invalidList()));
+            HashSet<ItemData> newSet = new HashSet<>(newBranch.invalidSet());
+            LOGGER.error("\n" + "Total("+ingData.branchCount+") Branch("+ localBranchCount +")"+ " Price branch for: " + ingData.ingredientName
+                    +"\n Bad ingredients:"
+                    + "Invalid(" + newBranch.invalidSet().size() + ") "
+                    + newBranch.finalInfo().toString()
+                    + ItemData.getItemDataNames(newSet));
 
             priceBranchData = new PriceBranchData(highestBadCount, totalBadCount,
                     highestBranch, totalBranchCount, this.stackList);
@@ -803,14 +820,4 @@ public class ShopGenerationEvent {
             return totalBranchCount / this.stackList.size();
         }
     }
-//    private static void clearData(boolean fullClean) {
-//        allItemEntries.clear();
-//        allItems.clear();
-//        craftResultMap.clear();
-//        ingredientItemMap.clear();
-//        basicResourceMap.clear();
-//        categoryMap.clear();
-//        blackListedItems.clear();
-//        blackListedTags.clear();
-//    }
 }

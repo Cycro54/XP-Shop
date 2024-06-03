@@ -33,11 +33,7 @@ public class CapabilityEvents {
         if (!(event.getLevel() instanceof Level)) return;
         if (!(event.getLevel() instanceof ServerLevel)) return;
         if (((Level)event.getLevel()).dimension() != Level.OVERWORLD) return;
-        LOGGER.debug("RESETTING WORLD SHOP INFO");
-        WorldShopCapability.classShopMap.clear();
-        WorldShopCapability.shopEntryMap.clear();
-        WorldShopCapability.categoryEntryMap.clear();
-        WorldShopCapability.itemEntryMap.clear();
+        ShopGenerationEvent.craftResultMap.clear();
     }
 
     @SubscribeEvent
@@ -47,7 +43,7 @@ public class CapabilityEvents {
 
     @SubscribeEvent
     public static void syncOnPlayerJoin(PlayerEvent.PlayerLoggedInEvent event){
-        if (ShopGenerationEvent.isRunning.get()) return;
+        if (ShopGenerationEvent.runningThread != null) return;
         WorldShopCapability.syncInitialCapToClient(event.getEntity());
     }
 

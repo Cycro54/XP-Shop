@@ -3,154 +3,104 @@ package invoker54.xpshop.data.recipe;
 import invoker54.xpshop.config.XPShopConfig;
 import invoker54.xpshop.data.ModLogger;
 import invoker54.xpshop.data.PriceList;
+import invoker54.xpshop.event.generation.ShopGenerationEvent;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.MutablePair;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
-public class RecipeData {
+public class RecipeData{
     public static ModLogger LOGGER = ModLogger.getLogger(XPShopConfig.debugMode);
-    public static final List<RecipeData> allRecipeData = Collections.synchronizedList(new ArrayList<>());
-    public final Recipe<?> recipe;
-    public final PriceGroup myGroup;
     //This is how much of an item the recipe will make. (Example: 1 raw iron block will make 9 raw iron)
-    public final int resultCount;
     public boolean isBadRecipe = false;
-    private static final RecipeData fakeRecipeData = new RecipeData();
+    public final boolean isBrewingRecipe;
+    public final ItemStack resultStack;
+    public final ItemData mainData;
+    public final String recipeType;
     //Count is the amount of similar ingredients
-    public final Map<IngredientData, AtomicInteger> myIngredientData = new HashMap<>();
+    public final List<IngredientBunch> ingredientList = new ArrayList<>();
+    public record IngredientBunch(IngredientData data, int count){}
 
-    private RecipeData(Pair<Recipe<?>, List<Ingredient>> recipePair) {
-        this.recipe = recipePair.getKey();
-        this.resultCount = recipePair.getKey().getResultItem().getCount();
-        allRecipeData.add(this);
-        String itemName = recipePair.getKey().getResultItem().getDisplayName().getString();
+    public RecipeData(ShopGenerationEvent.RecipeInfo recipeInfo, ItemData mainData) {
+        this.isBrewingRecipe = recipeInfo.resultStack().getItem() instanceof PotionItem;
+        this.mainData = mainData;
+        recipeType = recipeInfo.recipeType();
+        resultStack = recipeInfo.resultStack();
+        Map<IngredientData, Integer> ingredientMap = new HashMap<>();
 
-        PriceGroup.GroupOperation recipeOP = ((list) -> {
-            PriceList.PriceInfo resultInfo = PriceList.emptyPrice;
-            for (PriceList.PriceInfo listInfo : list) {
-                //If one of the ingredients end up being 0, it's a bad recipe.
-                if (listInfo.highPrice() == 0) return PriceList.emptyPrice;
-                resultInfo = resultInfo.add(listInfo);
-            }
-            return resultInfo.calculate((x) -> x / this.resultCount);
-        });
-        this.myGroup = new PriceGroup(null, new HashSet<>(), recipeOP);
-        List<PriceGroup> groupList = new ArrayList<>();
-        for (Ingredient ingredient : recipePair.getRight()) {
-            //LOGGER.warn(itemName+" items to look for: " + ItemData.getItemNames(List.of(ingredient.getItems())));
+        for (Ingredient ingredient : recipeInfo.ingredients()) {
             IngredientData matchingData = IngredientData.getMatchingData(ingredient);
             if (matchingData.isBadIngredient) {
-                LOGGER.warn(itemName + " Recipe had a bad ingredient, don't finish this recipe.");
-                LOGGER.warn("Ingredients in question: " + ItemData.getItemDataNames(matchingData.myItemData.keySet()));
+                LOGGER.warn(ItemData.getItemName(mainData) + " Recipe had a bad ingredient, don't finish this recipe.");
                 this.isBadRecipe = true;
-                this.myIngredientData.clear();
+                this.ingredientList.clear();
                 return;
             }
-            this.myIngredientData.putIfAbsent(matchingData, new AtomicInteger(0));
-            this.myIngredientData.get(matchingData).addAndGet(1);
-            //LOGGER.info(itemName+" Recipe ingredient count is now: " + this.myIngredientData.size());
-            //LOGGER.info(itemName+" Count for that ingredient is: " + this.myIngredientData.get(matchingData));
+            ingredientMap.putIfAbsent(matchingData, 0);
+            ingredientMap.put(matchingData, ingredientMap.get(matchingData) + 1);
         }
-        for (var entry : this.myIngredientData.entrySet()) {
-            PriceGroup.GroupOperation op = ((list) -> {
-                //Finally compile into one priceInfo, then multiply it by the count in the recipe
-                return PriceList.compilePriceListData("Ingredient", list)
-                        .calculate(x -> x * entry.getValue().get());
-            });
-            groupList.add(new PriceGroup(null, new HashSet<>(List.of(entry.getKey().myGroup)), op));
-        }
-        this.myGroup.setGroups(groupList);
-        LOGGER.debug(itemName + " Created new recipe");
+
+
+
+        ingredientMap.forEach((key, value) -> ingredientList.add(new IngredientBunch(key, value)));
     }
 
-    private RecipeData(){
-        this.myGroup = new PriceGroup(null, new HashSet<>(), null);
-        this.recipe = null;
-        this.resultCount = 1;
-        LOGGER.info("This is a fake recipe.");
-    }
+    public PriceList.PriceInfo getResult(Set<ItemData> frozenSet) {
+        List<MutablePair<Set<ItemData>, PriceList.PriceInfo>> branchList = new ArrayList<>();
 
-//    public List<PriceGroup> getPriceList(Map<IngredientData, List<PriceGroup>> cacheMap, List<ItemData> unmodifiedCopy,
-//                                         List<ItemData> mainCheckList, HashSet<ItemData> invalidList, ItemData mainItem) {
-//        List<PriceGroup> recipeGroupList = new ArrayList<>();
-//
-//        for (var ingEntry : this.myIngredientData.entrySet()) {
-//            List<PriceGroup> ingredientGroupList =
-//                    cacheMap.getOrDefault(ingEntry.getKey(), new ArrayList<>());
-//
-//            if (ingredientGroupList.isEmpty()) {
-//                ArrayList<ItemData> newGroupList = new ArrayList<>(ingEntry.getKey().myItemData.keySet());
-//                newGroupList.removeIf((item) -> {
-//                    if (!unmodifiedCopy.contains(item)) return false;
-//                    invalidList.add(item);
-//                    return true;
-//                });
-////                LOGGER.info("What are the items in unmodifiedCopy BEFORE: " + ItemData.getItemDataNames(unmodifiedCopy));
-//                List<ItemData> recipeCopy = new ArrayList<>(unmodifiedCopy);
-////                LOGGER.info("What are the items in recipeCopy AFTER: " + ItemData.getItemDataNames(recipeCopy));
-//
-//                try {
-//                    ingredientGroupList = ingEntry.getKey().getPriceList
-//                            (recipeCopy, newGroupList, invalidList, mainItem);
+        for (IngredientBunch bunch : this.ingredientList) {
+            Set<ItemData> invalidSet = new HashSet<>();
+//            boolean badItems = true;
+            //Fill out the invalid set
+            bunch.data.fillOutInvalidSet(frozenSet, invalidSet);
+            if (!invalidSet.isEmpty())  this.mainData.hasBadSet = true;
+            IngredientData.PriceBranch branch = bunch.data.getBranch(invalidSet);
+
+            if (branch != null){
+                if (branch.finalInfo().highPrice() != 0){
+                    branchList.add(new MutablePair<>(invalidSet, branch.finalInfo()));
+                    continue;
+                }
+                LOGGER.warn("This is a bad branch");
+                return PriceList.emptyPrice;
+            }
+            branchList.add(new MutablePair<>(invalidSet, null));
+//            else {
+//                for (ItemData item : bunch.data.myItemData.keySet()) {
+//                    if (!bunch.invalidSet.contains(item)) {
+//                        branchList.add(new MutablePair<>(bunch, null));
+//                        badItems = false;
+//                        break;
+//                    }
 //                }
-//                catch (Exception e){
-//                    LOGGER.error("What are the items in unmodifiedCopy: " + ItemData.getItemDataNames(unmodifiedCopy));
-//                    LOGGER.error("What are the items in recipeCopy: " + ItemData.getItemDataNames(recipeCopy));
-//                    throw e;
-//                }
-//
-//
-//                //Add all the recorded ingredients from the recipeCopy set to the main hashSet
-//                recipeCopy.removeAll(mainCheckList);
-//                mainCheckList.addAll(new HashSet<>(recipeCopy));
-//                //Add it to the cached list for later
-//                cacheMap.put(ingEntry.getKey(), ingredientGroupList);
-//            } else {
-//                LOGGER.debug("Found a cached ingredient, using it!");
 //            }
 //
-//            //This is for each ingredient in the recipe
-//            //This will just be made up of each item in the ingredient
-//            PriceGroup.GroupOperation op = ((list) -> {
-//                //First remove any ingredient that's 0
-//                list.removeIf(info -> info.highPrice() == 0);
-//                //Next remove outliers
-//                PriceList.sortAndRemoveOutliers(list);
-//                //Finally compile into one priceInfo, then multiply it by the count in the recipe
-//                return PriceList.compilePriceListData("Ingredient", list)
-//                        .calculate(x -> x * ingEntry.getValue().get());
-//            });
-//            PriceGroup ingredientGroup = new PriceGroup(null, ingredientGroupList, op, null);
-//            recipeGroupList.add(ingredientGroup);
-//        }
-//        return recipeGroupList;
-//    }
-
-    public static Set<PriceGroup> createFakeGroup(List<Ingredient> ingredientList){
-        Set<PriceGroup> groupList = new HashSet<>();
-        for (Ingredient ingredient : ingredientList) {
-            groupList.add(PriceGroup.duplicate(IngredientData.getMatchingData(ingredient).myGroup,
-                    new HashSet<>(), new HashSet<>()));
+//            if (badItems) {
+//                LOGGER.error(bunch.data.ingredientName+" Had bad items");
+//                bunch.data.addBranch(mainData, bunch.invalidSet, PriceList.emptyPrice);
+//                return PriceList.emptyPrice;
+//            }
         }
-        return groupList;
-    }
 
-    public static RecipeData getMatchingData(Pair<Recipe<?>, List<Ingredient>> recipePair) {
-        synchronized (allRecipeData) {
-            for (RecipeData data : allRecipeData) {
-                if (data.recipe.getId().equals(recipePair.getLeft().getId())) {
-                    //LOGGER.warn(recipePair.getKey().getResultItem().getDisplayName().getString()
-//                        +" Found matching recipe");
-                    return data;
+        PriceList.PriceInfo resultInfo = PriceList.emptyPrice;
+        int a = -1;
+        for (var pair : branchList) {
+            a++;
+            if (pair.getRight() == null) {
+                pair.setValue(this.ingredientList.get(a).data.getResult(mainData, pair.getLeft(), frozenSet));
+                if (pair.getRight().highPrice() == 0) {
+                    if (isBrewingRecipe) {
+                        resultInfo.add(new PriceList.PriceInfo(recipeType, XPShopConfig.xpPerOddity, XPShopConfig.xpPerOddity));
+                        continue;
+                    } else return PriceList.emptyPrice;
                 }
             }
 
-            //LOGGER.debug(recipePair.getKey().getResultItem().getDisplayName().getString()
-//                +" Found no matching recipes, making new recipe data...");
-            return new RecipeData(recipePair);
+            int finalA = a;
+            resultInfo = resultInfo.add(pair.getRight().calculate(x -> x * this.ingredientList.get(finalA).count));
         }
+        return resultInfo.calculate((x) -> x / this.resultStack.getCount());
     }
 }

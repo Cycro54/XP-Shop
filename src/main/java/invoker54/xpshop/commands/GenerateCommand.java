@@ -22,13 +22,10 @@ public class GenerateCommand {
     }
 
     private static int generate(CommandContext<CommandSourceStack> commandContext){
-        if (ShopGenerationEvent.isRunning.get()){
+        if (ShopGenerationEvent.runningThread != null){
             LOGGER.error("Auto generation is already running.");
             return 1;
         }
-//        if (BoolArgumentType.getBool(commandContext, "reset")){
-//
-//        }
         Level level = commandContext.getSource().getLevel();
         ShopGenerationEvent.initializeGenerator(level);
         return 1;

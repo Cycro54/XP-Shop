@@ -1,0 +1,3 @@
+Make an ingredient map in Itemdata that has ingredients as keys and priceInfo's as values, then dupe it when grabbing the resultList.
+Each time I get the price of an ingredient, place it into the map for use later.
+Also make it so each recipe for an item is unique, I don't want to calculate the same recipe 3 times.

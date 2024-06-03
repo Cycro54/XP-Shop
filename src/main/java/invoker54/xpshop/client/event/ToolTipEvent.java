@@ -32,4 +32,10 @@ public class ToolTipEvent {
             event.getToolTip().add(Component.literal("BANNED").withStyle(ChatFormatting.DARK_RED));
         }
     }
+//
+//    @SubscribeEvent(priority = EventPriority.LOWEST)
+//    public static void onClickGUI(InputEvent.MouseButton.Post event){
+//        if (ClientUtil.mC.options.keyShift.isDown())
+//            throw new NullPointerException();
+//    }
 }

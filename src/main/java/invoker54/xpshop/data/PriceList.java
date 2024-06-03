@@ -32,13 +32,11 @@ public class PriceList implements INBTSerializable<CompoundTag> {
     private static final float addedRange = 0.2F;
     //endregion
 
-
     private final List<PriceInfo> statList = new ArrayList<>();
     private final List<PriceInfo> recipeList = new ArrayList<>();
     private double priceJitter;
     private double rarityMultiplier;
     private double fullPrice = 0;
-    private double statPrice = 0;
     private PriceInfo myCompiledInfo;
     private boolean changed = true;
 
@@ -47,6 +45,7 @@ public class PriceList implements INBTSerializable<CompoundTag> {
         this.rarityMultiplier = 1 + (XPShopConfig.xpRarityMultiplier * priceStack.getRarity().ordinal());
         double min = XPShopConfig.priceJitter * -1;
         double max = XPShopConfig.priceJitter;
+
         this.priceJitter = min + RandomSource.create().nextDouble() * (max - min);
     }
 
@@ -102,10 +101,10 @@ public class PriceList implements INBTSerializable<CompoundTag> {
 
     public void calculateFinalPrice() {
         List<PriceInfo> allPrices =
-                new ArrayList<>(this.statList);
-        allPrices.addAll(this.recipeList);
+                new ArrayList<>(this.recipeList);
+        sortAndRemoveOutliers(allPrices);
+        allPrices.addAll(this.statList);
         this.fullPrice = 0;
-        this.statPrice = 0;
         myCompiledInfo = compilePriceListData("", allPrices);
         if (myCompiledInfo.highPrice == 0) return;
 
@@ -143,7 +142,7 @@ public class PriceList implements INBTSerializable<CompoundTag> {
 
         for (PriceInfo pair : new ArrayList<>(listToProcess)) {
             if (pair.highPrice <= max) continue;
-            if (pair.lowPrice <= max) continue;
+//            if (pair.lowPrice <= max) continue;
             listToProcess.remove(pair);
         }
     }
@@ -163,10 +162,6 @@ public class PriceList implements INBTSerializable<CompoundTag> {
         return this.myCompiledInfo;
     }
 
-    public List<PriceInfo> getStatInfo() {
-        return new ArrayList<>(this.statList);
-    }
-
     public static PriceInfo compilePriceListData(String name, List<PriceInfo> priceInfoList) {
         if (priceInfoList.isEmpty()) {
 //            LOGGER.info("Price list was empty, returning empty price info");
@@ -181,7 +176,7 @@ public class PriceList implements INBTSerializable<CompoundTag> {
             if (priceInfo.highPrice > highPrice) highPrice = priceInfo.highPrice;
         }
 
-        return new PriceInfo(name, lowPrice, highPrice);
+        return new PriceInfo(name, Double.parseDouble(df.format(lowPrice)), Double.parseDouble(df.format(highPrice)));
     }
 
     @Override
@@ -239,10 +234,15 @@ public class PriceList implements INBTSerializable<CompoundTag> {
 
     public record PriceInfo(String name, double lowPrice, double highPrice) {
 
+        public boolean equals(PriceInfo info) {
+            return info.highPrice == this.highPrice &&
+                    info.lowPrice == this.lowPrice;
+        }
+
         @Override
         public String toString() {
-            if (this.lowPrice == this.highPrice) return ("[" + name + ", Price: " + df.format(this.lowPrice) + "]");
-            return ("[" + name + ", Low: " + df.format(this.lowPrice) + ", High: " + df.format(this.highPrice) + "]");
+            if (this.lowPrice == this.highPrice) return ("[" + name + ", Price: " + this.lowPrice + "]");
+            return ("[" + name + ", Low: " + this.lowPrice + ", High: " + this.highPrice + "]");
         }
 
         public interface Operation {
@@ -253,9 +253,9 @@ public class PriceList implements INBTSerializable<CompoundTag> {
             return calculate((x -> x + info.lowPrice), (y -> y + info.highPrice));
         }
 
-        public PriceInfo combine(PriceInfo otherInfo) {
-            return compilePriceListData(this.name, List.of(otherInfo, this));
-        }
+//        public PriceInfo combine(PriceInfo otherInfo) {
+//            return compilePriceListData(this.name, List.of(otherInfo, this));
+//        }
 
         public PriceInfo calculate(Operation operation) {
             return this.calculate(operation, operation);
@@ -264,8 +264,7 @@ public class PriceList implements INBTSerializable<CompoundTag> {
         public PriceInfo calculate(Operation op1, Operation op2) {
 //            LOGGER.warn("Old Info: " + this);
             try {
-                PriceInfo newInfo = new PriceInfo(this.name, op1.calculate(lowPrice), op2.calculate(highPrice));
-                return newInfo;
+                return new PriceInfo(this.name, op1.calculate(lowPrice), op2.calculate(highPrice));
             } catch (Exception e) {
                 LOGGER.error("Couldn't complete operation");
                 return this;

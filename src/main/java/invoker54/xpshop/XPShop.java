@@ -35,6 +35,7 @@ public class XPShop {
     // Directly reference a slf4j logger
     private static final ModLogger LOGGER = ModLogger.getLogger(XPShopConfig.debugMode);
     public XPShop() {
+
         bus = FMLJavaModLoadingContext.get().getModEventBus();
         // Register the setup method for modloading
         bus.addListener(this::setup);
