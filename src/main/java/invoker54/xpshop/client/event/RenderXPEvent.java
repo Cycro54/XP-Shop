@@ -5,6 +5,7 @@ import invoker54.invocore.client.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.common.api.ShopCapability;
+import invoker54.xpshop.common.config.ShopConfig;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraftforge.api.distmarker.Dist;
@@ -24,6 +25,7 @@ public class RenderXPEvent {
 
         if (event.getType() != RenderGameOverlayEvent.ElementType.EXPERIENCE) return;
         if (!ClientUtil.mC.player.isAlive()) return;
+        if (!ClientUtil.getPlayer().isCrouching() && !ShopConfig.showXP) return;
 
         FontRenderer font = ExtraUtil.mC.font;
         MainWindow window = event.getWindow();
