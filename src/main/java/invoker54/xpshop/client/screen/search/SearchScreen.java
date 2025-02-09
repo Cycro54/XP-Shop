@@ -93,6 +93,9 @@ public class SearchScreen extends Screen {
             this.searchBox = new TextBoxUI(this.font, halfWidthSpace + 12, halfHeightSpace + 17,
                     160, 11, ghostSearchText, TextBoxUI.defOutColor, TextBoxUI.defInColor);
         }
+        else {
+            this.searchBox.x = halfWidthSpace + 12;
+        }
         addWidget(this.searchBox);
 
         //Done button
@@ -216,13 +219,13 @@ public class SearchScreen extends Screen {
 
                 bounds.adjustBounds(x, 16, y,16);
 
-                this.itemRenderer.renderAndDecorateItem(itemsToRender.get(itemSlot + column), x, y);
-
                 if (row == 6) continue;
 
                 boolean inBounds = ExtraUtil.inBounds(xMouse, yMouse, bounds);
 
                 renderItemSlot(stack,itemsToRender.get(itemSlot + column), x, y, inBounds);
+
+                this.itemRenderer.renderAndDecorateItem(itemsToRender.get(itemSlot + column), x, y);
             }
 
         }
