@@ -1,7 +1,7 @@
 package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.event.RenderXPEvent;
@@ -117,7 +117,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
     protected void renderBg(MatrixStack stack, float partialTicks, int xMouse, int yMouse) {
         renderBackground(stack);
 
-        ExtraUtil.TEXTURE_MANAGER.bind(SELL_LOCATION);
+        ExtraUtil.getTextureManager().bind(SELL_LOCATION);
         //Render the bg
         ExtraUtil.blitImage(stack,halfWidthSpace,imageWidth,halfHeightSpace,imageHeight,0,imageWidth,0,imageHeight,256);
 
@@ -130,28 +130,28 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
         //region TRADER XP AMOUNT
 //        //Render the amount of xp the traders have left
 //        //Draw the time box
-//        timeBG.x0 = halfWidthSpace + imageWidth;
-//        timeBG.y0 = halfHeightSpace + 90;
-//        timeBG.RenderImage(stack);
+//        timeBGZone.setX(halfWidthSpace + imageWidth;
+//        timeBGZone.setY(halfHeightSpace + 90;
+//        timeBGZone.render(stack);
 //
 //        //Draw the XP text
 //        String traderXPString = "XP Left";
 //        int txtSize = this.font.width(traderXPString);
-//        ClientUtil.drawStretchText(stack, traderXPString, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
-//                timeBG.centerOnImageX(txtSize), timeBG.y0 + 4, TextFormatting.WHITE.getColor(), false);
+//        ClientUtil.drawStretchText(stack, traderXPString, txtSize, Math.min(timeBGZone.width() - 4, txtSize),
+//                timeBGZone.centerX(txtSize), timeBGZone.y() + 4, TextFormatting.WHITE.getColor(), false);
 //
 //        //Draw the XP amount next
 //        String xpLeft = ShopCapability.getShopCap(ClientUtil.mC.player).traderXP + "";
 //        txtSize = this.font.width(xpLeft);
-//        ClientUtil.drawStretchText(stack, xpLeft, txtSize,  Math.min(timeBG.getWidth() - 4 - 8, txtSize),
-//                timeBG.x0 + 1 + 8, timeBG.getDown() - 9 - 3, TextFormatting.GOLD.getColor(), false);
+//        ClientUtil.drawStretchText(stack, xpLeft, txtSize,  Math.min(timeBGZone.width() - 4 - 8, txtSize),
+//                timeBGZone.x0 + 1 + 8, timeBGZone.down() - 9 - 3, TextFormatting.GOLD.getColor(), false);
 //        //Finally the xpOrb
-//        ShopScreen.xpOrb.moveTo(timeBG.x0 + 1, timeBG.getDown() - 9 - 3);
-//        ShopScreen.xpOrb.RenderImage(stack);
+//        ShopScreen.xpOrb.moveTo(timeBGZone.x0 + 1, timeBGZone.down() - 9 - 3);
+//        ShopScreen.xpOrb.render(stack);
         //endregion
 
         //region Render the flags next
-        ExtraUtil.TEXTURE_MANAGER.bind(ShopScreen.SHOP_LOCATION);
+        ExtraUtil.getTextureManager().bind(ShopScreen.SHOP_LOCATION);
 
         //Render buy flag
         if (this.menu.clickedWanderer || cap.buyUpgrade || ClientUtil.mC.player.isCreative()) {
@@ -193,7 +193,7 @@ public class SellContainerScreen extends ContainerScreen<SellContainer> {
 
     protected void renderExperienceBar(MatrixStack stack) {
         ExtraUtil.mC.getProfiler().push("expBar");
-        ExtraUtil.TEXTURE_MANAGER.bind(AbstractGui.GUI_ICONS_LOCATION);
+        ExtraUtil.getTextureManager().bind(AbstractGui.GUI_ICONS_LOCATION);
         int i = XPEvents.getXpNeededForNextLevel(tempLvl);
         int x = halfWidthSpace + (imageWidth /2);
         int y = halfHeightSpace + 110;

@@ -1,7 +1,7 @@
 package invoker54.xpshop.client.event;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.common.api.ShopCapability;

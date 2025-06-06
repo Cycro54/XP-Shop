@@ -2,7 +2,8 @@ package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.client.util.InvoZone;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.KeyInit;
@@ -359,52 +360,54 @@ public class ShopScreen extends Screen {
         //First render background
         super.renderBackground(stack);
         //Next bind the shop texture
-        ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+        ExtraUtil.getTextureManager().bind(SHOP_LOCATION);
         Minecraft.getInstance().getTextureManager().bind(SHOP_LOCATION);
         //Now Render shop
         ExtraUtil.blitImage(stack, halfWidthSpace, imageWidth,
                 halfHeightSpace, 178, 0, imageWidth, 0, imageHeight, 256);
 
+        InvoZone timeBGZone = timeBG.getRenderZone();
+
         //region This is for next stock refresh
-        timeBG.x0 = halfWidthSpace + imageWidth;
-        timeBG.y0 = halfHeightSpace + 29;
-        timeBG.RenderImage(stack);
+        timeBGZone.setX(halfWidthSpace + imageWidth);
+        timeBGZone.setY(halfHeightSpace + 29);
+        timeBG.render(stack);
 
         //Draw the refresh text
         String refreshText = "Refresh in";
         int txtSize = this.font.width(refreshText);
-        ClientUtil.drawStretchText(stack, refreshText, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
-                timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.y0 + 4, TextFormatting.WHITE.getColor(), false);
+        ClientUtil.drawStretchText(stack, refreshText, txtSize, (int)Math.min(timeBGZone.width() - 4, txtSize),
+                (int)(timeBGZone.middleX() - ((timeBGZone.width() - 4)/2)),(int)timeBGZone.y() + 4, TextFormatting.WHITE.getColor(), false);
 
         //Draw the refresh time next
         String timeLeft = RefreshDealsEvent.getTimeLeft(ClientUtil.mC.level);
         txtSize = this.font.width(timeLeft);
-        ClientUtil.drawStretchText(stack, timeLeft, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
-                timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.getDown() - 9 - 3, TextFormatting.GOLD.getColor(), false);
+        ClientUtil.drawStretchText(stack, timeLeft, txtSize, (int)Math.min(timeBGZone.width() - 4, txtSize),
+                (int)(timeBGZone.middleX()-((timeBGZone.width() - 4)/2)), (int)(timeBGZone.down() - 9 - 3), TextFormatting.GOLD.getColor(), false);
         //endregion
 
         //region This is for Shop time left
         if (playerCap.getShopTimeLeft() > 0) {
-            timeBG.x0 = halfWidthSpace + imageWidth;
-            timeBG.y0 = halfHeightSpace + 29 + 26 + 5;
-            timeBG.RenderImage(stack);
+            timeBGZone.setX(halfWidthSpace + imageWidth);
+            timeBGZone.setY(halfHeightSpace + 29 + 26 + 5);
+            timeBG.render(stack);
 
             //Draw the refresh text
             refreshText = "Time Left";
             txtSize = this.font.width(refreshText);
-            ClientUtil.drawStretchText(stack, refreshText, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
-                    timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.y0 + 4, TextFormatting.WHITE.getColor(), false);
+            ClientUtil.drawStretchText(stack, refreshText, txtSize, (int) Math.min(timeBGZone.width() - 4, txtSize),
+                    (int)(timeBGZone.middleX() - ((timeBGZone.width() - 4)/2)), (int) (timeBGZone.y() + 4), TextFormatting.WHITE.getColor(), false);
 
             //Draw the refresh time next
             timeLeft = ClientUtil.ticksToTime(playerCap.getShopTimeLeft());
             txtSize = this.font.width(timeLeft);
-            ClientUtil.drawStretchText(stack, timeLeft, txtSize, Math.min(timeBG.getWidth() - 4, txtSize),
-                    timeBG.centerOnImageX(timeBG.getWidth() - 4), timeBG.getDown() - 9 - 3, TextFormatting.GREEN.getColor(), false);
+            ClientUtil.drawStretchText(stack, timeLeft, txtSize, (int) Math.min(timeBGZone.width() - 4, txtSize),
+                    (int)(timeBGZone.middleX() - ((timeBGZone.width() - 4)/2)), (int) (timeBGZone.down() - 9 - 3), TextFormatting.GREEN.getColor(), false);
         }
         //endregion
 
 
-        ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+        ExtraUtil.getTextureManager().bind(SHOP_LOCATION);
 
         //Render buy flag
         ExtraUtil.blitImage(stack, halfWidthSpace + 3, 14, halfHeightSpace + imageHeight, 28, 190, 28, imageHeight, 56, 256);
@@ -459,8 +462,8 @@ public class ShopScreen extends Screen {
         RenderXPEvent.renderXPAmount(stack, font, totalXP, xPos, yPos);
 
         //Render XP Orb
-        xpOrb.moveTo(xPos - 8, yPos);
-        xpOrb.RenderImage(stack);
+        xpOrb.getRenderZone().setX(xPos - 8).setY(yPos);
+        xpOrb.render(stack);
 
         searchBox.render(stack, xMouse, yMouse, partialTicks);
         RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -690,7 +693,7 @@ public class ShopScreen extends Screen {
 
         @Override
         public void renderButton(MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
-            ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+            ExtraUtil.getTextureManager().bind(SHOP_LOCATION);
             if (this.isHovered){
                 this.isHovered = ExtraUtil.inBounds(xMouse, yMouse, bounds);
             }
@@ -733,7 +736,7 @@ public class ShopScreen extends Screen {
                         this.x + 6 + 16, priceSpotY, color);
             }
 
-            ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+            ExtraUtil.getTextureManager().bind(SHOP_LOCATION);
             //Render XP Orb
             ExtraUtil.blitImage(stack,priceSpotX - 8,7,
                     priceSpotY, 7,106,7,249,7,256);

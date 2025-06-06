@@ -1,7 +1,7 @@
 package invoker54.xpshop.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.xpshop.client.screen.SellContainerScreen;
 import invoker54.xpshop.client.screen.ShopFeeScreen;
 import invoker54.xpshop.client.screen.ShopScreen;
@@ -41,7 +41,7 @@ public class ExtraUtil extends ClientUtil {
 
         @Override
         public void renderButton(MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
-            ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+            ExtraUtil.getTextureManager().bind(SHOP_LOCATION);
             if (this.isHovered){
                 this.isHovered = ExtraUtil.inBounds(xMouse, yMouse, bounds);
             }

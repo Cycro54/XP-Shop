@@ -1,6 +1,6 @@
 package invoker54.xpshop.client.event;
 
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.api.ShopCapability;
 import invoker54.xpshop.common.init.ItemInit;

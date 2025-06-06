@@ -1,8 +1,8 @@
 package invoker54.xpshop.client;
 
-import invoker54.invocore.client.ClientUtil;
 import invoker54.invocore.client.keybind.CustomKeybind;
 import invoker54.invocore.client.keybind.KeybindsInit;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.screen.ShopScreen;
 import net.minecraftforge.api.distmarker.Dist;

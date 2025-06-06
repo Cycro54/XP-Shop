@@ -2,7 +2,7 @@ package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.KeyInit;
 import invoker54.xpshop.client.screen.search.ItemSearchScreen;
@@ -184,7 +184,7 @@ public class AddItemScreen extends Screen {
         ExtraUtil.endCrop();
 
 
-        ExtraUtil.TEXTURE_MANAGER.bind(ShopScreen.SHOP_LOCATION);
+        ExtraUtil.getTextureManager().bind(ShopScreen.SHOP_LOCATION);
         //Render left part of GUI
         ExtraUtil.blitImage(stack, halfWidthSpace, 9, halfHeightSpace, 177, 171, 9, 0, 177, 256);
         //Render middle

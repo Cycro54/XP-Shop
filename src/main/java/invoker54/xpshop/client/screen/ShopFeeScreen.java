@@ -1,7 +1,8 @@
 package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.client.util.InvoZone;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.event.RenderXPEvent;
@@ -45,17 +46,19 @@ public class ShopFeeScreen extends Screen {
         }
 
         this.fee = Math.min(ShopConfig.shopFee,(playerCap.getPlayerTier().getMax()/ 6));
-        
-        feeBackground.centerImageX(0, this.width);
-        feeBackground.centerImageY(0, this.height);
+
+        InvoZone feeZone = feeBackground.getRenderZone();
+
+        feeZone.centerX(this.width/2F);
+        feeZone.centerY(this.height/2F);
 
         //No button
-        this.addButton(new ClientUtil.SimpleButton( feeBackground.x0 + 98,feeBackground.y0 + 50, 61, 20, ITextComponent.nullToEmpty("No"), (button) -> {
+        this.addButton(new ClientUtil.SimpleButton((int) (feeZone.x() + 98), (int) (feeZone.y() + 50), 61, 20, ITextComponent.nullToEmpty("No"), (button) -> {
             ClientUtil.mC.setScreen(null);
         }));
 
         //Yes button
-        yesButton = this.addButton(new ClientUtil.SimpleButton(feeBackground.x0 + 12, feeBackground.y0 + 50, 61, 20, ITextComponent.nullToEmpty("Yes"), (button) -> {
+        yesButton = this.addButton(new ClientUtil.SimpleButton((int)feeZone.x() + 12, (int)feeZone.y() + 50, 61, 20, ITextComponent.nullToEmpty("Yes"), (button) -> {
             if (player.totalExperience < fee) return;
             NetworkHandler.sendToServer(new UnlockShopMsg());
 
@@ -74,27 +77,28 @@ public class ShopFeeScreen extends Screen {
     public void renderBackground(MatrixStack stack) {
         super.renderBackground(stack);
 
-        feeBackground.RenderImage(stack);
+        feeBackground.render(stack);
     }
 
     @Override
     public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(stack);
         yesButton.active = (ClientUtil.getPlayer().totalExperience > fee);
+        InvoZone feeZone = feeBackground.getRenderZone();
 
         //Pay
-        int txtX = feeBackground.centerOnImageX(ClientUtil.mC.font.width("Pay"));
-        int txtY = feeBackground.y0 + 6;
+        int txtX = (int) (feeZone.middleX() - (ClientUtil.mC.font.width("Pay")/2));
+        int txtY = (int) (feeZone.y() + 6);
         ClientUtil.mC.font.draw(stack, "Pay", txtX, txtY, TextFormatting.WHITE.getColor());
 
         //XP AMOUNT
-        txtX = feeBackground.centerOnImageX(ClientUtil.mC.font.width("" + this.fee));
-        txtY = feeBackground.y0 + 6 + 12;
+        txtX = (int) (feeZone.middleX() - (ClientUtil.mC.font.width("" + this.fee) /2));
+        txtY = (int) (feeZone.y() + 6 + 12);
         RenderXPEvent.renderXPAmount(stack, ClientUtil.mC.font, "" + this.fee, txtX, txtY);
 
         //To unlock shop
-        txtX = feeBackground.centerOnImageX(ClientUtil.mC.font.width("To unlock shop? (for now)"));
-        txtY = feeBackground.y0 + 6 + 12 + 12;
+        txtX = (int) feeZone.middleX() - (ClientUtil.mC.font.width("To unlock shop? (for now)")/2);
+        txtY = (int) (feeZone.y() + 6 + 12 + 12);
         ClientUtil.mC.font.draw(stack, "To unlock shop? (for now)", txtX, txtY, TextFormatting.WHITE.getColor());
 
         super.render(stack, mouseX, mouseY, partialTicks);

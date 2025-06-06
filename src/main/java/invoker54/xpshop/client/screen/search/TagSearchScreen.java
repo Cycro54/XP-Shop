@@ -1,7 +1,8 @@
 package invoker54.xpshop.client.screen.search;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.client.util.InvoZone;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.data.SellEntry;
 import invoker54.xpshop.common.data.ShopData;
@@ -45,13 +46,14 @@ public class TagSearchScreen extends Screen {
 
     @Override
     protected void init() {
+        InvoZone tagZone = tag_background.getRenderZone();
         //Center the glyph container image
-        tag_background.centerImageX(0, width);
-        tag_background.centerImageY(0, height);
+        tagZone.centerX((float) width /2);
+        tagZone.centerY((float) height /2);
 
         //Create the list container
-        myList = new ClientUtil.SimpleList(tag_background.x0 + 5, tag_background.getWidth() - 10,
-                tag_background.y0 + 5, tag_background.getHeight() - 10, this.width, this.height, tag_background);
+        myList = new ClientUtil.SimpleList((int)tagZone.x() + 5, (int)tagZone.width() - 10,
+                (int)tagZone.y() + 5, (int)tagZone.height() - 10, this.width, this.height, tag_background);
         this.addWidget(myList);
 
         //Now start to gather data
@@ -69,8 +71,8 @@ public class TagSearchScreen extends Screen {
             myList.addEntry(new ToggleEntry(myList, 18,toggleButton));
         }
         //Finally place the done button right below it all
-        this.addButton(new ClientUtil.SimpleButton(tag_background.x0,
-                tag_background.y0 + tag_background.getHeight() + 2, tag_background.getWidth(), 18,
+        this.addButton(new ClientUtil.SimpleButton((int)tagZone.x(),
+                (int)(tagZone.y() + tagZone.height() + 2), (int)tagZone.width(), 18,
                 ITextComponent.nullToEmpty("Done"), (button) -> {
 
             //This list will be for all the items we added already
@@ -130,14 +132,15 @@ public class TagSearchScreen extends Screen {
     @Override
     public void renderBackground(MatrixStack stack) {
         super.renderBackground(stack);
+        InvoZone tagZone = tag_background.getRenderZone();
 
         //Then render the glyph container
-        tag_background.RenderImage(stack);
+        tag_background.render(stack);
 
         //Finally render the select tags text
         String text = "Select Tags";
-        int x = tag_background.x0 + (tag_background.getWidth() - font.width(text))/2;
-        int y = tag_background.y0 - 16;
+        int x = (int) (tagZone.x() + (tagZone.width() - font.width(text))/2);
+        int y = (int) (tagZone.y() - 16);
         ClientUtil.mC.font.draw(stack, text, x, y, whiteColor);
     }
     
@@ -190,7 +193,7 @@ public class TagSearchScreen extends Screen {
         public void renderButton(MatrixStack stack, int xMouse, int yMouse, float partialTicks) {
             if (!this.hidden) {
                 FontRenderer fontrenderer = ClientUtil.mC.font;
-                ClientUtil.TEXTURE_MANAGER.bind(WIDGETS_LOCATION);
+                ClientUtil.getTextureManager().bind(WIDGETS_LOCATION);
                 int i = this.getYImage(this.isHovered());
                 if (pushed) i = 0;
                 i = 46 + i * 20;

@@ -1,7 +1,8 @@
 package invoker54.xpshop.client.screen;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
+import invoker54.invocore.client.util.InvoZone;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import invoker54.xpshop.common.network.NetworkHandler;
@@ -49,20 +50,21 @@ public class XPTransferScreen extends Screen {
     protected void init() {
         super.init();
 
-        tradeBackground.centerImageX(0, this.width);
-        tradeBackground.centerImageY(0, this.height);
+        InvoZone tradeBgZone = tradeBackground.getRenderZone();
+        tradeBgZone.centerX(this.width/2F);
+        tradeBgZone.centerY(this.height/2F);
 
         //Text box widget
-        tradeAmount = this.addButton(new TextBoxUI(ClientUtil.mC.font, tradeBackground.x0 + 63, tradeBackground.y0 + 30, 44, 9,
+        tradeAmount = this.addButton(new TextBoxUI(ClientUtil.mC.font, (int) (tradeBgZone.x() + 63), (int) (tradeBgZone.y() + 30), 44, 9,
                 ITextComponent.nullToEmpty("Enter XP"), invisible, invisible));
 
         //Cancel button
-        this.addButton(new ClientUtil.SimpleButton( tradeBackground.x0 + 12,tradeBackground.y0 + 50, 61, 20, ITextComponent.nullToEmpty("Cancel"), (button) -> {
+        this.addButton(new ClientUtil.SimpleButton((int) (tradeBgZone.x() + 12), (int) (tradeBgZone.y() + 50), 61, 20, ITextComponent.nullToEmpty("Cancel"), (button) -> {
             ClientUtil.mC.setScreen(null);
         }));
 
         //Done button
-        this.addButton(new ClientUtil.SimpleButton(tradeBackground.x0 + 98, tradeBackground.y0 + 50, 61, 20, ITextComponent.nullToEmpty("Done"), (button) -> {
+        this.addButton(new ClientUtil.SimpleButton((int) (tradeBgZone.x() + 98), (int) (tradeBgZone.y() + 50), 61, 20, ITextComponent.nullToEmpty("Done"), (button) -> {
             if (!NumberUtils.isParsable(tradeAmount.getValue())) return;
             NetworkHandler.sendToServer(new TradeXPMsg(otherPlayerID, Integer.parseInt(tradeAmount.getValue())));
             ClientUtil.mC.setScreen(null);
@@ -73,14 +75,14 @@ public class XPTransferScreen extends Screen {
     public void renderBackground(MatrixStack stack) {
         super.renderBackground(stack);
 
-        tradeBackground.RenderImage(stack);
+        tradeBackground.render(stack);
     }
 
     @Override
     public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(stack);
-        int txtX = tradeBackground.centerOnImageX(ClientUtil.mC.font.width("GIVE XP"));
-        int txtY = tradeBackground.y0 + 6;
+        int txtX = (int) ((int) tradeBackground.getRenderZone().middleX()-(ClientUtil.mC.font.width("GIVE XP")/2F));
+        int txtY = (int) (tradeBackground.getRenderZone().y() + 6);
         ClientUtil.mC.font.draw(stack, "GIVE XP", txtX, txtY, grey);
 
         super.render(stack, mouseX, mouseY, partialTicks);

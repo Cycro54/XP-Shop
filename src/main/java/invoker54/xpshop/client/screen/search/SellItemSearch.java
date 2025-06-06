@@ -2,7 +2,7 @@ package invoker54.xpshop.client.screen.search;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import invoker54.invocore.client.ClientUtil;
+import invoker54.invocore.client.util.ClientUtil;
 import invoker54.xpshop.client.ExtraUtil;
 import invoker54.xpshop.client.screen.ui.TextBoxUI;
 import invoker54.xpshop.common.data.SellEntry;
@@ -161,7 +161,7 @@ public class SellItemSearch  extends SearchScreen{
         super.render(stack, xMouse, yMouse, partialTicks);
 
         //Next bind the shop texture
-        ExtraUtil.TEXTURE_MANAGER.bind(SHOP_LOCATION);
+        ExtraUtil.getTextureManager().bind(SHOP_LOCATION);
 
         //Render buy flag
         ExtraUtil.blitImage(stack,halfWidthSpace + 3, 14,halfHeightSpace + 176,21,162, 28, 177, 42,256);

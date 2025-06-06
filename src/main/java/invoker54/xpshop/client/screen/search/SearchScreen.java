@@ -157,7 +157,7 @@ public class SearchScreen extends Screen {
         renderItemList(stack, xMouse, yMouse, partialTicks);
 
         //then render select screen
-        ExtraUtil.TEXTURE_MANAGER.bind(SELECT_ITEM);
+        ExtraUtil.getTextureManager().bind(SELECT_ITEM);
 
         ExtraUtil.blitImage(stack, halfWidthSpace,189, halfHeightSpace, 176, 0,
                 189, 0, 176, 256);
