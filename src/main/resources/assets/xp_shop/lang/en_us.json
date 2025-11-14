@@ -1,0 +1,14 @@
+{
+  "__comment": "Stuff for screens",
+  "xp_shop.screen.properties.shop": "Shops",
+  "xp_shop.screen.properties.shop_settings": "%1$s\nShop Settings",
+
+  "__comment": "Stuff for default text",
+  "xp_shop.screen.widget.invowidget.default": "Do a thing",
+  "xp_shop.containers.invotext.default": "Example Thing",
+
+  "__comment": "Stuff for properties",
+  "xp_shop.property.edit": "Edit %1$s settings",
+  "xp_shop.property.duplicate": "Duplicate %1$s shop"
+
+}

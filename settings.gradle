@@ -5,6 +5,10 @@ pluginManagement {
             name = 'MinecraftForge'
             url = 'https://maven.minecraftforge.net/'
         }
+        maven {
+            url "https://maven.firstdark.dev/releases"
+        }
+        maven { url = 'https://maven.parchmentmc.org' }
     }
 }
 
@@ -12,4 +16,4 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
 }
 
-rootProject.name = 'xp-shop'
+rootProject.name = 'XP-Shop-1.20.1'
