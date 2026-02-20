@@ -1,7 +1,14 @@
 package invoker54.xpshop.common.data.products;
 
+import invoker54.invocore.client.invoimage.InvoImage;
+import invoker54.invocore.client.util.InvoText;
+import invoker54.invocore.common.util.ResourceUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.data.containers.*;
+import invoker54.xpshop.common.datagen.XPShopLanguageprovider;
+import net.minecraft.nbt.CompoundTag;
+
+import java.util.List;
 
 public class CategoryProduct extends Product {
     public final ListContainer<AbstractContainer> customPropertyList;
@@ -29,6 +36,21 @@ public class CategoryProduct extends Product {
     }
 
     @Override
+    public InvoText getTypeName() {
+        return InvoText.translate(XPShopLanguageprovider.categoryProductTypeName);
+    }
+
+    @Override
+    public CompoundTag getTypeIcon() {
+        return InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "product/category_product")).serializeNBT();
+    }
+
+    @Override
+    public InvoText getTypeDescription() {
+        return InvoText.translate(XPShopLanguageprovider.categoryProductTypeDescription);
+    }
+
+    @Override
     public CategoryProduct copy() {
         CategoryProduct copy = new CategoryProduct();
         copy.deserializeNBT(this.serializeNBT());
@@ -40,4 +62,18 @@ public class CategoryProduct extends Product {
         return XPShop.MOD_ID;
     }
 
+    @Override
+    public boolean canBuy() {
+        return false;
+    }
+
+    @Override
+    public List<InvoText> getToolTip() {
+        return List.of();
+    }
+
+    @Override
+    public void purchase() {
+
+    }
 }

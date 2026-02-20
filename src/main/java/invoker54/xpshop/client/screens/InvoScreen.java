@@ -2,6 +2,8 @@ package invoker54.xpshop.client.screens;
 
 import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.client.util.InvoZone;
+import invoker54.invocore.common.ModLogger;
+import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.widgets.InvoZoneHandler;
 import invoker54.xpshop.client.widgets.popup.InvoPopup;
 import net.minecraft.client.gui.GuiGraphics;
@@ -10,9 +12,11 @@ import net.minecraft.client.gui.screens.Screen;
 import org.jetbrains.annotations.NotNull;
 
 public class InvoScreen extends Screen implements InvoZoneHandler {
+    private static final ModLogger LOGGER = ModLogger.getLogger(InvoScreen.class, XPShop.debugMode);
+
     public InvoPopup popup;
-    private final InvoZone mainZone = new InvoZone(0,0,0,0);
-    private InvoText pTitle;
+    public InvoText pTitle;
+    public final InvoZone trueZone = new InvoZone(0,0,0,0);
 
     protected InvoScreen(InvoText pTitle) {
         super(pTitle.getText());
@@ -44,19 +48,44 @@ public class InvoScreen extends Screen implements InvoZoneHandler {
 
     @Override
     public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+//        LOGGER.error("Screen is releasing!");
         if (this.popup != null) return this.popup.mouseReleased(pMouseX, pMouseY, pButton);
-        return super.mouseReleased(pMouseX, pMouseY, pButton);
+        boolean isConsumed = this.getFocused() != null && this.getFocused().mouseReleased(pMouseX, pMouseY, pButton);
+        if (!isConsumed) isConsumed = super.mouseReleased(pMouseX, pMouseY, pButton);
+        return isConsumed;
     }
 
     @Override
     public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
         if (this.popup != null) return this.popup.mouseClicked(pMouseX, pMouseY, pButton);
-        return super.mouseClicked(pMouseX, pMouseY, pButton);
+        for(GuiEventListener guieventlistener : this.children()) {
+            if (guieventlistener.mouseClicked(pMouseX, pMouseY, pButton)) {
+                return true;
+            }
+        }
+        this.setFocused(null);
+        return false;
+//        return super.mouseClicked(pMouseX, pMouseY, pButton);
+    }
+
+    @Override
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        return super.keyPressed(pKeyCode, pScanCode, pModifiers);
+    }
+
+    @Override
+    public boolean keyReleased(int pKeyCode, int pScanCode, int pModifiers) {
+//        LOGGER.warn("is there something focused? " + (this.getFocused() != null));
+        return super.keyReleased(pKeyCode, pScanCode, pModifiers);
     }
 
     @Override
     public void removeWidget(@NotNull GuiEventListener pListener) {
         super.removeWidget(pListener);
+    }
+
+    public InvoText getMessage() {
+        return this.pTitle;
     }
 
     public void setPopup(InvoPopup popup){
@@ -77,10 +106,11 @@ public class InvoScreen extends Screen implements InvoZoneHandler {
     }
 
     public void setZone(InvoZone newZone){
-        this.mainZone.copy(newZone);
+        this.trueZone.copy(newZone);
     }
 
-    public InvoZone getZoneCopy(){
-        return this.mainZone.copy();
+    @Override
+    public InvoZone getZoneCopy() {
+        return this.trueZone.copy();
     }
 }

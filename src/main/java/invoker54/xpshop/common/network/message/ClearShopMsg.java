@@ -5,15 +5,15 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public class BuildShopMsg {
+public class ClearShopMsg {
 
     //This is how the Network Handler will handle the message
-    public static void handle(OpenShopMenuMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
+    public static void handle(ClearShopMsg msg, Supplier<NetworkEvent.Context> contextSupplier){
         NetworkEvent.Context context = contextSupplier.get();
 
         context.enqueueWork(() -> {
-            ShopDataManager.clearShop();
             ShopDataManager.setBuildingMode(true);
+            ShopDataManager.clearAllData();
         });
         context.setPacketHandled(true);
     }

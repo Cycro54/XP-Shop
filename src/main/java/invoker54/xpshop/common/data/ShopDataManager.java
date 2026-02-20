@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class ShopDataManager implements INBTSerializable<CompoundTag> {
@@ -16,7 +17,7 @@ public class ShopDataManager implements INBTSerializable<CompoundTag> {
 
     private static boolean buildingShop = false;
 
-    private static final Map<UUID, BasicData> dataMap = new HashMap<>();
+    private static final Map<UUID, BasicData> dataMap = new ConcurrentHashMap<>();
     //This will be used by the Player capability and List containers
     private static final Map<String, AbstractContainer> specificTypeMap = new HashMap<>();
     //This will be used for things like selecting a Shop type, choosing a property, etc.

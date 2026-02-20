@@ -32,4 +32,10 @@ public abstract class BasicData extends MapContainer {
     public CompoundTag getIcon(){
         return this.iconData.value;
     }
+
+    public abstract InvoText getTypeName();
+
+    public abstract CompoundTag getTypeIcon();
+
+    public abstract InvoText getTypeDescription();
 }

@@ -23,6 +23,7 @@ public abstract class MapContainer extends AbstractContainer {
             return (R) value.copy();
         }
         catch (Exception e){
+            e.printStackTrace();
             LOGGER.error("[XP SHOP] [MAP CONTAINER] Can't cast " + value.getClass() + " to " + instance.getClass().getSimpleName());
             throw new ClassCastException();
         }

@@ -1,12 +1,18 @@
 package invoker54.xpshop;
 
+import invoker54.invocore.client.invoimage.InvoImage;
 import invoker54.invocore.common.ModLogger;
+import invoker54.xpshop.client.InvoTheme;
+import invoker54.xpshop.common.network.NetworkHandler;
 import invoker54.xpshop.init.ShopDataInit;
 import invoker54.xpshop.init.ShopScreenInit;
+import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,21 +30,29 @@ public class XPShop {
     public XPShop() {
         bus = FMLJavaModLoadingContext.get().getModEventBus();
         // Register the setup method for modloading
-//        bus.addListener(this::setup);
+        bus.addListener(this::setup);
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
         bus.addListener(this::clientSetup);
+        bus.addListener(EventPriority.LOWEST, this::reloadListener);
         //This is for configs
 //        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ReviveMeConfig.COMMON_SPEC, "reviveme-common.toml");
-        ShopDataInit.init();
     }
 
     private void clientSetup(FMLClientSetupEvent event){
         ShopScreenInit.init();
     }
 
-//    private void setup(final FMLCommonSetupEvent event)
-//    {
+    private void reloadListener(RegisterClientReloadListenersEvent event){
+        InvoImage.addReloadListener(InvoTheme::init);
+    }
+
+    private void setup(final FMLCommonSetupEvent event)
+    {
+
+        ShopDataInit.init();
 //        AbstractContainer.typeMap.forEach((s, container) -> LOGGER.debug(container.getType()));
-//    }
+        NetworkHandler.init();
+    }
+
 }

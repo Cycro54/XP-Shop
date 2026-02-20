@@ -2,7 +2,10 @@ package invoker54.xpshop.client.widgets;
 
 import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.client.util.InvoZone;
+import invoker54.invocore.common.ModLogger;
+import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.screens.InvoScreen;
+import invoker54.xpshop.common.datagen.XPShopLanguageprovider;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
@@ -16,19 +19,21 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class InvoWidget extends AbstractWidget implements ContainerEventHandler, InvoZoneHandler {
-    public final List<InvoWidget> widgetList;
+    private static final ModLogger LOGGER = ModLogger.getLogger(XPShop.debugMode);
+    protected final List<InvoWidget> entryList;
     public final InvoScreen screen;
-    public InvoText pMessage;
+    protected InvoText pMessage;
+    protected InvoZone trueZone;
 
     public InvoWidget(InvoScreen screen, InvoZone widgetZone) {
-        this(screen, widgetZone, InvoText.translate("xp_shop.screen.widget.invowidget.default"));
+        this(screen, widgetZone, InvoText.translate(XPShopLanguageprovider.defaultWidgetText));
     }
 
     public InvoWidget(InvoScreen screen, InvoZone widgetZone, InvoText pMessage) {
         super(0,0,0,0, pMessage.getText());
         this.screen = screen;
         this.setZone(widgetZone);
-        this.widgetList = new ArrayList<>();
+        this.entryList = new ArrayList<>();
         this.pMessage = pMessage;
     }
 
@@ -37,10 +42,12 @@ public abstract class InvoWidget extends AbstractWidget implements ContainerEven
         this.setY((int) zone.y());
         this.setWidth((int) zone.width());
         this.setHeight((int) zone.height());
+        this.trueZone = zone.copy();
     }
 
-    public InvoZone getZoneCopy(){
-        return new InvoZone(this.getX(), this.getWidth(), this.getY(), this.getHeight());
+    @Override
+    public InvoZone getZoneCopy() {
+        return this.trueZone.copy();
     }
 
     public InvoScreen getScreen(){
@@ -49,14 +56,44 @@ public abstract class InvoWidget extends AbstractWidget implements ContainerEven
 
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        for (InvoWidget widget : this.widgetList){
+        for (InvoWidget widget : this.entryList){
             widget.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         }
     }
 
     @Override
     public @NotNull List<? extends GuiEventListener> children() {
-        return this.widgetList;
+        return this.entryList;
+    }
+
+    @Override
+    protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {
+
+    }
+
+    @Override
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+        return ContainerEventHandler.super.mouseScrolled(pMouseX, pMouseY, pDelta);
+    }
+
+    @Override
+    public boolean mouseClicked(double pMouseX, double pMouseY, int pButton) {
+        for(GuiEventListener guieventlistener : this.children()) {
+            if (guieventlistener.mouseClicked(pMouseX, pMouseY, pButton)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton) {
+        return ContainerEventHandler.super.mouseReleased(pMouseX, pMouseY, pButton);
+    }
+
+    @Override
+    public boolean mouseDragged(double pMouseX, double pMouseY, int pButton, double pDragX, double pDragY) {
+        return ContainerEventHandler.super.mouseDragged(pMouseX, pMouseY, pButton, pDragX, pDragY);
     }
 
     @Override
@@ -65,17 +102,19 @@ public abstract class InvoWidget extends AbstractWidget implements ContainerEven
     }
 
     @Override
-    public void setDragging(boolean pIsDragging) {}
+    public void setDragging(boolean pIsDragging) {
+
+    }
 
     @Override
-    public @Nullable GuiEventListener getFocused() {return null;}
+    public @Nullable GuiEventListener getFocused() {
+        GuiEventListener focusedEventListener = this.screen.getFocused();
+        return focusedEventListener == this ? null : focusedEventListener;
+    }
 
     @Override
-    public void setFocused(@Nullable GuiEventListener pFocused) {}
-
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput pNarrationElementOutput) {
-
+    public void setFocused(@Nullable GuiEventListener pFocused) {
+        this.screen.setFocused(pFocused);
     }
 
     public void removeFromScreen(){

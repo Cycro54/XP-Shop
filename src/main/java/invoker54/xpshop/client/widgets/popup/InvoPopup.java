@@ -1,7 +1,7 @@
 package invoker54.xpshop.client.widgets.popup;
 
 import invoker54.invocore.client.invoimage.InvoImage;
-import invoker54.invocore.client.invoimage.InvoImageSprite;
+import invoker54.invocore.client.invoimage.InvoImageTexture;
 import invoker54.invocore.client.util.InvoZone;
 import invoker54.invocore.common.util.ResourceUtil;
 import invoker54.xpshop.XPShop;
@@ -32,13 +32,13 @@ public class InvoPopup extends InvoWidget {
         this.maxListHeight = builder.maxListHeight;
 
         this.list.setZone(this.getZoneCopy().inflate(-this.horizontalPadding, -this.verticalPadding));
-        this.widgetList.add(this.list);
+        this.entryList.add(this.list);
     }
 
     @Override
     protected void renderWidget(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        if (backgroundImage instanceof InvoImageSprite){
-            ((InvoImageSprite)backgroundImage).renderTiles(pGuiGraphics.pose(), this.getZoneCopy(), false, false);
+        if (backgroundImage instanceof InvoImageTexture){
+//            ((InvoImageTexture)backgroundImage).renderTiles(pGuiGraphics.pose(), this.getZoneCopy(), false, false);
         }
         else {
             backgroundImage.render(pGuiGraphics.pose());
@@ -69,9 +69,10 @@ public class InvoPopup extends InvoWidget {
         }
 
         public Builder(InvoScreen screen, InvoZone maxListZone){
-         this.list = new InvoList(screen, maxListZone, maxListZone,
+         this.list = new InvoList(screen, maxListZone.splitHeight(1,2),
+                 maxListZone, maxListZone.splitHeight(8,1),
                  (int) maxListZone.copy().splitWidth(10,1).width());
-         this.backgroundImage = InvoImage.fromSprite(ResourceUtil.create(XPShop.MOD_ID, "shop/section_background"));
+         this.backgroundImage = InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "shop/section_background"));
          this.horizontalPadding = 4;
          this.verticalPadding = maxListZone.height()/2F;
          this.maxListHeight = screen.getZoneCopy().splitHeight(4,3).height();
@@ -110,7 +111,7 @@ public class InvoPopup extends InvoWidget {
             InvoZone listZone = this.list.getZoneCopy();
             Vector2f topLeft = listZone.topLeft();
 
-            listZone.setHeight(Math.min(this.maxListHeight, this.list.getCombinedWidgetHeight()));
+            listZone.setHeight(Math.min(this.maxListHeight, this.list.getFullWidgetHeight()));
             InvoZone popupZone = listZone.copy().inflate(this.horizontalPadding, this.verticalPadding)
                     .setX(topLeft.x).setY(topLeft.y)
                     .setBound(this.list.screen.getOriginalZone());

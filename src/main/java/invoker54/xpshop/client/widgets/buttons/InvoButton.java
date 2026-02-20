@@ -1,26 +1,38 @@
 package invoker54.xpshop.client.widgets.buttons;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import invoker54.invocore.client.invoimage.InvoImage;
-import invoker54.invocore.client.invoimage.InvoImageSprite;
+import invoker54.invocore.client.invoimage.*;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.client.util.InvoZone;
-import invoker54.invocore.common.util.ResourceUtil;
+import invoker54.invocore.common.ModLogger;
+import invoker54.xpshop.XPShop;
+import invoker54.xpshop.client.InvoTheme;
 import invoker54.xpshop.client.screens.InvoScreen;
 import invoker54.xpshop.client.widgets.InvoWidget;
+import invoker54.xpshop.common.datagen.XPShopLanguageprovider;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
+import org.jline.utils.Log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InvoButton extends InvoWidget {
+    private static final ModLogger LOGGER = ModLogger.getLogger(InvoButton.class, XPShop.debugMode);
+
     public final Map<Integer, OnPush> pushMap;
 
-    public InvoImage clickedImage;
-    public InvoImage disabledImage;
-    public InvoImage normalImage;
-    public InvoImage hoveredImage;
+    public InvoImageCanvas clickedImage;
+    public InvoImageCanvas disabledImage;
+    public InvoImageCanvas normalImage;
+    public InvoImageCanvas hoveredImage;
+
+    public InvoText hoveredMessage;
+    public InvoText disabledMessage;
 
     public boolean isClicked = false;
 
@@ -29,13 +41,17 @@ public class InvoButton extends InvoWidget {
     }
 
     protected InvoButton(InvoScreen screen, InvoZone zone, InvoButton.Builder builder) {
-        super(screen, zone, builder.message);
+        super(screen, zone, builder.message.deepCopy());
+        if (builder.hoveredMessage == null) builder.setHoveredMessage(this.pMessage.deepCopy().withStyle(false, ChatFormatting.YELLOW));
+        this.hoveredMessage = builder.hoveredMessage;
+        if (builder.disabledMessage == null) builder.setHoveredMessage(this.pMessage.deepCopy().withStyle(false, ChatFormatting.BLACK));
+        this.disabledMessage = builder.disabledMessage;
         this.pushMap = builder.pushMap;
-        this.pMessage = builder.message;
-        this.clickedImage = builder.clickedImage;
-        this.disabledImage = builder.disabledImage;
-        this.normalImage = builder.normalImage;
-        this.hoveredImage = builder.hoveredImage;
+        this.clickedImage = builder.clickedImage.copy();
+        this.disabledImage = builder.disabledImage.copy();
+        this.normalImage = builder.normalImage.copy();
+        this.hoveredImage = builder.hoveredImage.copy();
+        this.setTooltip(builder.tooltip);
     }
 
     public void playClickSound(){
@@ -71,33 +87,48 @@ public class InvoButton extends InvoWidget {
         return push.clicked(isClick, this, pMouseX, pMouseY);
     }
 
-    public InvoImage getBackgroundImage(){
+    public List<InvoImageCanvas> getAllBackgrounds(){
+        return new ArrayList<>(List.of(this.clickedImage, this.disabledImage, this.normalImage, this.hoveredImage));
+    }
+
+    public InvoImageCanvas getBackgroundImage(){
         if (!this.active) return this.disabledImage;
         if (this.isClicked) return this.clickedImage;
         if (this.isHovered()) return this.hoveredImage;
         return this.normalImage;
     }
 
-    public void renderBackground(PoseStack stack){
-        InvoImage selectedImage = this.getBackgroundImage();
+    public InvoText getText(){
+        if (!this.active) return this.disabledMessage;
+        if (this.isHovered()) return this.hoveredMessage;
+        return this.pMessage;
+    }
 
-        InvoZone cutOutZone = selectedImage.getRenderZone().copy().inflate(-4,-4);
-        InvoZone renderZone = this.getZoneCopy();
-        if (selectedImage instanceof InvoImageSprite sprite){
-            sprite.renderNineSlice(stack, cutOutZone, renderZone, true, InvoImageSprite.NineSliceType.TILE);
+    @Override
+    public void setZone(InvoZone zone) {
+        super.setZone(zone);
+        if (this.clickedImage == null) return;
+//        LOGGER.warn("Start Button");
+        for (InvoImageCanvas imageCanvas : this.getAllBackgrounds()){
+//            LOGGER.info("Image 1: " + imageCanvas.getFullZone());
+            imageCanvas.setFullZone(zone.copy());
+//            LOGGER.info("Image 2: " + imageCanvas.getFullZone());
         }
-        else {
-            selectedImage.render(stack, renderZone);
-        }
+//        LOGGER.error("End Button");
+//        LOGGER.warn("background: " + this.getZoneCopy());
+    }
+
+    public void renderBackground(PoseStack stack){
+        this.getBackgroundImage().render(stack);
+//        LOGGER.error("What's my new zone? " + this.getBackgroundImage().getFullZone());
+//        LOGGER.error("Also what's my text? " + this.getMessage().getString());
     }
 
     @Override
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         PoseStack stack = pGuiGraphics.pose();
-
         this.renderBackground(stack);
-
-        this.pMessage.render(stack, this.getZoneCopy());
+        this.getText().render(stack, this.getBackgroundImage().getMainZoneCopy());
     }
 
     public interface OnPush{
@@ -105,28 +136,24 @@ public class InvoButton extends InvoWidget {
     }
 
     public static class Builder {
-        public static InvoImageSprite defaultImage = InvoImage.fromSprite(ResourceUtil.create("gui/widgets.png"));
+        protected final Map<Integer, OnPush> pushMap = new HashMap<>();
 
-        private final Map<Integer, OnPush> pushMap = new HashMap<>();
-
-        private InvoText message;
-        private InvoImage clickedImage;
-        private InvoImage disabledImage;
-        private InvoImage normalImage;
-        private InvoImage hoveredImage;
+        protected InvoText message;
+        protected InvoText hoveredMessage;
+        protected InvoText disabledMessage;
+        protected InvoImageCanvas clickedImage;
+        protected InvoImageCanvas disabledImage;
+        protected InvoImageCanvas normalImage;
+        protected InvoImageCanvas hoveredImage;
+        protected Tooltip tooltip;
 
         public Builder() {
-            this.message = InvoText.translate("xp_shop.screen.widget.invowidget.default");
+            this.message = InvoText.translate(XPShopLanguageprovider.defaultWidgetText);
 
-            this.clickedImage = defaultImage.crop(
-                    defaultImage.getRenderZone().copy().setWidth(200).setHeight(20).shift(0, 46));
+            this.clickedImage = InvoTheme.getBackground();
             this.disabledImage = this.clickedImage.copy();
-
             this.normalImage = this.disabledImage.copy();
-            ((InvoImageSprite) this.normalImage).getImageZone().shift(0, 20);
-
             this.hoveredImage = this.normalImage.copy();
-            ((InvoImageSprite) this.hoveredImage).getImageZone().shift(0, 20);
         }
 
         public Builder setButton(Integer button, OnPush push){
@@ -139,23 +166,38 @@ public class InvoButton extends InvoWidget {
             return this.getBuilder();
         }
 
-        public Builder setClickedImage(InvoImage clickedImage) {
+        public Builder setHoveredMessage(InvoText hoveredMessage){
+            this.hoveredMessage = hoveredMessage;
+            return this.getBuilder();
+        }
+
+        public Builder setDisabledMessage(InvoText disabledMessage){
+            this.disabledMessage = disabledMessage;
+            return this.getBuilder();
+        }
+
+        public Builder setClickedImage(InvoImageCanvas clickedImage) {
             this.clickedImage = clickedImage;
             return this.getBuilder();
         }
 
-        public Builder setDisabledImage(InvoImage disabledImage) {
+        public Builder setDisabledImage(InvoImageCanvas disabledImage) {
             this.disabledImage = disabledImage;
             return this.getBuilder();
         }
 
-        public Builder setNormalImage(InvoImage normalImage) {
+        public Builder setNormalImage(InvoImageCanvas normalImage) {
             this.normalImage = normalImage;
             return this.getBuilder();
         }
 
-        public Builder setHoveredImage(InvoImage hoveredImage) {
+        public Builder setHoveredImage(InvoImageCanvas hoveredImage) {
             this.hoveredImage = hoveredImage;
+            return this.getBuilder();
+        }
+
+        public Builder setTooltip(InvoText text){
+            this.tooltip = Tooltip.create(text.getText());
             return this.getBuilder();
         }
         
@@ -168,7 +210,7 @@ public class InvoButton extends InvoWidget {
         }
 
         public InvoButton build(InvoScreen screen){
-            InvoZone textZone = new InvoZone(0,0,0,9);
+            InvoZone textZone = new InvoZone(0,0,0,18);
             textZone.setWidth(ClientUtil.getFont().width(this.message.getText()));
             return this.build(screen, textZone);
         }

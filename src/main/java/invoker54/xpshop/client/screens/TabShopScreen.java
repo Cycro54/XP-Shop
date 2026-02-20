@@ -1,7 +1,7 @@
 package invoker54.xpshop.client.screens;
 
+import invoker54.invocore.client.invoimage.InvoImage;
 import invoker54.invocore.client.util.ClientUtil;
-import invoker54.invocore.client.util.InvoImage;
 import invoker54.invocore.client.util.InvoZone;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.capability.PlayerCapability;
@@ -10,8 +10,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,11 +24,9 @@ public class TabShopScreen extends ShopScreen {
     public InvoZone sectionZone;
 
     //This is basic background for now
-    public static InvoImage sectionBackgroundImage = InvoImage.fromResource(
-            ResourceLocation.fromNamespaceAndPath(XPShop.MOD_ID, "basic/shop/section_background").toString());
 
     public TabShopScreen(TabShop tabDataCopy) {
-        super(pTitle);
+        super(tabDataCopy.getName().getText());
         this.tabDataCopy = tabDataCopy.copy();
         this.playerCap = PlayerCapability.get(ClientUtil.getPlayer());
     }
@@ -54,9 +50,9 @@ public class TabShopScreen extends ShopScreen {
         super.renderBackground(pGuiGraphics);
 
         //Renders the background
-        InvoZone cutOutZone = sectionBackgroundImage.getRenderZone().copy().inflate(-4,-4);
-        InvoZone renderZone = this.sectionZone.copy().inflate(4, 4);
-        sectionBackgroundImage.renderNineSlice(pGuiGraphics.pose(), cutOutZone, renderZone, true, InvoImage.NineSliceType.TILE);
+//        InvoZone cutOutZone = sectionBackgroundImage.getRenderZone().copy().inflate(-4,-4);
+//        InvoZone renderZone = this.sectionZone.copy().inflate(4, 4);
+//        sectionBackgroundImage.renderNineSlice(pGuiGraphics.pose(), cutOutZone, renderZone, true, InvoImage.NineSliceType.TILE);
     }
 
     @Override
