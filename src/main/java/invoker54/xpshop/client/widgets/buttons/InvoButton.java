@@ -1,7 +1,7 @@
 package invoker54.xpshop.client.widgets.buttons;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import invoker54.invocore.client.invoimage.*;
+import invoker54.invocore.client.invoimage.InvoImageCanvas;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoText;
 import invoker54.invocore.client.util.InvoZone;
@@ -14,7 +14,6 @@ import invoker54.xpshop.common.datagen.XPShopLanguageprovider;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
-import org.jline.utils.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -128,14 +127,14 @@ public class InvoButton extends InvoWidget {
     protected void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         PoseStack stack = pGuiGraphics.pose();
         this.renderBackground(stack);
-        this.getText().render(stack, this.getBackgroundImage().getMainZoneCopy());
+        this.getText().render(stack, this.getBackgroundImage().getMainZoneCopy(), false);
     }
 
     public interface OnPush{
         boolean clicked(boolean isClick, InvoButton button, double pMouseX, double pMouseY);
     }
 
-    public static class Builder {
+    public static class Builder<b extends Builder<?>> {
         protected final Map<Integer, OnPush> pushMap = new HashMap<>();
 
         protected InvoText message;
@@ -156,53 +155,54 @@ public class InvoButton extends InvoWidget {
             this.hoveredImage = this.normalImage.copy();
         }
 
-        public Builder setButton(Integer button, OnPush push){
+        public b setButton(Integer button, OnPush push){
             this.pushMap.put(button, push);
             return this.getBuilder();
         }
 
-        public Builder setMessage(InvoText message) {
+        public b setMessage(InvoText message) {
             this.message = message;
             return this.getBuilder();
         }
 
-        public Builder setHoveredMessage(InvoText hoveredMessage){
+        public b setHoveredMessage(InvoText hoveredMessage){
             this.hoveredMessage = hoveredMessage;
             return this.getBuilder();
         }
 
-        public Builder setDisabledMessage(InvoText disabledMessage){
+        public b setDisabledMessage(InvoText disabledMessage){
             this.disabledMessage = disabledMessage;
             return this.getBuilder();
         }
 
-        public Builder setClickedImage(InvoImageCanvas clickedImage) {
+        public b setClickedImage(InvoImageCanvas clickedImage) {
             this.clickedImage = clickedImage;
             return this.getBuilder();
         }
 
-        public Builder setDisabledImage(InvoImageCanvas disabledImage) {
+        public b setDisabledImage(InvoImageCanvas disabledImage) {
             this.disabledImage = disabledImage;
             return this.getBuilder();
         }
 
-        public Builder setNormalImage(InvoImageCanvas normalImage) {
+        public b setNormalImage(InvoImageCanvas normalImage) {
             this.normalImage = normalImage;
             return this.getBuilder();
         }
 
-        public Builder setHoveredImage(InvoImageCanvas hoveredImage) {
+        public b setHoveredImage(InvoImageCanvas hoveredImage) {
             this.hoveredImage = hoveredImage;
             return this.getBuilder();
         }
 
-        public Builder setTooltip(InvoText text){
-            this.tooltip = Tooltip.create(text.getText());
+        public b setTooltip(InvoText text){
+            this.tooltip = Tooltip.create(text.getText(false));
             return this.getBuilder();
         }
-        
-        public Builder getBuilder(){
-            return this;
+
+        @SuppressWarnings("unchecked")
+        public b getBuilder(){
+            return (b) this;
         }
 
         public InvoButton build(InvoScreen screen, InvoZone widgetZone){
@@ -211,7 +211,7 @@ public class InvoButton extends InvoWidget {
 
         public InvoButton build(InvoScreen screen){
             InvoZone textZone = new InvoZone(0,0,0,18);
-            textZone.setWidth(ClientUtil.getFont().width(this.message.getText()));
+            textZone.setWidth(ClientUtil.getFont().width(this.message.getText(true)));
             return this.build(screen, textZone);
         }
     }

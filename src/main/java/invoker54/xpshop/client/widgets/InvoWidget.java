@@ -17,10 +17,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public abstract class InvoWidget extends AbstractWidget implements ContainerEventHandler, InvoZoneHandler {
     private static final ModLogger LOGGER = ModLogger.getLogger(XPShop.debugMode);
     protected final List<InvoWidget> entryList;
+    protected Consumer<InvoZone> zoneListener;
     public final InvoScreen screen;
     protected InvoText pMessage;
     protected InvoZone trueZone;
@@ -30,7 +32,7 @@ public abstract class InvoWidget extends AbstractWidget implements ContainerEven
     }
 
     public InvoWidget(InvoScreen screen, InvoZone widgetZone, InvoText pMessage) {
-        super(0,0,0,0, pMessage.getText());
+        super(0,0,0,0, pMessage.getText(true));
         this.screen = screen;
         this.setZone(widgetZone);
         this.entryList = new ArrayList<>();
@@ -43,6 +45,14 @@ public abstract class InvoWidget extends AbstractWidget implements ContainerEven
         this.setWidth((int) zone.width());
         this.setHeight((int) zone.height());
         this.trueZone = zone.copy();
+    }
+
+    public void setZoneListener(Consumer<InvoZone> zoneListener){
+        this.zoneListener = zoneListener;
+    }
+
+    public void onZoneChange(){
+        if (zoneListener != null) zoneListener.accept(this.getZoneCopy());
     }
 
     @Override

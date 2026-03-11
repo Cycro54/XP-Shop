@@ -1,5 +1,4 @@
 package invoker54.xpshop.client.screens.searchscreens;
 
-public class IconSearchScreen {
-
+public class ItemSearcher {
 }

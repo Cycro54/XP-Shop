@@ -1,16 +1,13 @@
 package invoker54.xpshop.client.screens;
 
-import invoker54.invocore.client.invoimage.InvoImage;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoZone;
-import invoker54.xpshop.XPShop;
 import invoker54.xpshop.common.capability.PlayerCapability;
 import invoker54.xpshop.common.data.shops.TabShop;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public class TabShopScreen extends ShopScreen {
@@ -26,7 +23,7 @@ public class TabShopScreen extends ShopScreen {
     //This is basic background for now
 
     public TabShopScreen(TabShop tabDataCopy) {
-        super(tabDataCopy.getName().getText());
+        super(tabDataCopy.getName().getText(false));
         this.tabDataCopy = tabDataCopy.copy();
         this.playerCap = PlayerCapability.get(ClientUtil.getPlayer());
     }

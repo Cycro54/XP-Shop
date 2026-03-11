@@ -103,8 +103,8 @@ public class InvoPopup extends InvoWidget {
             return this;
         }
 
-        public InvoZone getEntryWidgetZone() {
-            return this.list.entryZone.copy();
+        public InvoZone getEntryWidgetZone(boolean max) {
+            return this.list.getEntryZone(max).copy();
         }
 
         public InvoPopup build() {

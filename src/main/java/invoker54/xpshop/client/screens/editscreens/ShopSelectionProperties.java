@@ -3,24 +3,17 @@ package invoker54.xpshop.client.screens.editscreens;
 import invoker54.invocore.client.invoimage.InvoImage;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoText;
-import invoker54.invocore.client.util.InvoZone;
 import invoker54.invocore.common.ModLogger;
-import invoker54.invocore.common.util.MathUtil;
-import invoker54.invocore.common.util.ResourceUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.InvoTheme;
 import invoker54.xpshop.client.widgets.InvoList;
 import invoker54.xpshop.client.widgets.buttons.ImageTextButton;
 import invoker54.xpshop.client.widgets.buttons.InvoButton;
-import invoker54.xpshop.client.widgets.popup.InvoPopup;
 import invoker54.xpshop.common.data.BasicData;
 import invoker54.xpshop.common.data.ShopDataManager;
 import invoker54.xpshop.common.data.shops.Shop;
 import invoker54.xpshop.common.datagen.XPShopLanguageprovider;
-import invoker54.xpshop.init.ShopScreenInit;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.List;
 
 public class ShopSelectionProperties {
     private static final ModLogger LOGGER = ModLogger.getLogger(ShopSelectionProperties.class, XPShop.debugMode);
@@ -82,117 +75,117 @@ public class ShopSelectionProperties {
         return buttonBuilder;
     }
 
-    public static InvoButton.Builder makeShopPropertyButton(PropertyScreen screen, Shop shop){
-        InvoButton.Builder builder = fromBasicData(shop);
-
-        //Left click to open shop
-        builder.setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
-                ((isClick, button, pMouseX, pMouseY) -> {
-                    if (!isClick) return false;
-                    ShopScreenInit.openShop(shop);
-                    return true;
-                }));
-
-        //Right click for popup
-        builder.setButton(GLFW.GLFW_MOUSE_BUTTON_RIGHT,
-                ((isClick, button, pMouseX, pMouseY) -> {
-                    if (!isClick) return false;
-                    InvoPopup.Builder popUpBuilder = new InvoPopup.Builder(screen, (float) pMouseX, (float) pMouseY);
-
-                    //Rename Button
-                    InvoText renameText = InvoText.translate(XPShopLanguageprovider.renamePopup).setArgsAndCopy(shop.getSpecificType());
-                    renameText.getProperties().setMaxSplits(2);
-
-                    InvoZone widgetZone = popUpBuilder.getEntryWidgetZone();
-                    widgetZone.setWidth((float) MathUtil.clamp(ClientUtil.getFont().width(renameText.getText()),
-                            widgetZone.width(), screen.getOriginalZone().width()/2F));
-
-                    InvoButton renameButton = new ImageTextButton.Builder()
-                            .setIconImage(InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "edit_text")))
-                            .setMessage(renameText)
-                            .setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
-                                    (isClickEdit, buttonEdit, pMouseXEdit, pMouseYEdit)  ->
-                                    {
-                                        if (!isClickEdit) return false;
-//                                        InvoPopup.Builder popUpBuilder = new InvoPopup.Builder(screen, (float) pMouseX, (float) pMouseY);
-
-
-                                        return true;
-                                    }).build(screen, widgetZone);
-                    popUpBuilder.addEntry(widgetZone,
-                            (entry -> renameButton.setZone(entry.getZoneCopy())), List.of(renameButton));
-
-                    //Edit button
-                    InvoText editText = InvoText.translate(XPShopLanguageprovider.editPopup).setArgsAndCopy(shop.getSpecificType());
-                    editText.getProperties().setMaxSplits(2);
-
-                    widgetZone = popUpBuilder.getEntryWidgetZone();
-                    widgetZone.setWidth((float) MathUtil.clamp(ClientUtil.getFont().width(editText.getText()),
-                            widgetZone.width(), screen.getOriginalZone().width()/2F));
-
-                    InvoButton editButton = new ImageTextButton.Builder()
-                            .setIconImage(InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "cog_wheel")))
-                            .setMessage(editText)
-                            .setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
-                                    (isClickEdit, buttonEdit, pMouseXEdit, pMouseYEdit)  ->
-                                    {
-                                        if (!isClickEdit) return false;
-//                                        PropertyScreen shopSettingsScreen =
-//                                                new PropertyScreen(InvoText.translate(XPShopLanguageprovider.editPopup).setArgsAndCopy(shop.getSpecificType()));
-
-                                        return true;
-                                    }).build(screen, widgetZone);
-                    popUpBuilder.addEntry(widgetZone,
-                            (entry -> editButton.setZone(entry.getZoneCopy())), List.of(editButton));
-
-                    //Duplicate Button
-                    InvoText duplicateText = InvoText.translate(XPShopLanguageprovider.duplicatePopup).setArgsAndCopy(shop.getSpecificType());
-                    duplicateText.getProperties().setMaxSplits(2);
-
-                    widgetZone = popUpBuilder.getEntryWidgetZone();
-                    widgetZone.setWidth((float) MathUtil.clamp(ClientUtil.getFont().width(duplicateText.getText()),
-                            widgetZone.width(), screen.getOriginalZone().width()/2F));
-
-                    InvoButton duplicateButton = new ImageTextButton.Builder()
-                            .setIconImage(InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "duplicate")))
-                            .setMessage(duplicateText)
-                            .setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
-                                    (isClickEdit, buttonEdit, pMouseXEdit, pMouseYEdit)  ->
-                                    {
-                                        if (!isClickEdit) return false;
-
-                                        return true;
-                                    }).build(screen, widgetZone);
-                    popUpBuilder.addEntry(widgetZone,
-                            (entry -> duplicateButton.setZone(entry.getZoneCopy())), List.of(duplicateButton));
-
-                    //Remove Button
-                    InvoText removeText = InvoText.translate(XPShopLanguageprovider.removePopup).setArgsAndCopy(shop.getSpecificType());
-                    removeText.getProperties().setMaxSplits(2);
-
-                    widgetZone = popUpBuilder.getEntryWidgetZone();
-                    widgetZone.setWidth((float) MathUtil.clamp(ClientUtil.getFont().width(removeText.getText()),
-                            widgetZone.width(), screen.getOriginalZone().width()/2F));
-
-                    InvoButton removeButton = new ImageTextButton.Builder()
-                            .setIconImage(InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "trash_can")))
-                            .setMessage(removeText)
-                            .setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
-                                    (isClickEdit, buttonEdit, pMouseXEdit, pMouseYEdit)  ->
-                                    {
-                                        if (!isClickEdit) return false;
-                                        //Remove function here!
-//                                        NetworkHandler.INSTANCE.sendToServer(new ModifyShopDataMsg(shop.getID().toString(), null));
-//                                        Have to get the property screen to update...
-                                        return true;
-                                    }).build(screen, widgetZone);
-                    popUpBuilder.addEntry(widgetZone,
-                            (entry -> removeButton.setZone(entry.getZoneCopy())), List.of(removeButton));
-
-                    screen.setPopup(popUpBuilder.build());
-                    return true;
-                }));
-
-        return builder;
-    }
+//    public static InvoButton.Builder makeShopPropertyButton(PropertyScreen screen, Shop shop){
+//        InvoButton.Builder builder = fromBasicData(shop);
+//
+//        //Left click to open shop
+//        builder.setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
+//                ((isClick, button, pMouseX, pMouseY) -> {
+//                    if (!isClick) return false;
+//                    ShopScreenInit.openShop(shop);
+//                    return true;
+//                }));
+//
+//        //Right click for popup
+//        builder.setButton(GLFW.GLFW_MOUSE_BUTTON_RIGHT,
+//                ((isClick, button, pMouseX, pMouseY) -> {
+//                    if (!isClick) return false;
+//                    InvoPopup.Builder popUpBuilder = new InvoPopup.Builder(screen, (float) pMouseX, (float) pMouseY);
+//
+//                    //Rename Button
+//                    InvoText renameText = InvoText.translate(XPShopLanguageprovider.renamePopup).setArgsAndCopy(shop.getSpecificType());
+//                    renameText.getProperties().setMaxSplits(2);
+//
+//                    InvoZone widgetZone = popUpBuilder.getEntryWidgetZone();
+//                    widgetZone.setWidth((float) MathUtil.clamp(ClientUtil.getFont().width(renameText.getText()),
+//                            widgetZone.width(), screen.getOriginalZone().width()/2F));
+//
+//                    InvoButton renameButton = new ImageTextButton.Builder()
+//                            .setIconImage(InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "edit_text")))
+//                            .setMessage(renameText)
+//                            .setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
+//                                    (isClickEdit, buttonEdit, pMouseXEdit, pMouseYEdit)  ->
+//                                    {
+//                                        if (!isClickEdit) return false;
+////                                        InvoPopup.Builder popUpBuilder = new InvoPopup.Builder(screen, (float) pMouseX, (float) pMouseY);
+//
+//
+//                                        return true;
+//                                    }).build(screen, widgetZone);
+//                    popUpBuilder.addEntry(widgetZone,
+//                            (entry -> renameButton.setZone(entry.getZoneCopy())), List.of(renameButton));
+//
+//                    //Edit button
+//                    InvoText editText = InvoText.translate(XPShopLanguageprovider.editPopup).setArgsAndCopy(shop.getSpecificType());
+//                    editText.getProperties().setMaxSplits(2);
+//
+//                    widgetZone = popUpBuilder.getEntryWidgetZone();
+//                    widgetZone.setWidth((float) MathUtil.clamp(ClientUtil.getFont().width(editText.getText()),
+//                            widgetZone.width(), screen.getOriginalZone().width()/2F));
+//
+//                    InvoButton editButton = new ImageTextButton.Builder()
+//                            .setIconImage(InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "cog_wheel")))
+//                            .setMessage(editText)
+//                            .setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
+//                                    (isClickEdit, buttonEdit, pMouseXEdit, pMouseYEdit)  ->
+//                                    {
+//                                        if (!isClickEdit) return false;
+////                                        PropertyScreen shopSettingsScreen =
+////                                                new PropertyScreen(InvoText.translate(XPShopLanguageprovider.editPopup).setArgsAndCopy(shop.getSpecificType()));
+//
+//                                        return true;
+//                                    }).build(screen, widgetZone);
+//                    popUpBuilder.addEntry(widgetZone,
+//                            (entry -> editButton.setZone(entry.getZoneCopy())), List.of(editButton));
+//
+//                    //Duplicate Button
+//                    InvoText duplicateText = InvoText.translate(XPShopLanguageprovider.duplicatePopup).setArgsAndCopy(shop.getSpecificType());
+//                    duplicateText.getProperties().setMaxSplits(2);
+//
+//                    widgetZone = popUpBuilder.getEntryWidgetZone();
+//                    widgetZone.setWidth((float) MathUtil.clamp(ClientUtil.getFont().width(duplicateText.getText()),
+//                            widgetZone.width(), screen.getOriginalZone().width()/2F));
+//
+//                    InvoButton duplicateButton = new ImageTextButton.Builder()
+//                            .setIconImage(InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "duplicate")))
+//                            .setMessage(duplicateText)
+//                            .setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
+//                                    (isClickEdit, buttonEdit, pMouseXEdit, pMouseYEdit)  ->
+//                                    {
+//                                        if (!isClickEdit) return false;
+//
+//                                        return true;
+//                                    }).build(screen, widgetZone);
+//                    popUpBuilder.addEntry(widgetZone,
+//                            (entry -> duplicateButton.setZone(entry.getZoneCopy())), List.of(duplicateButton));
+//
+//                    //Remove Button
+//                    InvoText removeText = InvoText.translate(XPShopLanguageprovider.removePopup).setArgsAndCopy(shop.getSpecificType());
+//                    removeText.getProperties().setMaxSplits(2);
+//
+//                    widgetZone = popUpBuilder.getEntryWidgetZone();
+//                    widgetZone.setWidth((float) MathUtil.clamp(ClientUtil.getFont().width(removeText.getText()),
+//                            widgetZone.width(), screen.getOriginalZone().width()/2F));
+//
+//                    InvoButton removeButton = new ImageTextButton.Builder()
+//                            .setIconImage(InvoImage.fromTexture(ResourceUtil.create(XPShop.MOD_ID, "trash_can")))
+//                            .setMessage(removeText)
+//                            .setButton(GLFW.GLFW_MOUSE_BUTTON_LEFT,
+//                                    (isClickEdit, buttonEdit, pMouseXEdit, pMouseYEdit)  ->
+//                                    {
+//                                        if (!isClickEdit) return false;
+//                                        //Remove function here!
+////                                        NetworkHandler.INSTANCE.sendToServer(new ModifyShopDataMsg(shop.getID().toString(), null));
+////                                        Have to get the property screen to update...
+//                                        return true;
+//                                    }).build(screen, widgetZone);
+//                    popUpBuilder.addEntry(widgetZone,
+//                            (entry -> removeButton.setZone(entry.getZoneCopy())), List.of(removeButton));
+//
+//                    screen.setPopup(popUpBuilder.build());
+//                    return true;
+//                }));
+//
+//        return builder;
+//    }
 }

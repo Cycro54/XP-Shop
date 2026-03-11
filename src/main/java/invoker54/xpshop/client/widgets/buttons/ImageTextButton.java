@@ -2,18 +2,13 @@ package invoker54.xpshop.client.widgets.buttons;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import invoker54.invocore.client.invoimage.InvoImage;
-import invoker54.invocore.client.invoimage.InvoImageCanvas;
-import invoker54.invocore.client.invoimage.InvoImageColor;
 import invoker54.invocore.client.util.ClientUtil;
 import invoker54.invocore.client.util.InvoZone;
 import invoker54.invocore.common.ModLogger;
 import invoker54.invocore.common.util.ResourceUtil;
 import invoker54.xpshop.XPShop;
 import invoker54.xpshop.client.screens.InvoScreen;
-import invoker54.xpshop.common.network.message.OpenShopMenuMsg;
 import net.minecraft.client.gui.GuiGraphics;
-
-import java.awt.*;
 
 public class ImageTextButton extends InvoButton {
     private static final ModLogger LOGGER = ModLogger.getLogger(ImageTextButton.class, XPShop.debugMode);
@@ -46,11 +41,11 @@ public class ImageTextButton extends InvoButton {
         this.iconImage.render(stack, imageZone.inflate(-this.padding));
 
         InvoZone textZone = buttonZone.copy().setWidth(buttonZone.width() - imageZone.width()).setX(imageZone.right()).inflate(-this.padding);
-        this.getText().render(stack, textZone);
+        this.getText().render(stack, textZone, false);
 //        LOGGER.warn("Finish button");
     }
 
-    public static class Builder extends InvoButton.Builder {
+    public static class Builder extends InvoButton.Builder<Builder> {
         private InvoImage iconImage;
         private int padding;
 
@@ -71,14 +66,9 @@ public class ImageTextButton extends InvoButton {
         }
 
         @Override
-        public ImageTextButton.Builder getBuilder() {
-            return this;
-        }
-
-        @Override
-        public InvoButton build(InvoScreen screen) {
+        public ImageTextButton build(InvoScreen screen) {
             InvoZone fullZone = new InvoZone(0,0,0,18);
-            fullZone.setWidth(ClientUtil.getFont().width(this.message.getText()));
+            fullZone.setWidth(ClientUtil.getFont().width(this.message.getText(false)));
             fullZone.setWidth(fullZone.width() + fullZone.height());
             return this.build(screen, fullZone);
         }

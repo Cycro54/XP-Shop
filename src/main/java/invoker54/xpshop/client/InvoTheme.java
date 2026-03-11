@@ -1,16 +1,17 @@
 package invoker54.xpshop.client;
 
-import invoker54.invocore.client.invoimage.ImageOperation;
 import invoker54.invocore.client.invoimage.InvoImage;
 import invoker54.invocore.client.invoimage.InvoImageCanvas;
+import invoker54.invocore.client.invoimage.InvoImageColor;
 import invoker54.invocore.client.invoimage.InvoImageTexture;
 import invoker54.invocore.common.util.ResourceUtil;
 import invoker54.xpshop.XPShop;
 
-import java.util.Collections;
+import java.awt.*;
+import java.util.List;
 
 public class InvoTheme {
-    private static InvoImageTexture background;
+    private static InvoImageCanvas background;
 
     private static InvoImageTexture editIcon;
 
@@ -23,10 +24,11 @@ public class InvoTheme {
     private static InvoImageTexture removeIcon;
 
     public static void init() {
-        background = InvoImage.fromTexture(
-                ResourceUtil.create(XPShop.MOD_ID, "gui/section_background"));
-        background.setOuterOperation(ImageOperation.TILE);
-        background.setSubImageZone(background.getImageZoneCopy().inflate(-4, -4));
+        //Background
+        InvoImageColor green = InvoImage.fromColor(new Color(74, 218, 64, 181));
+        InvoImageColor fadeBlack = InvoImageColor.fromColor(new Color(0, 0, 0, 130));
+        fadeBlack.setMainZone(fadeBlack.getMainZoneCopy().inflate(-1), false);
+        background = green.canvas(fadeBlack.getMainZoneCopy(), List.of(fadeBlack));
 
 
         editIcon = InvoImage.fromTexture(
@@ -46,7 +48,7 @@ public class InvoTheme {
     }
 
     public static InvoImageCanvas getBackground() {
-        return background.canvas(background.getSubRenderZone(background.getAdjustedImageZone()));
+        return background.copy();
     }
 
     public static InvoImage getEditIcon() {

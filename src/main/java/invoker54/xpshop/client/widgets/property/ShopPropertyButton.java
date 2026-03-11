@@ -8,11 +8,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
-public class ShopPropertyWidget extends PropertyWidget{
+public class ShopPropertyButton extends PropertyButton {
     public TabShop dataCopy;
     public InvoButton myButton;
 
-    public ShopPropertyWidget(TabShop dataCopy, InvoScreen screen, InvoZone widgetZone, Component pMessage) {
+    public ShopPropertyButton(TabShop dataCopy, InvoScreen screen, InvoZone widgetZone, Component pMessage) {
         super(screen, widgetZone);
         this.dataCopy = dataCopy;
 //        this.myButton = new InvoButton();

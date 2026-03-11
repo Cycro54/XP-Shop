@@ -14,12 +14,17 @@ import org.jetbrains.annotations.NotNull;
 public class InvoScreen extends Screen implements InvoZoneHandler {
     private static final ModLogger LOGGER = ModLogger.getLogger(InvoScreen.class, XPShop.debugMode);
 
+    public InvoScreen previousScreen;
     public InvoPopup popup;
     public InvoText pTitle;
     public final InvoZone trueZone = new InvoZone(0,0,0,0);
 
     protected InvoScreen(InvoText pTitle) {
-        super(pTitle.getText());
+        this(pTitle, null);
+    }
+
+    protected InvoScreen(InvoText pTitle, InvoScreen previousScreen) {
+        super(pTitle.getText(true));
         this.pTitle = pTitle;
     }
 
@@ -32,6 +37,23 @@ public class InvoScreen extends Screen implements InvoZoneHandler {
     @Override
     public void render(@NotNull GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+//        InvoZone mouseZone = InvoZone.fromPoint(new Vector2f(pMouseX,pMouseY)).inflate(0.5f);
+//        InvoZone textZone = this.getOriginalZone().inflate(-2);
+//        InvoText text = new InvoText.Properties().setTxtAlignment(TextUtil.TextAlign.TOP_LEFT)
+//                .setTextSize(9).text(InvoText.literal("Lorem&l ipsum"));
+//        TextViewer viewer = text.getTextViewer(true, textZone);
+//        text.render(pGuiGraphics.pose(), textZone, true);
+//        viewer.getTextZones(viewer.getDisplayIndex(pMouseX, pMouseY), viewer.getDisplayIndex(pMouseX, pMouseY) + 1).forEach(zone ->{
+////            LOGGER.error("What's my pose: " + new Vector2f(pMouseX, pMouseY));
+////            LOGGER.error("What's the index: " + viewer.getIndex(pMouseX, pMouseY));
+//            InvoImage.fromColor(Color.YELLOW).render(pGuiGraphics.pose(), zone.setWidth(3));
+//        });
+//        InvoText coordText = new InvoText.Properties().setTxtAlignment(TextUtil.TextAlign.TOP_LEFT)
+//                .setMinTextSize(2).text(InvoText.literal("x:"+pMouseX+"\ny:"+pMouseY));
+//        TextViewer coordViewer = coordText.getTextViewer(true,  mouseZone.copy().setWidth(20).setHeight(15).setXDown(mouseZone.topRight()));
+//        InvoImage.fromColor(Color.gray).render(pGuiGraphics.pose(), coordViewer.getZoneCopy());
+//        coordText.render(pGuiGraphics.pose(), coordViewer.getZoneCopy(), true);
+//        InvoImage.fromColor(Color.RED).render(pGuiGraphics.pose(), mouseZone);
     }
 
     @Override

@@ -32,8 +32,8 @@ public class InvoList extends InvoWidget {
     private final List<InvoListEntry> fullList;
     //Dynamic width will always be true, the entries should always be the same width as the list, they are only containers for the actual widgets.
     //public boolean dynamicWidth = true;
-    public InvoZone entryZone;
-    public InvoZone maxWidgetZone;
+    private InvoZone entryZone;
+    private InvoZone maxWidgetZone;
 
     public InvoList(InvoScreen screen, InvoZone widgetZone, InvoZone maxWidgetZone, InvoZone entryZone, int barWidth) {
         super(screen, widgetZone);
@@ -43,7 +43,7 @@ public class InvoList extends InvoWidget {
         this.scrollPercentage = entryZone.height()/this.maxWidgetZone.height();
         this.barWidth = barWidth;
 
-        LOGGER.info("What's my zone? " + this.getZoneCopy());
+//        LOGGER.info("What's my zone? " + this.getZoneCopy());
     }
 
     public void addEntry(InvoWidget widget){
@@ -67,9 +67,9 @@ public class InvoList extends InvoWidget {
         this.fullList.add(entry);
 
         InvoZone adjustedZone = this.getZoneCopy();
-        LOGGER.error("What's current zone: " + adjustedZone);
-        LOGGER.error("Full Widget Height: " + this.getFullWidgetHeight());
-        LOGGER.error("MaxWidgetZone: " + this.maxWidgetZone);
+//        LOGGER.error("What's current zone: " + adjustedZone);
+//        LOGGER.error("Full Widget Height: " + this.getFullWidgetHeight());
+//        LOGGER.error("MaxWidgetZone: " + this.maxWidgetZone);
 
         adjustedZone.setWidth((float) MathUtil.clamp(adjustedZone.width(), entry.getWidth(), this.maxWidgetZone.width())).
                 setHeight((float) MathUtil.clamp(this.getFullWidgetHeight(), adjustedZone.height(), this.maxWidgetZone.height())).
@@ -83,8 +83,8 @@ public class InvoList extends InvoWidget {
         this.setZone(this.getZoneCopy());
     }
 
-    public InvoZone getEntryZone(){
-        return this.entryZone.copy();
+    public InvoZone getEntryZone(boolean max){
+        return this.entryZone.copy().setWidth(max ? this.maxWidgetZone.width() : this.entryZone.width());
     }
 
     public float getFullWidgetHeight(){
@@ -162,12 +162,12 @@ public class InvoList extends InvoWidget {
     @Override
     public void renderWidget(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
         this.renderBackground(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
-        pGuiGraphics.enableScissor(this.getX(), this.getY(),
-                this.getX() + this.getWidth(), this.getY() + this.getHeight());
+//        pGuiGraphics.enableScissor(this.getX(), this.getY(),
+//                this.getX() + this.getWidth(), this.getY() + this.getHeight());
 
         super.renderWidget(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
-        pGuiGraphics.disableScissor();
+//        pGuiGraphics.disableScissor();
 
         this.renderScrollBar(pGuiGraphics, pMouseX, pMouseY);
     }
@@ -199,6 +199,10 @@ public class InvoList extends InvoWidget {
         float emptyHeight = (scrollBackgroundZone.height() - scrollBlockHeight);
         return scrollBackgroundZone.copy().setHeight(scrollBlockHeight).
                 shiftXY(0, - (emptyHeight * offsetPercentage)).inflate(-1,-1);
+    }
+
+    public InvoZone getMaxWidgetZone(){
+        return this.maxWidgetZone.copy();
     }
 
     @Override

@@ -25,28 +25,29 @@ public class PropertyScreen extends InvoScreen {
     protected final Consumer<PropertyScreen> consumer;
 
     public PropertyScreen(InvoText pTitle, Consumer<PropertyScreen> consumer) {
-        super(pTitle);
+        super(pTitle, null);
         this.consumer = consumer;
     }
 
     @Override
     protected void init() {
+        LOGGER.error("this is running right? ");
         super.init();
         this.setZone(this.getOriginalZone().splitHeight(4,3).splitWidth(3,1).center(this.getOriginalZone()));
 
         InvoZone maxListZone = this.getOriginalZone().splitHeight(5,4).splitWidth(3,2).center(this.getOriginalZone());
         InvoZone startListZone = maxListZone.copy().splitHeight(2,1).splitWidth(2,1).center(this.getOriginalZone());
-        InvoZone entryZone = this.getZoneCopy().splitHeight(8,1).center(this.getOriginalZone());
+        InvoZone entryZone = startListZone.copy().splitHeight(6,1).center(this.getOriginalZone());
 
         if (this.propertyList == null){
             this.propertyList = new InvoList(this, startListZone, maxListZone, entryZone,6);
             consumer.accept(this);
         }
-        this.propertyList.maxWidgetZone.copy(maxListZone);
+        this.propertyList.getMaxWidgetZone().copy(maxListZone);
         this.propertyList.setZone(this.propertyList.getZoneCopy().center(this.getZoneCopy()));
 //        this.propertyList.setZone(this.getZoneCopy());
         this.addRenderableWidget(this.propertyList);
-
+        LOGGER.error("What's list zone: " + this.propertyList.getZoneCopy());
     }
 
     @Override
@@ -60,13 +61,13 @@ public class PropertyScreen extends InvoScreen {
                 this.getOriginalZone());
 
         InvoZone titleZone = this.getOriginalZone().splitWidth(3,1).
-                setHeight((this.getOriginalZone().height() - this.propertyList.maxWidgetZone.height())/2).
+                setHeight((this.getOriginalZone().height() - this.propertyList.getMaxWidgetZone().height())/2).
                 setY(10).centerX(this.getOriginalZone().middleX());
         InvoImage.fromColor(new Color(0,0,0,180)).render(pGuiGraphics.pose(), titleZone);
         InvoText.Properties properties = new InvoText.Properties();
         properties.deserializeNBT(this.getMessage().getProperties().serializeNBT());
         properties.setShadow(false).setPadding(2).setMaxSplits(2).setMinTextSize(1).setTxtAlignment(TextUtil.TextAlign.MID);
-        properties.text(this.getMessage()).render(pGuiGraphics.pose(), titleZone);
+        properties.text(this.getMessage()).render(pGuiGraphics.pose(), titleZone, false);
         //Renders the background
     }
 

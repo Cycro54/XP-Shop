@@ -49,7 +49,6 @@ public class XPShop {
 
     private void setup(final FMLCommonSetupEvent event)
     {
-
         ShopDataInit.init();
 //        AbstractContainer.typeMap.forEach((s, container) -> LOGGER.debug(container.getType()));
         NetworkHandler.init();
